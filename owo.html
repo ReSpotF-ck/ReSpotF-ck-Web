@@ -175,6 +175,53 @@
             padding-bottom: 100px; /* Space for bottom player */
         }
         
+        /* Responsive design for larger screens */
+        @media (min-width: 768px) {
+            .mobile-container {
+                max-width: 768px;
+            }
+            
+            .bottom-player {
+                padding: 16px 24px;
+            }
+            
+            .bottom-player-art {
+                width: 56px;
+                height: 56px;
+            }
+            
+            .bottom-player-title {
+                font-size: 16px;
+            }
+            
+            .bottom-player-artist {
+                font-size: 14px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .mobile-container {
+                max-width: 1024px;
+            }
+            
+            /* Two-column layout for larger screens */
+            .mobile-container {
+                display: grid;
+                grid-template-columns: 1fr 350px;
+                gap: 24px;
+                padding: 24px;
+            }
+            
+            .mobile-container > header,
+            .mobile-container > footer {
+                grid-column: 1 / -1;
+            }
+            
+            .bottom-player {
+                padding: 16px 32px;
+            }
+        }
+        
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;

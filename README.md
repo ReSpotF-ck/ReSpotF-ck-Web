@@ -1,29 +1,34 @@
-# SpotFuck-Web
+# Spotfuck
 
-SpotFuck-Web is an open-source music streaming web application that integrates with multiple music APIs to provide a unified listening experience. The app fetches configuration from a GitHub repository, making it easy to manage API keys and settings across instances.
+Spotfuck is an open-source music streaming web application with a Spotify mobile-inspired design and AMOLED red theme. It integrates with multiple music APIs to provide a unified listening experience. The app fetches configuration from a GitHub repository, making it easy to manage API keys and settings across instances.
 
 **Live Demo:** https://spotfuck.netlify.app/
 
 ## Features
 
+- **Spotify Mobile-Style UI**: Clean, modern interface inspired by Spotify's mobile app
+- **AMOLED Red Theme**: Pure black background with red accents for true AMOLED displays
+- **Responsive Design**: Optimized for mobile, tablet, and desktop screens
+- **Bottom Player Bar**: Fixed bottom player with album art, controls, and track info
 - **Multi-Platform Integration**: Stream music from YouTube, Spotify, Jamendo, and Audius
 - **GitHub-Based Configuration**: Automatically fetch API keys and settings from a `config.json` file in your GitHub repository
-- **Simple Web Player UI**: Clean, intuitive interface for music playback
 - **Dynamic Configuration**: Change API keys and settings without redeploying the app
 - **Fallback Support**: Manual API key entry if repository fetch fails
+- **Free Music Option**: Audius works without API keys - no setup required
 
 ## Supported Music Services
 
-- **YouTube**: Full YouTube Music library access via YouTube Data API v3
-- **Spotify**: Spotify integration with OAuth authentication
-- **Jamendo**: Free tier access to Jamendo's music catalog
-- **Audius**: Decentralized music streaming platform
+- **Audius** (FREE): Decentralized music streaming platform - works without API keys
+- **YouTube**: Full YouTube Music library access via YouTube Data API v3 (requires API key)
+- **Spotify**: Spotify integration with OAuth authentication (requires Client ID & Secret)
+- **Jamendo**: Free tier access to Jamendo's music catalog (requires Client ID)
 
 ## Requirements
 
 - Modern web browser (Chrome, Firefox, Safari, Edge)
 - GitHub account (for hosting config.json)
-- API keys for desired music services (see [Setup Guide](SETUP_GUIDE.md))
+- API keys for desired music services (except Audius - it's free!)
+- See [Setup Guide](SETUP_GUIDE.md) for detailed instructions
 
 ## Quick Start
 
@@ -37,10 +42,17 @@ SpotFuck-Web is an open-source music streaming web application that integrates w
    - Simply open `owo.html` in your web browser
    - Or deploy to Netlify/Vercel for hosting
 
-3. **Configure API keys**
+3. **Start listening**
+   - The app defaults to Audius (FREE) - no setup required!
+   - Enter PIN: `1412` to unlock
+   - Accept the disclaimer
+   - Search and play music immediately
+
+4. **Configure additional sources (optional)**
+   - Click the Settings button (gear icon)
    - The app is pre-configured to fetch from: `https://github.com/ReSpotF-ck/ReSpotFuck-Web`
-   - Click the Settings button (gear icon) to change the repository URL
    - Add your API keys to `config.json` in your GitHub repository
+   - Or enter API keys directly in Settings
 
 For detailed setup instructions, see the [Setup Guide](SETUP_GUIDE.md).
 

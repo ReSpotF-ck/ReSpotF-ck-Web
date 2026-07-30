@@ -809,6 +809,11 @@
         // Search Jamendo
         async function searchJamendo(query) {
             try {
+                // Add timeout to prevent hanging
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000)
+                );
+                
                 let url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=jsonpretty&limit=20&include=musicinfo&imagesize=500`;
                 
                 console.log('Jamendo search URL:', url);
@@ -822,20 +827,13 @@
                     url += `&search=${encodeURIComponent(query)}`;
                 }
                 
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`Jamendo API returned ${response.status}: ${response.statusText}`);
-                }
-                
+                const response = await Promise.race([fetch(url), timeoutPromise]);
                 const data = await response.json();
-                
-                console.log('Jamendo response:', data);
                 
                 if (data.results && data.results.length > 0) {
                     tracks = data.results.map(track => ({
-                        ...track,
                         source: 'jamendo',
+                        id: track.id,
                         audio: track.audio,
                         image: track.image || track.album_image || `https://via.placeholder.com/150/dc2626/ffffff?text=${encodeURIComponent(track.name.substring(0, 2))}`,
                         name: track.name,
@@ -848,7 +846,7 @@
                 }
             } catch (error) {
                 console.error('Error searching Jamendo:', error);
-                showError(`Jamendo API Error: ${error.message}`);
+                showError(`Jamendo Error: ${error.message}`);
             }
         }
         
@@ -867,6 +865,11 @@
             }
             
             try {
+                // Add timeout to prevent hanging
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000)
+                );
+                
                 let searchQuery = query;
                 // Apply search filter
                 if (currentSearchFilter === 'artists') {
@@ -880,7 +883,7 @@
                 const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(searchQuery)}&type=video&key=${youtubeApiKey}`;
                 console.log('YouTube search URL:', url);
                 
-                const response = await fetch(url);
+                const response = await Promise.race([fetch(url), timeoutPromise]);
                 const data = await response.json();
                 
                 console.log('YouTube response:', data);
@@ -1075,8 +1078,16 @@
             try {
                 console.log('Audius search starting...');
                 
+                // Add timeout to prevent hanging
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000)
+                );
+                
                 // First get the host from the discovery API
-                const hostResponse = await fetch('https://api.audius.co');
+                const hostResponse = await Promise.race([
+                    fetch('https://api.audius.co'),
+                    timeoutPromise
+                ]);
                 
                 if (!hostResponse.ok) {
                     throw new Error('Failed to connect to Audius discovery API');
@@ -1099,7 +1110,7 @@
                 if (currentSearchFilter === 'artists') {
                     url = `https://${host}/v1/users/search?query=${encodeURIComponent(query)}&limit=5`;
                     console.log('Audius artist search URL:', url);
-                    const response = await fetch(url);
+                    const response = await Promise.race([fetch(url), timeoutPromise]);
                     const data = await response.json();
                     
                     console.log('Audius artist response:', data);
@@ -1107,7 +1118,10 @@
                     if (data.data && data.data.length > 0) {
                         // Get tracks from the first artist
                         const artistId = data.data[0].id;
-                        const tracksResponse = await fetch(`https://${host}/v1/users/${artistId}/tracks?limit=20`);
+                        const tracksResponse = await Promise.race([
+                            fetch(`https://${host}/v1/users/${artistId}/tracks?limit=20`),
+                            timeoutPromise
+                        ]);
                         const tracksData = await tracksResponse.json();
                         
                         console.log('Audius artist tracks response:', tracksData);
@@ -1131,7 +1145,7 @@
                     }
                 } else {
                     console.log('Audius track search URL:', url);
-                    const response = await fetch(url);
+                    const response = await Promise.race([fetch(url), timeoutPromise]);
                     const data = await response.json();
                     
                     console.log('Audius track response:', data);
@@ -1171,8 +1185,8 @@
         
         function showNoResults() {
             trackList.innerHTML = `
-                <div class="text-center py-8" style="color: var(--secondary-text);">
-                    <i class="fas fa-search text-4xl mb-3"></i>
+                <div class="text-center py-8" style="color: var(--text-secondary);">
+                    <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
                     <p>No tracks found. Try a different search.</p>
                 </div>
             `;
@@ -1182,8 +1196,9 @@
             trackList.innerHTML = `
                 <div class="text-center text-red-400 py-8">
                     <i class="fas fa-exclamation-circle text-4xl mb-3"></i>
-                    <p>${message}</p>
-                    <button onclick="retrySearch()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">
+                    <p class="font-medium">${message}</p>
+                    <p class="text-sm mt-2 opacity-75">Check the console (F12) for more details</p>
+                    <button onclick="retrySearch()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm transition-colors">
                         Retry
                     </button>
                 </div>

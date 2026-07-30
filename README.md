@@ -15,6 +15,9 @@ Spotfuck is an open-source music streaming web application with a Spotify mobile
 - **Dynamic Configuration**: Change API keys and settings without redeploying the app
 - **Fallback Support**: Manual API key entry if repository fetch fails
 - **Free Music Option**: Audius works without API keys - no setup required
+- **Download/Save Tracks**: Download Audius and Jamendo tracks locally (with cache warning)
+- **Privacy Protection**: PIN required on every page load (PIN: 1412)
+- **Legal Compliance**: DMCA disclaimer shown on every visit
 
 ## Supported Music Services
 

@@ -1,16 +1,62 @@
-# Setup Guide - Repository Configuration
+# Setup Guide - Spotfuck
 
-This guide explains how to set up the Spotfuck app to fetch API configuration from a GitHub repository.
+This guide explains how to set up and use the Spotfuck music streaming application.
 
 ## Overview
 
-The app can now automatically fetch API keys and configuration from a `config.json` file stored in a GitHub repository. This makes it easy to manage configuration across multiple instances or share settings with others.
+Spotfuck is a music streaming app with a Spotify mobile-inspired design and AMOLED red theme. It integrates with multiple music APIs and can fetch configuration from a GitHub repository.
 
 **Default Repository:** https://github.com/ReSpotF-ck/ReSpotFuck-Web
 
-The app is pre-configured to use this repository. You can change it in Settings if needed.
+## Access Control
 
-## Step 1: Create or Update config.json
+### PIN Entry (Privacy)
+- **PIN**: 1412
+- Required on **every page load** for privacy
+- No authentication is saved to localStorage
+
+### DMCA Disclaimer (Legal Compliance)
+- Shown **every time** after entering PIN
+- Must be accepted to access the app
+- No acceptance is saved to localStorage
+
+## Quick Start
+
+1. Open `owo.html` in your browser
+2. Enter PIN: `1412`
+3. Accept the DMCA disclaimer
+4. Select a music source (Audius is FREE and selected by default)
+5. Search and play music
+
+## Music Sources
+
+### Audius (FREE - Recommended)
+- No API key required
+- Works immediately
+- Download tracks locally
+
+### YouTube (Requires API Key)
+- Get API key from console.cloud.google.com
+- Enable YouTube Data API v3
+- Cannot download tracks (terms of service)
+
+### Spotify (Requires Client ID & Secret)
+- Get credentials from developer.spotify.com
+- Client ID: Public identifier for your app
+- Client Secret: Secret key for authentication
+- Only 30-second previews available
+- Cannot download tracks
+
+### Jamendo (Requires Client ID)
+- Get Client ID from jamendo.com
+- Free tier available
+- Download tracks locally
+
+## GitHub Repository Configuration
+
+The app can automatically fetch API keys and configuration from a `config.json` file stored in a GitHub repository.
+
+### Step 1: Create or Update config.json
 
 Create a `config.json` file in your GitHub repository with the following structure:
 
@@ -57,17 +103,19 @@ Create a `config.json` file in your GitHub repository with the following structu
 - The default client ID `c4ce16c7` is for the free tier
 - You can use this as-is or get your own from [jamendo.com](https://jamendo.com)
 
-## Step 2: Upload config.json to Your Repository
+### Step 2: Upload config.json to Your Repository
 
 1. Make sure your `config.json` file is in the **main** branch of your repository
 2. The file should be at the root level: `config.json`
 3. Commit and push the file to GitHub
 
-## Step 3: Configure the App
+### Step 3: Configure the App
 
 1. Open the Spotfuck app (`owo.html`)
-2. The app is **pre-configured** with the default repository: `https://github.com/ReSpotF-ck/ReSpotFuck-Web`
-3. If you want to use a different repository:
+2. Enter PIN: `1412`
+3. Accept the DMCA disclaimer
+4. The app is **pre-configured** with the default repository: `https://github.com/ReSpotF-ck/ReSpotFuck-Web`
+5. If you want to use a different repository:
    - Click the **Settings** button (gear icon) in the top right
    - Enter your GitHub repository URL in the "Repository URL" field
    - Format: `https://github.com/your-username/your-repo`
@@ -79,12 +127,32 @@ The app will automatically:
 - Load all API keys and configuration
 - Save the repository URL for future use
 
-## Step 4: Verification
+### Step 4: Verification
 
 After saving settings:
 1. Check the browser console (F12) for success messages
 2. You should see: "Configuration loaded successfully"
 3. The app will now use the API keys from your repository
+
+## Downloading Tracks
+
+### Supported Sources
+- **Audius**: Can download tracks locally
+- **Jamendo**: Can download tracks locally
+- **YouTube**: Cannot download (terms of service)
+- **Spotify**: Cannot download (only 30-second previews)
+
+### How to Download
+1. Search for tracks
+2. Click the red download button next to the track duration
+3. The track will download as an MP3 file
+4. Track metadata is saved to localStorage
+
+### Important Warning
+⚠️ **If you clear website data or cache, saved songs will be deleted.**
+- Downloaded audio files are saved to your device
+- Track metadata is saved in localStorage
+- Clearing browser data will remove the metadata but not the downloaded files
 
 ## Fallback Behavior
 

@@ -1215,20 +1215,87 @@
                             <h3 class="font-medium truncate text-sm">${track.name}</h3>
                             <p class="text-xs truncate" style="color: var(--text-secondary);">${track.artist_name}</p>
                         </div>
-                        <div class="text-xs" style="color: var(--text-secondary);">
-                            ${formatTime(track.duration)}
+                        <div class="flex items-center gap-2">
+                            <button class="download-btn text-xs px-2 py-1 rounded" style="background: var(--primary-color); color: white;" data-index="${index}" title="Download/Save locally">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <div class="text-xs" style="color: var(--text-secondary);">
+                                ${formatTime(track.duration)}
+                            </div>
                         </div>
                     </div>
                 </div>
             `).join('');
             
-            // Add click listeners
+            // Add click listeners for track items
             document.querySelectorAll('.track-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const index = parseInt(item.dataset.index);
-                    playTrack(index);
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.download-btn')) {
+                        const index = parseInt(item.dataset.index);
+                        playTrack(index);
+                    }
                 });
             });
+            
+            // Add click listeners for download buttons
+            document.querySelectorAll('.download-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const index = parseInt(btn.dataset.index);
+                    downloadTrack(index);
+                });
+            });
+        }
+        
+        // Download/Save track locally
+        async function downloadTrack(index) {
+            const track = tracks[index];
+            
+            if (track.source === 'spotify') {
+                alert('Spotify tracks cannot be downloaded directly. Only 30-second previews are available.');
+                return;
+            }
+            
+            if (track.source === 'youtube') {
+                alert('YouTube tracks cannot be downloaded directly due to YouTube\'s terms of service.');
+                return;
+            }
+            
+            // For Audius and Jamendo, we can download
+            try {
+                const response = await fetch(track.audio);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${track.name} - ${track.artist_name}.mp3`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // Save to localStorage (metadata only)
+                const savedTracks = JSON.parse(localStorage.getItem('savedTracks') || '[]');
+                const alreadySaved = savedTracks.some(t => t.id === track.id);
+                if (!alreadySaved) {
+                    savedTracks.push({
+                        id: track.id,
+                        name: track.name,
+                        artist_name: track.artist_name,
+                        image: track.image,
+                        source: track.source,
+                        savedAt: new Date().toISOString()
+                    });
+                    localStorage.setItem('savedTracks', JSON.stringify(savedTracks));
+                    alert(`"${track.name}" saved to local library!\n\n⚠️ Warning: If you clear website data or cache, saved songs will be deleted.`);
+                } else {
+                    alert(`"${track.name}" is already in your local library.`);
+                }
+            } catch (error) {
+                console.error('Error downloading track:', error);
+                alert('Failed to download track. The audio URL may not support direct downloads.');
+            }
         }
         
         // Play track

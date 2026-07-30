@@ -352,6 +352,20 @@
                     </div>
                     
                     <div>
+                        <label class="block text-sm font-medium mb-2">Jamendo Client ID</label>
+                        <input 
+                            type="text" 
+                            id="jamendoClientId" 
+                            placeholder="Enter your Jamendo Client ID"
+                            class="w-full rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                            style="background: var(--input-bg); color: var(--text-color);"
+                            onfocus="this.style.outline='2px solid var(--primary-color)'"
+                            onblur="this.style.outline='none'"
+                        >
+                        <p class="text-xs mt-1" style="color: var(--secondary-text);">Get it from jamendo.com (optional - Audius is free)</p>
+                    </div>
+                    
+                    <div>
                         <label class="block text-sm font-medium mb-2">YouTube API Key</label>
                         <input 
                             type="text" 
@@ -502,6 +516,7 @@
         let spotifyClientId = localStorage.getItem('spotifyClientId') || '';
         let spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
         let spotifyAccessToken = null;
+        let JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || '';
         
         // Debug: Log loaded credentials
         console.log('Loaded credentials:', {
@@ -537,6 +552,7 @@
         const spotifyClientIdInput = document.getElementById('spotifyClientId');
         const spotifyClientSecretInput = document.getElementById('spotifyClientSecret');
         const repoUrlInput = document.getElementById('repoUrl');
+        const jamendoClientIdInput = document.getElementById('jamendoClientId');
         const footerText = document.getElementById('footerText');
         const disclaimerModal = document.getElementById('disclaimerModal');
         const acceptDisclaimer = document.getElementById('acceptDisclaimer');
@@ -613,9 +629,6 @@
             }
         }
 
-        // Jamendo API Client ID (free tier)
-        let JAMENDO_CLIENT_ID = 'c4ce16c7';
-        
         // Recommended tracks data (curated from Jamendo)
         const recommendedTracksData = [
             { name: 'Chill Lofi', artist: 'Lofi Beats', image: 'https://via.placeholder.com/150', query: 'lofi chill' },
@@ -912,11 +925,18 @@
                 clientSecretLength: spotifyClientSecret?.length
             });
             
+            // Reload credentials from localStorage in case they were just saved
+            spotifyClientId = localStorage.getItem('spotifyClientId') || '';
+            spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
+            
             if (!spotifyClientId || !spotifyClientSecret || spotifyClientId.trim() === '' || spotifyClientSecret.trim() === '') {
                 trackList.innerHTML = `
                     <div class="text-center py-8 text-yellow-400">
                         <i class="fas fa-key text-4xl mb-3"></i>
                         <p>Spotify API credentials required. Click settings to add them.</p>
+                        <button onclick="document.getElementById('settingsBtn').click()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">
+                            Open Settings
+                        </button>
                     </div>
                 `;
                 return;
@@ -1118,15 +1138,27 @@
                     console.log('Audius track response:', data);
                     
                     if (data.data && data.data.length > 0) {
-                        tracks = data.data.map(track => ({
-                            source: 'audius',
-                            id: track.id,
-                            audio: `https://${host}/v1/tracks/${track.id}/stream`,
-                            image: track.artwork && (track.artwork['480x480'] || track.artwork['150x150']) ? (track.artwork['480x480'] || track.artwork['150x150']) : `https://via.placeholder.com/150/dc2626/ffffff?text=${encodeURIComponent(track.title.substring(0, 2))}`,
-                            name: track.title,
-                            artist_name: track.user.name,
-                            duration: track.duration
-                        }));
+                        tracks = data.data.map(track => {
+                            // Get artwork with multiple fallbacks
+                            let artwork = '';
+                            if (track.artwork) {
+                                artwork = track.artwork['480x480'] || track.artwork['150x150'] || track.artwork['1000x1000'] || '';
+                            }
+                            // Fallback to gradient if no artwork
+                            if (!artwork) {
+                                artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.title.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                            }
+                            
+                            return {
+                                source: 'audius',
+                                id: track.id,
+                                audio: `https://${host}/v1/tracks/${track.id}/stream`,
+                                image: artwork,
+                                name: track.title,
+                                artist_name: track.user.name,
+                                duration: track.duration
+                            };
+                        });
                         renderTrackList();
                     } else {
                         showNoResults();
@@ -1321,6 +1353,22 @@
         // Source selector
         document.querySelectorAll('.source-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                const newSource = btn.dataset.source;
+                
+                // Check if source requires API keys
+                if (newSource === 'spotify' && (!spotifyClientId || !spotifyClientSecret)) {
+                    alert('Spotify requires API credentials. Please add them in Settings first, or use Audius (FREE) instead.');
+                    return;
+                }
+                if (newSource === 'youtube' && !youtubeApiKey) {
+                    alert('YouTube requires an API key. Please add it in Settings first, or use Audius (FREE) instead.');
+                    return;
+                }
+                if (newSource === 'jamendo' && !JAMENDO_CLIENT_ID) {
+                    alert('Jamendo requires a client ID. Please add it in Settings first, or use Audius (FREE) instead.');
+                    return;
+                }
+                
                 document.querySelectorAll('.source-btn').forEach(b => {
                     b.classList.remove('active', 'bg-indigo-500');
                     b.classList.add('bg-white/10');
@@ -1328,13 +1376,13 @@
                 btn.classList.add('active', 'bg-red-600');
                 btn.classList.remove('bg-white/10');
                 
-                currentSource = btn.dataset.source;
+                currentSource = newSource;
                 updateFooterText();
                 
                 // Clear current tracks
                 tracks = [];
                 trackList.innerHTML = `
-                    <div class="text-center text-gray-400 py-8">
+                    <div class="text-center py-8" style="color: var(--secondary-text);">
                         <i class="fas fa-music text-4xl mb-3"></i>
                         <p>Search for music to get started</p>
                     </div>
@@ -1355,6 +1403,7 @@
             youtubeApiKeyInput.value = youtubeApiKey;
             spotifyClientIdInput.value = spotifyClientId;
             spotifyClientSecretInput.value = spotifyClientSecret;
+            jamendoClientIdInput.value = JAMENDO_CLIENT_ID || '';
             repoUrlInput.value = localStorage.getItem('repoUrl') || '';
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
@@ -1370,11 +1419,13 @@
             youtubeApiKey = youtubeApiKeyInput.value.trim();
             spotifyClientId = spotifyClientIdInput.value.trim();
             spotifyClientSecret = spotifyClientSecretInput.value.trim();
+            const jamendoClientId = jamendoClientIdInput.value.trim();
             
             console.log('Saving credentials:', {
                 youtubeApiKey: youtubeApiKey ? 'Present' : 'Missing',
                 spotifyClientId: spotifyClientId ? 'Present' : 'Missing',
                 spotifyClientSecret: spotifyClientSecret ? 'Present' : 'Missing',
+                jamendoClientId: jamendoClientId ? 'Present' : 'Missing',
                 repoUrl: repoUrl || 'Not set'
             });
             
@@ -1393,12 +1444,17 @@
             localStorage.setItem('youtubeApiKey', youtubeApiKey);
             localStorage.setItem('spotifyClientId', spotifyClientId);
             localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
+            localStorage.setItem('jamendoClientId', jamendoClientId);
+            
+            // Update in-memory variables
+            JAMENDO_CLIENT_ID = jamendoClientId;
             
             // Verify they were saved
             console.log('Verified saved credentials:', {
                 youtubeApiKey: localStorage.getItem('youtubeApiKey') ? 'Present' : 'Missing',
                 spotifyClientId: localStorage.getItem('spotifyClientId') ? 'Present' : 'Missing',
-                spotifyClientSecret: localStorage.getItem('spotifyClientSecret') ? 'Present' : 'Missing'
+                spotifyClientSecret: localStorage.getItem('spotifyClientSecret') ? 'Present' : 'Missing',
+                jamendoClientId: localStorage.getItem('jamendoClientId') ? 'Present' : 'Missing'
             });
             
             settingsModal.classList.add('hidden');
@@ -1406,6 +1462,14 @@
             
             // Clear Spotify token on credential change
             spotifyAccessToken = null;
+            
+            // If currently on a source that needs credentials, refresh
+            if (currentSource === 'spotify' && spotifyClientId && spotifyClientSecret) {
+                const query = searchInput.value.trim();
+                if (query) {
+                    searchTracks(query);
+                }
+            }
         });
         
         function updateFooterText() {

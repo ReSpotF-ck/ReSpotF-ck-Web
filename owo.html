@@ -153,18 +153,22 @@
         <div class="glass-effect rounded-xl p-4 mb-6">
             <div class="flex gap-2 flex-wrap">
                 <button class="source-btn active bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors" data-source="jamendo">
-                    <i class="fas fa-music mr-2"></i>Jamendo
+                    <i class="fas fa-music mr-2"></i>Jamendo <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full ml-1">FREE</span>
                 </button>
                 <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="youtube">
-                    <i class="fab fa-youtube mr-2"></i>YouTube
+                    <i class="fab fa-youtube mr-2"></i>YouTube <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API Key</span>
                 </button>
                 <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="spotify">
-                    <i class="fab fa-spotify mr-2"></i>Spotify
+                    <i class="fab fa-spotify mr-2"></i>Spotify <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API Key</span>
                 </button>
                 <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="audius">
-                    <i class="fas fa-headphones mr-2"></i>Audius
+                    <i class="fas fa-headphones mr-2"></i>Audius <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full ml-1">FREE</span>
                 </button>
             </div>
+            <p class="text-xs mt-2" style="color: var(--secondary-text);">
+                <i class="fas fa-info-circle mr-1"></i>
+                Jamendo and Audius work without API keys. YouTube and Spotify require setup in Settings.
+            </p>
         </div>
 
         <!-- Search Bar -->
@@ -1630,6 +1634,13 @@
             } else {
                 loadRecommendedTracks();
             }
+            // Auto-load some sample tracks from Jamendo to show it's working
+            setTimeout(() => {
+                if (tracks.length === 0) {
+                    searchInput.value = 'lofi';
+                    searchJamendo('lofi');
+                }
+            }, 1000);
         }
         
         // YouTube API ready callback

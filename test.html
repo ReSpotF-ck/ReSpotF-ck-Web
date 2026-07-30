@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audius API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #fff;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #b91c1c;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #16213e;
+            border-radius: 5px;
+        }
+        .track {
+            padding: 10px;
+            margin: 5px 0;
+            background: #0f3460;
+            border-radius: 3px;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #4ecdc4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Audius API Test</h1>
+    <p>This page tests the Audius API without any authentication or PIN.</p>
+    
+    <button onclick="testAudius()">Test Audius Search</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results">
+        <p>Click "Test Audius Search" to begin...</p>
+    </div>
+
+    <script>
+        async function testAudius() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing Audius API...</p>';
+            
+            try {
+                console.log('Step 1: Getting Audius host...');
+                const hostResponse = await fetch('https://api.audius.co');
+                const hostData = await hostResponse.json();
+                
+                console.log('Host data:', hostData);
+                
+                if (!hostData.data || hostData.data.length === 0) {
+                    throw new Error('No Audius hosts available');
+                }
+                
+                const host = hostData.data[0];
+                console.log('Using host:', host);
+                
+                resultsDiv.innerHTML += `<p class="success">✓ Got host: ${host}</p>`;
+                
+                console.log('Step 2: Searching for tracks...');
+                const searchResponse = await fetch(`https://${host}/v1/tracks/search?query=lofi&limit=5`);
+                const searchData = await searchResponse.json();
+                
+                console.log('Search data:', searchData);
+                
+                if (!searchData.data || searchData.data.length === 0) {
+                    resultsDiv.innerHTML += '<p class="error">✗ No tracks found</p>';
+                    return;
+                }
+                
+                resultsDiv.innerHTML += `<p class="success">✓ Found ${searchData.data.length} tracks</p>`;
+                
+                let html = '<h3>Tracks:</h3>';
+                searchData.data.forEach(track => {
+                    const artwork = track.artwork?.['480x480'] || track.artwork?.['150x150'] || 'No artwork';
+                    html += `
+                        <div class="track">
+                            <strong>${track.title}</strong><br>
+                            Artist: ${track.user.name}<br>
+                            Duration: ${track.duration}s<br>
+                            Artwork: ${artwork ? 'Yes' : 'No'}
+                        </div>
+                    `;
+                });
+                
+                resultsDiv.innerHTML += html;
+                resultsDiv.innerHTML += '<p class="success">✓ Test completed successfully!</p>';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML += `<p class="error">✗ Error: ${error.message}</p>`;
+                resultsDiv.innerHTML += `<p class="error">Check console for details (F12)</p>`;
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '<p>Click "Test Audius Search" to begin...</p>';
+        }
+        
+        // Auto-run test on load
+        window.onload = function() {
+            console.log('Page loaded, running auto-test...');
+            setTimeout(testAudius, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -204,19 +204,6 @@
                 max-width: 1024px;
             }
             
-            /* Two-column layout for larger screens */
-            .mobile-container {
-                display: grid;
-                grid-template-columns: 1fr 350px;
-                gap: 24px;
-                padding: 24px;
-            }
-            
-            .mobile-container > header,
-            .mobile-container > footer {
-                grid-column: 1 / -1;
-            }
-            
             .bottom-player {
                 padding: 16px 32px;
             }
@@ -1753,30 +1740,17 @@
                 console.log('Set default repository URL:', defaultRepoUrl);
             }
             
-            // Try to fetch config from repository
+            // Try to fetch config from repository (non-blocking)
             const repoUrlToUse = savedRepoUrl || defaultRepoUrl;
             console.log('Fetching config from:', repoUrlToUse);
             fetchConfigFromRepo(repoUrlToUse).then(() => {
-                console.log('Config fetch complete, loading recommended tracks...');
-                loadRecommendedTracks();
+                console.log('Config fetch complete');
             }).catch(err => {
                 console.error('Config fetch failed:', err);
-                loadRecommendedTracks();
             });
             
-            // Auto-load some sample tracks from Audius to show it's working
-            setTimeout(() => {
-                console.log('Auto-loading sample tracks from Audius...');
-                console.log('Current tracks length:', tracks.length);
-                console.log('Current source:', currentSource);
-                if (tracks.length === 0) {
-                    console.log('No tracks found, searching for lofi...');
-                    searchInput.value = 'lofi';
-                    searchAudius('lofi');
-                } else {
-                    console.log('Tracks already loaded, skipping auto-search');
-                }
-            }, 2000);
+            // Auto-load disabled to prevent loading issues
+            console.log('Auto-load disabled - user can search manually');
         } else {
             console.log('Not authenticated or disclaimer not accepted, skipping auto-load');
             console.log('PIN authenticated:', pinAuthenticated);

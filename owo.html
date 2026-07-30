@@ -1621,7 +1621,8 @@
         // PIN Entry System
         let enteredPin = '';
         const correctPin = '1412';
-        const pinAuthenticated = localStorage.getItem('pinAuthenticated');
+        // Always require PIN for privacy - don't save authentication state
+        const pinAuthenticated = false;
         
         function updatePinDisplay() {
             const dots = pinDisplay.querySelectorAll('.pin-dot');
@@ -1636,7 +1637,7 @@
         
         function validatePin() {
             if (enteredPin === correctPin) {
-                localStorage.setItem('pinAuthenticated', 'true');
+                // Don't save authentication - require PIN every time for privacy
                 pinModal.classList.add('hidden');
                 pinModal.classList.remove('flex');
                 showDisclaimer();
@@ -1651,11 +1652,9 @@
         }
         
         function showDisclaimer() {
-            const disclaimerAccepted = localStorage.getItem('disclaimerAccepted');
-            if (!disclaimerAccepted) {
-                disclaimerModal.classList.remove('hidden');
-                disclaimerModal.classList.add('flex');
-            }
+            // Always show disclaimer for legal compliance - don't save acceptance
+            disclaimerModal.classList.remove('hidden');
+            disclaimerModal.classList.add('flex');
         }
         
         // PIN button clicks
@@ -1683,16 +1682,12 @@
             pinError.classList.add('hidden');
         });
         
-        // Show PIN modal on load if not authenticated
-        if (!pinAuthenticated) {
-            pinModal.classList.remove('hidden');
-            pinModal.classList.add('flex');
-        } else {
-            showDisclaimer();
-        }
+        // Always show PIN modal on load for privacy
+        pinModal.classList.remove('hidden');
+        pinModal.classList.add('flex');
         
         acceptDisclaimer.addEventListener('click', () => {
-            localStorage.setItem('disclaimerAccepted', 'true');
+            // Don't save acceptance - show disclaimer every time for legal compliance
             disclaimerModal.classList.add('hidden');
             disclaimerModal.classList.remove('flex');
             // Load recommended tracks after disclaimer is accepted
@@ -1723,39 +1718,26 @@
         // Apply initial theme
         applyTheme();
         
-        // Load recommended tracks if already authenticated and disclaimer accepted
-        console.log('Checking authentication status...');
-        console.log('PIN authenticated:', pinAuthenticated);
-        console.log('Disclaimer accepted:', localStorage.getItem('disclaimerAccepted'));
+        // Load content after PIN and disclaimer (shown every time)
+        console.log('PIN and disclaimer will be shown every time for privacy and legal compliance');
         
-        if (pinAuthenticated && localStorage.getItem('disclaimerAccepted')) {
-            console.log('User is authenticated, loading content...');
-            
-            // Set default repo URL if not already set
-            const defaultRepoUrl = 'https://github.com/ReSpotF-ck/ReSpotFuck-Web';
-            const savedRepoUrl = localStorage.getItem('repoUrl');
-            
-            if (!savedRepoUrl) {
-                localStorage.setItem('repoUrl', defaultRepoUrl);
-                console.log('Set default repository URL:', defaultRepoUrl);
-            }
-            
-            // Try to fetch config from repository (non-blocking)
-            const repoUrlToUse = savedRepoUrl || defaultRepoUrl;
-            console.log('Fetching config from:', repoUrlToUse);
-            fetchConfigFromRepo(repoUrlToUse).then(() => {
-                console.log('Config fetch complete');
-            }).catch(err => {
-                console.error('Config fetch failed:', err);
-            });
-            
-            // Auto-load disabled to prevent loading issues
-            console.log('Auto-load disabled - user can search manually');
-        } else {
-            console.log('Not authenticated or disclaimer not accepted, skipping auto-load');
-            console.log('PIN authenticated:', pinAuthenticated);
-            console.log('Disclaimer accepted:', localStorage.getItem('disclaimerAccepted'));
+        // Set default repo URL if not already set
+        const defaultRepoUrl = 'https://github.com/ReSpotF-ck/ReSpotFuck-Web';
+        const savedRepoUrl = localStorage.getItem('repoUrl');
+        
+        if (!savedRepoUrl) {
+            localStorage.setItem('repoUrl', defaultRepoUrl);
+            console.log('Set default repository URL:', defaultRepoUrl);
         }
+        
+        // Try to fetch config from repository (non-blocking)
+        const repoUrlToUse = savedRepoUrl || defaultRepoUrl;
+        console.log('Fetching config from:', repoUrlToUse);
+        fetchConfigFromRepo(repoUrlToUse).then(() => {
+            console.log('Config fetch complete');
+        }).catch(err => {
+            console.error('Config fetch failed:', err);
+        });
         
         // YouTube API ready callback
         function onYouTubeIframeAPIReady() {

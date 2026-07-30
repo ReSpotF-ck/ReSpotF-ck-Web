@@ -1652,15 +1652,21 @@
         
         // Load recommended tracks if already authenticated and disclaimer accepted
         if (pinAuthenticated && localStorage.getItem('disclaimerAccepted')) {
-            // Try to fetch config from repository if URL is saved
+            // Set default repo URL if not already set
+            const defaultRepoUrl = 'https://github.com/ReSpotF-ck/ReSpotFuck-Web';
             const savedRepoUrl = localStorage.getItem('repoUrl');
-            if (savedRepoUrl) {
-                fetchConfigFromRepo(savedRepoUrl).then(() => {
-                    loadRecommendedTracks();
-                });
-            } else {
-                loadRecommendedTracks();
+            
+            if (!savedRepoUrl) {
+                localStorage.setItem('repoUrl', defaultRepoUrl);
+                console.log('Set default repository URL:', defaultRepoUrl);
             }
+            
+            // Try to fetch config from repository
+            const repoUrlToUse = savedRepoUrl || defaultRepoUrl;
+            fetchConfigFromRepo(repoUrlToUse).then(() => {
+                loadRecommendedTracks();
+            });
+            
             // Auto-load some sample tracks from Audius to show it's working
             setTimeout(() => {
                 console.log('Auto-loading sample tracks from Audius...');

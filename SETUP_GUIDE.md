@@ -6,6 +6,10 @@ This guide explains how to set up the Spotfuck app to fetch API configuration fr
 
 The app can now automatically fetch API keys and configuration from a `config.json` file stored in a GitHub repository. This makes it easy to manage configuration across multiple instances or share settings with others.
 
+**Default Repository:** https://github.com/ReSpotF-ck/ReSpotFuck-Web
+
+The app is pre-configured to use this repository. You can change it in Settings if needed.
+
 ## Step 1: Create or Update config.json
 
 Create a `config.json` file in your GitHub repository with the following structure:
@@ -62,11 +66,13 @@ Create a `config.json` file in your GitHub repository with the following structu
 ## Step 3: Configure the App
 
 1. Open the Spotfuck app (`owo.html`)
-2. Click the **Settings** button (gear icon) in the top right
-3. Enter your GitHub repository URL in the "Repository URL" field
+2. The app is **pre-configured** with the default repository: `https://github.com/ReSpotF-ck/ReSpotFuck-Web`
+3. If you want to use a different repository:
+   - Click the **Settings** button (gear icon) in the top right
+   - Enter your GitHub repository URL in the "Repository URL" field
    - Format: `https://github.com/your-username/your-repo`
    - Example: `https://github.com/johndoe/spotfuck-config`
-4. Click **Save Settings**
+   - Click **Save Settings**
 
 The app will automatically:
 - Fetch the `config.json` from your repository

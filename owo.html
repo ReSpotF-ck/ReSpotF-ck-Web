@@ -333,6 +333,20 @@
                 
                 <div class="space-y-4">
                     <div>
+                        <label class="block text-sm font-medium mb-2">Repository URL (for config.json)</label>
+                        <input 
+                            type="text" 
+                            id="repoUrl" 
+                            placeholder="https://github.com/owner/repo"
+                            class="w-full rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                            style="background: var(--input-bg); color: var(--text-color);"
+                            onfocus="this.style.outline='2px solid var(--primary-color)'"
+                            onblur="this.style.outline='none'"
+                        >
+                        <p class="text-xs mt-1" style="color: var(--secondary-text);">Enter GitHub repo URL to fetch config.json automatically</p>
+                    </div>
+                    
+                    <div>
                         <label class="block text-sm font-medium mb-2">YouTube API Key</label>
                         <input 
                             type="text" 
@@ -517,6 +531,7 @@
         const youtubeApiKeyInput = document.getElementById('youtubeApiKey');
         const spotifyClientIdInput = document.getElementById('spotifyClientId');
         const spotifyClientSecretInput = document.getElementById('spotifyClientSecret');
+        const repoUrlInput = document.getElementById('repoUrl');
         const footerText = document.getElementById('footerText');
         const disclaimerModal = document.getElementById('disclaimerModal');
         const acceptDisclaimer = document.getElementById('acceptDisclaimer');
@@ -533,8 +548,68 @@
         let currentSearchFilter = 'all';
         let searchHistoryList = JSON.parse(localStorage.getItem('searchHistory') || '[]');
         
+        // Configuration
+        let config = {
+            api: {
+                jamendo: { clientId: 'c4ce16c7' },
+                youtube: { apiKey: '' },
+                spotify: { clientId: '', clientSecret: '' },
+                audius: { enabled: true }
+            }
+        };
+
+        // Fetch configuration from repository
+        async function fetchConfigFromRepo(repoUrl) {
+            try {
+                // Extract owner and repo from GitHub URL
+                const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+                if (!match) {
+                    console.error('Invalid GitHub repository URL');
+                    return false;
+                }
+
+                const [, owner, repo] = match;
+                const configUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/config.json`;
+
+                console.log('Fetching config from:', configUrl);
+                const response = await fetch(configUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const fetchedConfig = await response.json();
+                config = fetchedConfig;
+                console.log('Configuration loaded successfully:', config);
+                
+                // Update API keys from config
+                if (config.api) {
+                    if (config.api.jamendo?.clientId) {
+                        JAMENDO_CLIENT_ID = config.api.jamendo.clientId;
+                    }
+                    if (config.api.youtube?.apiKey) {
+                        youtubeApiKey = config.api.youtube.apiKey;
+                        localStorage.setItem('youtubeApiKey', youtubeApiKey);
+                    }
+                    if (config.api.spotify?.clientId) {
+                        spotifyClientId = config.api.spotify.clientId;
+                        localStorage.setItem('spotifyClientId', spotifyClientId);
+                    }
+                    if (config.api.spotify?.clientSecret) {
+                        spotifyClientSecret = config.api.spotify.clientSecret;
+                        localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
+                    }
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error fetching config from repository:', error);
+                return false;
+            }
+        }
+
         // Jamendo API Client ID (free tier)
-        const JAMENDO_CLIENT_ID = 'c4ce16c7';
+        let JAMENDO_CLIENT_ID = 'c4ce16c7';
         
         // Recommended tracks data (curated from Jamendo)
         const recommendedTracksData = [
@@ -1249,6 +1324,7 @@
             youtubeApiKeyInput.value = youtubeApiKey;
             spotifyClientIdInput.value = spotifyClientId;
             spotifyClientSecretInput.value = spotifyClientSecret;
+            repoUrlInput.value = localStorage.getItem('repoUrl') || '';
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
         });
@@ -1258,7 +1334,8 @@
             settingsModal.classList.remove('flex');
         });
         
-        saveSettings.addEventListener('click', () => {
+        saveSettings.addEventListener('click', async () => {
+            const repoUrl = repoUrlInput.value.trim();
             youtubeApiKey = youtubeApiKeyInput.value.trim();
             spotifyClientId = spotifyClientIdInput.value.trim();
             spotifyClientSecret = spotifyClientSecretInput.value.trim();
@@ -1266,8 +1343,21 @@
             console.log('Saving credentials:', {
                 youtubeApiKey: youtubeApiKey ? 'Present' : 'Missing',
                 spotifyClientId: spotifyClientId ? 'Present' : 'Missing',
-                spotifyClientSecret: spotifyClientSecret ? 'Present' : 'Missing'
+                spotifyClientSecret: spotifyClientSecret ? 'Present' : 'Missing',
+                repoUrl: repoUrl || 'Not set'
             });
+            
+            // Save repository URL
+            if (repoUrl) {
+                localStorage.setItem('repoUrl', repoUrl);
+                // Try to fetch config from repository
+                const success = await fetchConfigFromRepo(repoUrl);
+                if (success) {
+                    alert('Configuration loaded from repository successfully!');
+                } else {
+                    alert('Failed to load configuration from repository. Using manual settings instead.');
+                }
+            }
             
             localStorage.setItem('youtubeApiKey', youtubeApiKey);
             localStorage.setItem('spotifyClientId', spotifyClientId);
@@ -1531,7 +1621,15 @@
         
         // Load recommended tracks if already authenticated and disclaimer accepted
         if (pinAuthenticated && localStorage.getItem('disclaimerAccepted')) {
-            loadRecommendedTracks();
+            // Try to fetch config from repository if URL is saved
+            const savedRepoUrl = localStorage.getItem('repoUrl');
+            if (savedRepoUrl) {
+                fetchConfigFromRepo(savedRepoUrl).then(() => {
+                    loadRecommendedTracks();
+                });
+            } else {
+                loadRecommendedTracks();
+            }
         }
         
         // YouTube API ready callback

@@ -1,0 +1,21 @@
+{
+  "api": {
+    "jamendo": {
+      "clientId": "c4ce16c7"
+    },
+    "youtube": {
+      "apiKey": ""
+    },
+    "spotify": {
+      "clientId": "",
+      "clientSecret": ""
+    },
+    "audius": {
+      "enabled": true
+    }
+  },
+  "app": {
+    "name": "Spotfuck",
+    "version": "1.0.0"
+  }
+}

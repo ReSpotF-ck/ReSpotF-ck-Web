@@ -1715,7 +1715,13 @@
         applyTheme();
         
         // Load recommended tracks if already authenticated and disclaimer accepted
+        console.log('Checking authentication status...');
+        console.log('PIN authenticated:', pinAuthenticated);
+        console.log('Disclaimer accepted:', localStorage.getItem('disclaimerAccepted'));
+        
         if (pinAuthenticated && localStorage.getItem('disclaimerAccepted')) {
+            console.log('User is authenticated, loading content...');
+            
             // Set default repo URL if not already set
             const defaultRepoUrl = 'https://github.com/ReSpotF-ck/ReSpotFuck-Web';
             const savedRepoUrl = localStorage.getItem('repoUrl');
@@ -1727,20 +1733,32 @@
             
             // Try to fetch config from repository
             const repoUrlToUse = savedRepoUrl || defaultRepoUrl;
+            console.log('Fetching config from:', repoUrlToUse);
             fetchConfigFromRepo(repoUrlToUse).then(() => {
+                console.log('Config fetch complete, loading recommended tracks...');
+                loadRecommendedTracks();
+            }).catch(err => {
+                console.error('Config fetch failed:', err);
                 loadRecommendedTracks();
             });
             
             // Auto-load some sample tracks from Audius to show it's working
             setTimeout(() => {
                 console.log('Auto-loading sample tracks from Audius...');
+                console.log('Current tracks length:', tracks.length);
+                console.log('Current source:', currentSource);
                 if (tracks.length === 0) {
+                    console.log('No tracks found, searching for lofi...');
                     searchInput.value = 'lofi';
                     searchAudius('lofi');
+                } else {
+                    console.log('Tracks already loaded, skipping auto-search');
                 }
             }, 2000);
         } else {
             console.log('Not authenticated or disclaimer not accepted, skipping auto-load');
+            console.log('PIN authenticated:', pinAuthenticated);
+            console.log('Disclaimer accepted:', localStorage.getItem('disclaimerAccepted'));
         }
         
         // YouTube API ready callback

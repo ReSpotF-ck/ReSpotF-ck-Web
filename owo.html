@@ -152,8 +152,8 @@
         <!-- Source Selector -->
         <div class="glass-effect rounded-xl p-4 mb-6">
             <div class="flex gap-2 flex-wrap">
-                <button class="source-btn active bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors" data-source="jamendo">
-                    <i class="fas fa-music mr-2"></i>Jamendo <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full ml-1">FREE</span>
+                <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="jamendo">
+                    <i class="fas fa-music mr-2"></i>Jamendo <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API Key</span>
                 </button>
                 <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="youtube">
                     <i class="fab fa-youtube mr-2"></i>YouTube <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API Key</span>
@@ -161,13 +161,13 @@
                 <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="spotify">
                     <i class="fab fa-spotify mr-2"></i>Spotify <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API Key</span>
                 </button>
-                <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="audius">
+                <button class="source-btn active bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors" data-source="audius">
                     <i class="fas fa-headphones mr-2"></i>Audius <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full ml-1">FREE</span>
                 </button>
             </div>
             <p class="text-xs mt-2" style="color: var(--secondary-text);">
                 <i class="fas fa-info-circle mr-1"></i>
-                Jamendo and Audius work without API keys. YouTube and Spotify require setup in Settings.
+                Audius works without API keys. YouTube, Spotify, and Jamendo require setup in Settings.
             </p>
         </div>
 
@@ -243,6 +243,7 @@
                         <div class="text-center py-8" style="color: var(--secondary-text);">
                             <i class="fas fa-music text-4xl mb-3"></i>
                             <p>Search for music to get started</p>
+                            <p class="text-xs mt-2">Auto-loading sample tracks in 2 seconds...</p>
                         </div>
                     </div>
                 </div>
@@ -495,7 +496,7 @@
         let isPlaying = false;
         let isShuffle = false;
         let isRepeat = false;
-        let currentSource = 'jamendo';
+        let currentSource = 'audius';
         let youtubePlayer = null;
         let youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
         let spotifyClientId = localStorage.getItem('spotifyClientId') || '';
@@ -711,6 +712,14 @@
         async function searchTracks(query) {
             if (!query.trim()) return;
             
+            // Show loading state
+            trackList.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-4xl mb-3 text-red-500"></i>
+                    <p style="color: var(--secondary-text);">Searching ${currentSource}...</p>
+                </div>
+            `;
+            
             // Add to search history
             addToSearchHistory(query);
             
@@ -802,6 +811,11 @@
                 }
                 
                 const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Jamendo API returned ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 console.log('Jamendo response:', data);
@@ -822,7 +836,7 @@
                 }
             } catch (error) {
                 console.error('Error searching Jamendo:', error);
-                showError();
+                showError(`Jamendo API Error: ${error.message}`);
             }
         }
         
@@ -1044,14 +1058,17 @@
                 
                 // First get the host from the discovery API
                 const hostResponse = await fetch('https://api.audius.co');
+                
+                if (!hostResponse.ok) {
+                    throw new Error('Failed to connect to Audius discovery API');
+                }
+                
                 const hostData = await hostResponse.json();
                 
                 console.log('Audius host data:', hostData);
                 
                 if (!hostData.data || hostData.data.length === 0) {
-                    console.error('No Audius hosts available');
-                    showError();
-                    return;
+                    throw new Error('No Audius hosts available');
                 }
                 
                 const host = hostData.data[0];
@@ -1117,26 +1134,36 @@
                 }
             } catch (error) {
                 console.error('Error searching Audius:', error);
-                showError();
+                showError(`Audius Error: ${error.message}`);
             }
         }
         
         function showNoResults() {
             trackList.innerHTML = `
-                <div class="text-center text-gray-400 py-8">
+                <div class="text-center py-8" style="color: var(--secondary-text);">
                     <i class="fas fa-search text-4xl mb-3"></i>
                     <p>No tracks found. Try a different search.</p>
                 </div>
             `;
         }
         
-        function showError() {
+        function showError(message = 'Error loading tracks. Please try again.') {
             trackList.innerHTML = `
                 <div class="text-center text-red-400 py-8">
                     <i class="fas fa-exclamation-circle text-4xl mb-3"></i>
-                    <p>Error loading tracks. Please try again.</p>
+                    <p>${message}</p>
+                    <button onclick="retrySearch()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">
+                        Retry
+                    </button>
                 </div>
             `;
+        }
+        
+        function retrySearch() {
+            const query = searchInput.value.trim();
+            if (query) {
+                searchTracks(query);
+            }
         }
         
         // Render track list
@@ -1634,13 +1661,16 @@
             } else {
                 loadRecommendedTracks();
             }
-            // Auto-load some sample tracks from Jamendo to show it's working
+            // Auto-load some sample tracks from Audius to show it's working
             setTimeout(() => {
+                console.log('Auto-loading sample tracks from Audius...');
                 if (tracks.length === 0) {
                     searchInput.value = 'lofi';
-                    searchJamendo('lofi');
+                    searchAudius('lofi');
                 }
-            }, 1000);
+            }, 2000);
+        } else {
+            console.log('Not authenticated or disclaimer not accepted, skipping auto-load');
         }
         
         // YouTube API ready callback

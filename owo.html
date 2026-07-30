@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotfuck - Free & Legal Music Streaming</title>
+    <title>Spotfuck</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23dc2626'/%3E%3Cpath d='M8 5v14l11-7z' fill='white'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -11,42 +12,50 @@
         
         * {
             font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
         }
         
-        /* Dark Mode (Default) */
+        /* AMOLED Dark Mode (Default) */
         .dark-mode {
-            --bg-gradient: linear-gradient(135deg, #1a0a0a 0%, #2d0a0a 50%, #3d0a0a 100%);
+            --bg-color: #000000;
+            --bg-secondary: #121212;
+            --bg-tertiary: #1a1a1a;
             --text-color: #ffffff;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --track-hover: rgba(255, 255, 255, 0.1);
-            --track-active: rgba(220, 38, 38, 0.3);
-            --input-bg: rgba(255, 255, 255, 0.1);
-            --input-placeholder: rgba(156, 163, 175, 1);
-            --secondary-text: rgba(156, 163, 175, 1);
+            --text-secondary: #b3b3b3;
             --primary-color: #dc2626;
-            --primary-hover: #b91c1c;
+            --primary-hover: #ff3333;
+            --glass-bg: rgba(28, 28, 28, 0.95);
+            --glass-border: rgba(220, 38, 38, 0.3);
+            --track-hover: rgba(220, 38, 38, 0.1);
+            --track-active: rgba(220, 38, 38, 0.2);
+            --input-bg: #282828;
+            --input-placeholder: #727272;
         }
         
         /* Light Mode */
         .light-mode {
-            --bg-gradient: linear-gradient(135deg, #fef2f2 0%, #fee2e2 50%, #fecaca 100%);
-            --text-color: #1e293b;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.1);
-            --track-hover: rgba(0, 0, 0, 0.05);
-            --track-active: rgba(220, 38, 38, 0.2);
-            --input-bg: rgba(255, 255, 255, 0.8);
-            --input-placeholder: rgba(107, 114, 128, 1);
-            --secondary-text: rgba(107, 114, 128, 1);
+            --bg-color: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #e8e8e8;
+            --text-color: #000000;
+            --text-secondary: #727272;
             --primary-color: #dc2626;
             --primary-hover: #b91c1c;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(220, 38, 38, 0.3);
+            --track-hover: rgba(220, 38, 38, 0.05);
+            --track-active: rgba(220, 38, 38, 0.1);
+            --input-bg: #f5f5f5;
+            --input-placeholder: #999999;
         }
         
         body {
-            background: var(--bg-gradient);
+            background: var(--bg-color);
             color: var(--text-color);
             transition: background 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
         
         .glass-effect {
@@ -63,6 +72,107 @@
         .track-item.active {
             background: var(--track-active);
             border-left: 3px solid var(--primary-color);
+        }
+        
+        /* Spotify Mobile-style bottom player */
+        .bottom-player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--glass-border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+        
+        .bottom-player-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .bottom-player-art {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .bottom-player-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .bottom-player-text {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .bottom-player-title {
+            font-weight: 500;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .bottom-player-artist {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .bottom-player-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .bottom-player-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            transition: color 0.2s;
+        }
+        
+        .bottom-player-btn:hover {
+            color: var(--text-color);
+        }
+        
+        .bottom-player-btn.play {
+            background: var(--text-color);
+            color: var(--bg-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bottom-player-btn.play:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Mobile-friendly container */
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding-bottom: 100px; /* Space for bottom player */
         }
         
         input[type="range"] {
@@ -129,202 +239,103 @@
         }
     </style>
 </head>
-<body class="dark-mode gradient-bg min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+<body class="dark-mode">
+    <div class="mobile-container">
         <!-- Header -->
-        <header class="flex items-center justify-between mb-8">
+        <header class="flex items-center justify-between p-4 sticky top-0 z-50" style="background: var(--bg-secondary);">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-music text-xl"></i>
+                <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+                    <i class="fas fa-music text-sm"></i>
                 </div>
-                <h1 class="text-2xl font-bold">Spotfuck</h1>
+                <h1 class="text-xl font-bold">Spotfuck</h1>
             </div>
             <div class="flex items-center gap-4">
                 <button id="themeToggle" class="text-gray-400 hover:text-white transition-colors" title="Toggle theme">
-                    <i class="fas fa-moon text-xl"></i>
+                    <i class="fas fa-moon"></i>
                 </button>
                 <button id="settingsBtn" class="text-gray-400 hover:text-white transition-colors" title="Settings">
-                    <i class="fas fa-cog text-xl"></i>
+                    <i class="fas fa-cog"></i>
                 </button>
             </div>
         </header>
 
-        <!-- Source Selector -->
-        <div class="glass-effect rounded-xl p-4 mb-6">
-            <div class="flex gap-2 flex-wrap">
-                <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="jamendo">
-                    <i class="fas fa-music mr-2"></i>Jamendo <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API Key</span>
+        <!-- Source Selector - Horizontal Scroll -->
+        <div class="px-4 mb-4">
+            <div class="flex gap-2 overflow-x-auto pb-2" style="scrollbar-width: none;">
+                <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap" data-source="jamendo">
+                    Jamendo <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API</span>
                 </button>
-                <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="youtube">
-                    <i class="fab fa-youtube mr-2"></i>YouTube <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API Key</span>
+                <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap" data-source="youtube">
+                    YouTube <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API</span>
                 </button>
-                <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg font-medium transition-colors" data-source="spotify">
-                    <i class="fab fa-spotify mr-2"></i>Spotify <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API Key</span>
+                <button class="source-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap" data-source="spotify">
+                    Spotify <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API</span>
                 </button>
-                <button class="source-btn active bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors" data-source="audius">
-                    <i class="fas fa-headphones mr-2"></i>Audius <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full ml-1">FREE</span>
+                <button class="source-btn active bg-red-600 px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap" data-source="audius">
+                    Audius <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full ml-1">FREE</span>
                 </button>
             </div>
-            <p class="text-xs mt-2" style="color: var(--secondary-text);">
-                <i class="fas fa-info-circle mr-1"></i>
-                Audius works without API keys. YouTube, Spotify, and Jamendo require setup in Settings.
-            </p>
         </div>
 
         <!-- Search Bar -->
-        <div class="glass-effect rounded-xl p-4 mb-6">
-            <div class="flex gap-4 mb-3">
-                <div class="flex-1 relative">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        placeholder="Search for tracks, artists..." 
-                        class="w-full rounded-lg py-3 pl-12 pr-4 focus:outline-none transition-colors"
-                        style="background: var(--input-bg); color: var(--text-color);"
-                        onfocus="this.style.outline='2px solid var(--primary-color)'"
-                        onblur="this.style.outline='none'"
-                        autocomplete="off"
-                    >
-                </div>
-                <button 
-                    id="searchBtn" 
-                    class="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-medium transition-colors"
+        <div class="px-4 mb-4">
+            <div class="relative">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="What do you want to listen to?" 
+                    class="w-full rounded-full py-3 pl-12 pr-4 focus:outline-none transition-colors"
+                    style="background: var(--input-bg); color: var(--text-color);"
+                    onfocus="this.style.outline='2px solid var(--primary-color)'"
+                    onblur="this.style.outline='none'"
+                    autocomplete="off"
                 >
-                    Search
-                </button>
-            </div>
-            
-            <!-- Search Filters -->
-            <div class="flex gap-2 flex-wrap">
-                <button class="search-filter active bg-red-600 px-3 py-1 rounded-full text-sm font-medium transition-colors" data-filter="all">All</button>
-                <button class="search-filter bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-sm font-medium transition-colors" data-filter="tracks">Tracks</button>
-                <button class="search-filter bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-sm font-medium transition-colors" data-filter="artists">Artists</button>
-                <button class="search-filter bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-sm font-medium transition-colors" data-filter="albums">Albums</button>
-            </div>
-            
-            <!-- Search History -->
-            <div id="searchHistory" class="mt-3 hidden">
-                <p class="text-xs mb-2" style="color: var(--secondary-text);">Recent searches:</p>
-                <div id="historyTags" class="flex gap-2 flex-wrap"></div>
-            </div>
-            
-            <!-- Trending Searches -->
-            <div id="trendingSearches" class="mt-3">
-                <p class="text-xs mb-2" style="color: var(--secondary-text);">🔥 Trending:</p>
-                <div id="trendingTags" class="flex gap-2 flex-wrap">
-                    <span class="trending-tag bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-xs cursor-pointer transition-colors">lofi beats</span>
-                    <span class="trending-tag bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-xs cursor-pointer transition-colors">electronic</span>
-                    <span class="trending-tag bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-xs cursor-pointer transition-colors">rock</span>
-                    <span class="trending-tag bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-xs cursor-pointer transition-colors">hip hop</span>
-                    <span class="trending-tag bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-xs cursor-pointer transition-colors">jazz</span>
-                </div>
             </div>
         </div>
 
-        <!-- Recommended Music Section -->
-        <div class="glass-effect rounded-xl p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-                <i class="fas fa-star text-yellow-400"></i>
-                Recommended For You
-            </h2>
-            <div id="recommendedTracks" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <!-- Recommended tracks will be loaded here -->
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Track List -->
-            <div class="lg:col-span-2">
-                <div class="glass-effect rounded-xl p-6">
-                    <h2 class="text-xl font-semibold mb-4">Tracks</h2>
-                    <div id="trackList" class="space-y-2 max-h-96 overflow-y-auto">
-                        <div class="text-center py-8" style="color: var(--secondary-text);">
-                            <i class="fas fa-music text-4xl mb-3"></i>
-                            <p>Search for music to get started</p>
-                            <p class="text-xs mt-2">Auto-loading sample tracks in 2 seconds...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Now Playing -->
-            <div class="lg:col-span-1">
-                <div class="glass-effect rounded-xl p-6 sticky top-8">
-                    <h2 class="text-xl font-semibold mb-4">Now Playing</h2>
-                    
-                    <!-- Album Art -->
-                    <div id="albumArt" class="w-full aspect-square bg-gradient-to-br from-red-600 to-red-800 rounded-xl mb-4 flex items-center justify-center">
-                        <i class="fas fa-music text-6xl text-white/50"></i>
-                    </div>
-                    
-                    <!-- Track Info -->
-                    <div id="trackInfo" class="mb-4">
-                        <h3 id="trackTitle" class="font-semibold text-lg truncate">No track selected</h3>
-                        <p id="trackArtist" class="truncate" style="color: var(--secondary-text);">-</p>
-                    </div>
-                    
-                    <!-- Progress Bar -->
-                    <div class="mb-4">
-                        <input 
-                            type="range" 
-                            id="progressBar" 
-                            class="w-full" 
-                            value="0" 
-                            min="0" 
-                            max="100"
-                        >
-                        <div class="flex justify-between text-sm mt-1" style="color: var(--secondary-text);">
-                            <span id="currentTime">0:00</span>
-                            <span id="duration">0:00</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Controls -->
-                    <div class="flex items-center justify-center gap-4 mb-4">
-                        <button id="shuffleBtn" class="transition-colors" style="color: var(--secondary-text);">
-                            <i class="fas fa-random text-lg"></i>
-                        </button>
-                        <button id="prevBtn" class="text-white hover:text-red-400 transition-colors">
-                            <i class="fas fa-step-backward text-2xl"></i>
-                        </button>
-                        <button id="playPauseBtn" class="w-14 h-14 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center transition-colors">
-                            <i class="fas fa-play text-xl" id="playPauseIcon"></i>
-                        </button>
-                        <button id="nextBtn" class="text-white hover:text-red-400 transition-colors">
-                            <i class="fas fa-step-forward text-2xl"></i>
-                        </button>
-                        <button id="repeatBtn" class="transition-colors" style="color: var(--secondary-text);">
-                            <i class="fas fa-redo text-lg"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Volume -->
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-volume-up" style="color: var(--secondary-text);"></i>
-                        <input 
-                            type="range" 
-                            id="volumeBar" 
-                            class="flex-1" 
-                            value="80" 
-                            min="0" 
-                            max="100"
-                        >
-                    </div>
+        <!-- Track List -->
+        <div class="px-4">
+            <div id="trackList" class="space-y-1">
+                <div class="text-center py-12" style="color: var(--text-secondary);">
+                    <i class="fas fa-music text-5xl mb-4 opacity-50"></i>
+                    <p>Search for music to get started</p>
+                    <p class="text-sm mt-2">Auto-loading sample tracks...</p>
                 </div>
             </div>
         </div>
 
         <!-- Footer -->
-        <footer class="mt-8 text-center text-sm" style="color: var(--secondary-text);">
-            <p id="footerText">Powered by Jamendo API - All music is royalty-free and legal to stream</p>
-            <p class="mt-2">✨ No ads, ever ✨</p>
-            <div class="mt-4 pt-4 border-t border-red-600/30">
-                <p class="text-xs text-red-400">⚠️ Disclaimer: This app uses legal APIs only. No content is hosted on our servers.</p>
-                <p class="text-xs mt-1">DMCA: Copyright claims should be directed to the respective platforms (YouTube, Spotify, Jamendo, Audius).</p>
-            </div>
+        <footer class="mt-8 px-4 pb-4 text-center text-xs" style="color: var(--text-secondary);">
+            <p id="footerText">Spotfuck - Free Music Streaming</p>
+            <p class="mt-1">Powered by Audius API</p>
         </footer>
+    </div>
+
+    <!-- Bottom Player -->
+    <div id="bottomPlayer" class="bottom-player hidden">
+        <div class="bottom-player-info">
+            <div class="bottom-player-art">
+                <img id="bottomPlayerArtImg" src="" alt="">
+                <i id="bottomPlayerArtIcon" class="fas fa-music text-2xl" style="color: var(--text-secondary);"></i>
+            </div>
+            <div class="bottom-player-text">
+                <div id="bottomPlayerTitle" class="bottom-player-title">No track selected</div>
+                <div id="bottomPlayerArtist" class="bottom-player-artist">-</div>
+            </div>
+        </div>
+        <div class="bottom-player-controls">
+            <button id="prevBtn" class="bottom-player-btn">
+                <i class="fas fa-step-backward"></i>
+            </button>
+            <button id="playPauseBtn" class="bottom-player-btn play">
+                <i class="fas fa-play" id="playPauseIcon"></i>
+            </button>
+            <button id="nextBtn" class="bottom-player-btn">
+                <i class="fas fa-step-forward"></i>
+            </button>
+        </div>
+    </div>
 
         <!-- Settings Modal -->
         <div id="settingsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
@@ -1201,25 +1212,24 @@
         // Render track list
         function renderTrackList() {
             trackList.innerHTML = tracks.map((track, index) => `
-                <div class="track-item p-3 rounded-lg cursor-pointer transition-colors ${index === currentTrackIndex ? 'active' : ''}" data-index="${index}">
+                <div class="track-item p-3 rounded-lg cursor-pointer transition-colors ${index === currentTrackIndex ? 'active' : ''}" data-index="${index}" style="border-radius: 8px;">
                     <div class="flex items-center gap-3">
                         <div class="relative">
                             <img 
                                 src="${track.image || 'https://via.placeholder.com/50'}" 
                                 alt="${track.name}" 
                                 class="w-12 h-12 rounded object-cover"
-                                onerror="this.src='https://via.placeholder.com/50'"
+                                onerror="this.src='https://via.placeholder.com/50/dc2626/ffffff?text=?'"
                             >
-                            ${track.source === 'youtube' ? '<i class="fab fa-youtube absolute bottom-0 right-0 text-red-500 text-xs bg-black/50 rounded-full p-1"></i>' : ''}
-                            ${track.source === 'spotify' ? '<i class="fab fa-spotify absolute bottom-0 right-0 text-green-500 text-xs bg-black/50 rounded-full p-1"></i>' : ''}
-                            ${track.source === 'audius' ? '<i class="fas fa-headphones absolute bottom-0 right-0 text-blue-500 text-xs bg-black/50 rounded-full p-1"></i>' : ''}
+                            ${index === currentTrackIndex && isPlaying ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center rounded"><i class="fas fa-volume-up text-white text-sm"></i></div>' : ''}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="font-medium truncate">${track.name}</h4>
-                            <p class="text-sm truncate" style="color: var(--secondary-text);">${track.artist_name}</p>
+                            <h3 class="font-medium truncate text-sm">${track.name}</h3>
+                            <p class="text-xs truncate" style="color: var(--text-secondary);">${track.artist_name}</p>
                         </div>
-                        ${track.source === 'spotify' ? '<span class="text-xs text-yellow-400 bg-yellow-400/20 px-2 py-1 rounded">Preview</span>' : ''}
-                        <span class="text-sm" style="color: var(--secondary-text);">${track.duration > 0 ? formatTime(track.duration) : '--:--'}</span>
+                        <div class="text-xs" style="color: var(--text-secondary);">
+                            ${formatTime(track.duration)}
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -1314,13 +1324,24 @@
         
         // Update now playing
         function updateNowPlaying(track) {
-            trackTitle.textContent = track.name;
-            trackArtist.textContent = track.artist_name;
+            // Update bottom player
+            const bottomPlayer = document.getElementById('bottomPlayer');
+            const bottomPlayerTitle = document.getElementById('bottomPlayerTitle');
+            const bottomPlayerArtist = document.getElementById('bottomPlayerArtist');
+            const bottomPlayerArtImg = document.getElementById('bottomPlayerArtImg');
+            const bottomPlayerArtIcon = document.getElementById('bottomPlayerArtIcon');
+            
+            bottomPlayer.classList.remove('hidden');
+            bottomPlayerTitle.textContent = track.name;
+            bottomPlayerArtist.textContent = track.artist_name;
             
             if (track.image) {
-                albumArt.innerHTML = `<img src="${track.image}" alt="${track.name}" class="w-full h-full object-cover rounded-xl">`;
+                bottomPlayerArtImg.src = track.image;
+                bottomPlayerArtImg.style.display = 'block';
+                bottomPlayerArtIcon.style.display = 'none';
             } else {
-                albumArt.innerHTML = `<i class="fas fa-music text-6xl text-white/50"></i>`;
+                bottomPlayerArtImg.style.display = 'none';
+                bottomPlayerArtIcon.style.display = 'block';
             }
         }
         
@@ -1474,13 +1495,13 @@
         
         function updateFooterText() {
             if (currentSource === 'jamendo') {
-                footerText.textContent = 'Powered by Jamendo API - All music is royalty-free and legal to stream';
+                footerText.textContent = 'Spotfuck - Powered by Jamendo';
             } else if (currentSource === 'youtube') {
-                footerText.textContent = 'Powered by YouTube API - Music videos from YouTube';
+                footerText.textContent = 'Spotfuck - Powered by YouTube';
             } else if (currentSource === 'spotify') {
-                footerText.textContent = 'Powered by Spotify API - 30-second preview clips';
+                footerText.textContent = 'Spotfuck - Powered by Spotify';
             } else if (currentSource === 'audius') {
-                footerText.textContent = 'Powered by Audius API - Decentralized music streaming platform';
+                footerText.textContent = 'Spotfuck - Powered by Audius';
             }
         }
         

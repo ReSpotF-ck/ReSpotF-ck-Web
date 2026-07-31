@@ -1,363 +1,388 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Private Secure Connection</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Secure Connection</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #ffffff;
-            overflow: hidden;
-            position: relative;
-        }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #ffffff;
+      overflow: hidden;
+      position: relative;
+    }
 
-        .music-notes {
-            position: fixed;
-            font-size: 2rem;
-            opacity: 0.3;
-            animation: float 6s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 0;
-        }
+    /* Top-right Sign In button */
+    .top-signin {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 1000;
+      padding: 10px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      color: #fff;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      box-shadow: 0 10px 25px rgba(139, 92, 246, 0.25);
+      user-select: none;
+    }
+    .top-signin:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.35);
+    }
 
-        .music-notes:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
-        .music-notes:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
-        .music-notes:nth-child(3) { bottom: 30%; left: 15%; animation-delay: 2s; }
-        .music-notes:nth-child(4) { bottom: 15%; right: 10%; animation-delay: 3s; }
-        .music-notes:nth-child(5) { top: 40%; left: 5%; animation-delay: 4s; }
-        .music-notes:nth-child(6) { top: 60%; right: 5%; animation-delay: 5s; }
+    .music-notes {
+      position: fixed;
+      font-size: 2rem;
+      opacity: 0.3;
+      animation: float 6s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
-        }
+    .music-notes:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+    .music-notes:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
+    .music-notes:nth-child(3) { bottom: 30%; left: 15%; animation-delay: 2s; }
+    .music-notes:nth-child(4) { bottom: 15%; right: 10%; animation-delay: 3s; }
+    .music-notes:nth-child(5) { top: 40%; left: 5%; animation-delay: 4s; }
+    .music-notes:nth-child(6) { top: 60%; right: 5%; animation-delay: 5s; }
 
-        .container {
-            text-align: center;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(139, 92, 246, 0.3);
-            max-width: 600px;
-            position: relative;
-            z-index: 1;
-        }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(10deg); }
+    }
 
-        .vinyl-record {
-            width: 200px;
-            height: 200px;
-            background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
-            border-radius: 50%;
-            margin: 0 auto 2rem;
-            position: relative;
-            animation: spin 3s linear infinite;
-            box-shadow: 0 0 60px rgba(139, 92, 246, 0.3);
-        }
+    .container {
+      text-align: center;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(139, 92, 246, 0.3);
+      max-width: 600px;
+      position: relative;
+      z-index: 1;
+    }
 
-        .vinyl-record::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(145deg, #8b5cf6, #6366f1);
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
-        }
+    .vinyl-record {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+      border-radius: 50%;
+      margin: 0 auto 2rem;
+      position: relative;
+      animation: spin 3s linear infinite;
+      box-shadow: 0 0 60px rgba(139, 92, 246, 0.3);
+    }
 
-        .vinyl-record::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 15px;
-            height: 15px;
-            background: #0a0a0a;
-            border-radius: 50%;
-        }
+    .vinyl-record::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(145deg, #8b5cf6, #6366f1);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+    }
 
-        .grooves {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 180px;
-            height: 180px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
+    .vinyl-record::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 15px;
+      height: 15px;
+      background: #0a0a0a;
+      border-radius: 50%;
+    }
 
-        .grooves:nth-child(2) {
-            width: 150px;
-            height: 150px;
-        }
+    .grooves {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 180px;
+      height: 180px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+    }
 
-        .grooves:nth-child(3) {
-            width: 120px;
-            height: 120px;
-        }
+    .grooves:nth-child(2) {
+      width: 150px;
+      height: 150px;
+    }
 
-        .grooves:nth-child(4) {
-            width: 90px;
-            height: 90px;
-        }
+    .grooves:nth-child(3) {
+      width: 120px;
+      height: 120px;
+    }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+    .grooves:nth-child(4) {
+      width: 90px;
+      height: 90px;
+    }
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #8b5cf6, #ec4899, #8b5cf6);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradient 3s ease infinite;
-        }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
 
-        @keyframes gradient {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899, #8b5cf6);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient 3s ease infinite;
+    }
 
-        p {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #e2e8f0;
-            margin-bottom: 30px;
-        }
+    @keyframes gradient {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
 
-        .secure-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #8b5cf6, #6366f1);
-            color: #fff;
-            padding: 10px 25px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-            transition: all 0.3s ease;
-        }
+    p {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #e2e8f0;
+      margin-bottom: 30px;
+    }
 
-        .secure-badge:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
-        }
+    .secure-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: #fff;
+      padding: 10px 25px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+      transition: all 0.3s ease;
+    }
 
-        .warning {
-            margin-top: 30px;
-            padding: 15px;
-            background: rgba(139, 92, 246, 0.1);
-            border-left: 4px solid #8b5cf6;
-            text-align: left;
-            font-size: 14px;
-            color: #e2e8f0;
-            border-radius: 4px;
-        }
+    .secure-badge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
 
-        .equalizer {
-            display: flex;
-            justify-content: center;
-            gap: 4px;
-            margin: 2rem 0;
-            height: 80px;
-            align-items: flex-end;
-        }
+    .warning {
+      margin-top: 30px;
+      padding: 15px;
+      background: rgba(139, 92, 246, 0.1);
+      border-left: 4px solid #8b5cf6;
+      text-align: left;
+      font-size: 14px;
+      color: #e2e8f0;
+      border-radius: 4px;
+    }
 
-        .equalizer-bar {
-            width: 8px;
-            background: linear-gradient(to top, #8b5cf6, #ec4899);
-            border-radius: 4px;
-            animation: equalize 1s ease-in-out infinite;
-        }
+    .equalizer {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin: 2rem 0;
+      height: 80px;
+      align-items: flex-end;
+    }
 
-        .equalizer-bar:nth-child(1) { height: 40px; animation-delay: 0s; }
-        .equalizer-bar:nth-child(2) { height: 60px; animation-delay: 0.1s; }
-        .equalizer-bar:nth-child(3) { height: 30px; animation-delay: 0.2s; }
-        .equalizer-bar:nth-child(4) { height: 70px; animation-delay: 0.3s; }
-        .equalizer-bar:nth-child(5) { height: 50px; animation-delay: 0.4s; }
-        .equalizer-bar:nth-child(6) { height: 80px; animation-delay: 0.5s; }
-        .equalizer-bar:nth-child(7) { height: 45px; animation-delay: 0.6s; }
-        .equalizer-bar:nth-child(8) { height: 65px; animation-delay: 0.7s; }
+    .equalizer-bar {
+      width: 8px;
+      background: linear-gradient(to top, #8b5cf6, #ec4899);
+      border-radius: 4px;
+      animation: equalize 1s ease-in-out infinite;
+    }
 
-        @keyframes equalize {
-            0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(0.5); }
-        }
-    </style>
+    .equalizer-bar:nth-child(1) { height: 40px; animation-delay: 0s; }
+    .equalizer-bar:nth-child(2) { height: 60px; animation-delay: 0.1s; }
+    .equalizer-bar:nth-child(3) { height: 30px; animation-delay: 0.2s; }
+    .equalizer-bar:nth-child(4) { height: 70px; animation-delay: 0.3s; }
+    .equalizer-bar:nth-child(5) { height: 50px; animation-delay: 0.4s; }
+    .equalizer-bar:nth-child(6) { height: 80px; animation-delay: 0.5s; }
+    .equalizer-bar:nth-child(7) { height: 45px; animation-delay: 0.6s; }
+    .equalizer-bar:nth-child(8) { height: 65px; animation-delay: 0.7s; }
+
+    @keyframes equalize {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.5); }
+    }
+  </style>
 </head>
 <body>
-    <div class="music-notes">🎵</div>
-    <div class="music-notes">🎶</div>
-    <div class="music-notes">🎵</div>
-    <div class="music-notes">🎶</div>
-    <div class="music-notes">🎵</div>
-    <div class="music-notes">🎶</div>
+  <a class="top-signin" href="https://spotfuck.netlify.app/signin">Sign In</a>
 
-    <div class="container">
-        <div class="vinyl-record">
-            <div class="grooves"></div>
-            <div class="grooves"></div>
-            <div class="grooves"></div>
-            <div class="grooves"></div>
-        </div>
-        <h1>Access Denied</h1>
-        <p>
-            Sorry, this is a private secure connection. Only approved members can use this service.
-        </p>
-        <div class="equalizer">
-            <div class="equalizer-bar"></div>
-            <div class="equalizer-bar"></div>
-            <div class="equalizer-bar"></div>
-            <div class="equalizer-bar"></div>
-            <div class="equalizer-bar"></div>
-            <div class="equalizer-bar"></div>
-            <div class="equalizer-bar"></div>
-            <div class="equalizer-bar"></div>
-        </div>
-        <div class="secure-badge">Secure Connection</div>
-        <div class="warning">
-            ⚠️ This page is protected by multiple security measures. Unauthorized access attempts are monitored and logged.
-        </div>
+  <div class="music-notes">🎵</div>
+  <div class="music-notes">🎶</div>
+  <div class="music-notes">🎵</div>
+  <div class="music-notes">🎶</div>
+  <div class="music-notes">🎵</div>
+  <div class="music-notes">🎶</div>
+
+  <div class="container">
+    <div class="vinyl-record">
+      <div class="grooves"></div>
+      <div class="grooves"></div>
+      <div class="grooves"></div>
+      <div class="grooves"></div>
     </div>
+    <h1>Access Denied</h1>
+    <p>
+      Sorry, this is a private secure connection. Only approved members can use this service.
+    </p>
+    <div class="equalizer">
+      <div class="equalizer-bar"></div>
+      <div class="equalizer-bar"></div>
+      <div class="equalizer-bar"></div>
+      <div class="equalizer-bar"></div>
+      <div class="equalizer-bar"></div>
+      <div class="equalizer-bar"></div>
+      <div class="equalizer-bar"></div>
+      <div class="equalizer-bar"></div>
+    </div>
+    <div class="secure-badge">Secure Connection</div>
+    <div class="warning">
+      ⚠️ This page is protected by multiple security measures. Unauthorized access attempts are monitored and logged.
+    </div>
+  </div>
 
-    <script>
-        // Disable right-click
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            alert('Right-click is disabled on this secure page.');
-            return false;
-        });
+  <script>
+    // Disable right-click
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      alert('Right-click is disabled on this secure page.');
+      return false;
+    });
 
-        // Disable common keyboard shortcuts for dev tools
-        document.addEventListener('keydown', function(e) {
-            // F12
-            if (e.key === 'F12' || e.keyCode === 123) {
-                e.preventDefault();
-                alert('Developer tools are disabled on this secure page.');
-                return false;
-            }
+    // Disable common keyboard shortcuts for dev tools
+    document.addEventListener('keydown', function(e) {
+      // F12
+      if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        alert('Developer tools are disabled on this secure page.');
+        return false;
+      }
 
-            // Ctrl+Shift+I (Chrome/Edge DevTools)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
-                e.preventDefault();
-                alert('Developer tools are disabled on this secure page.');
-                return false;
-            }
+      // Ctrl+Shift+I (Chrome/Edge DevTools)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+        e.preventDefault();
+        alert('Developer tools are disabled on this secure page.');
+        return false;
+      }
 
-            // Ctrl+Shift+J (Chrome/Edge Console)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
-                e.preventDefault();
-                alert('Developer tools are disabled on this secure page.');
-                return false;
-            }
+      // Ctrl+Shift+J (Chrome/Edge Console)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+        e.preventDefault();
+        alert('Developer tools are disabled on this secure page.');
+        return false;
+      }
 
-            // Ctrl+Shift+C (Chrome/Edge Element Inspector)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
-                e.preventDefault();
-                alert('Developer tools are disabled on this secure page.');
-                return false;
-            }
+      // Ctrl+Shift+C (Chrome/Edge Element Inspector)
+      if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+        e.preventDefault();
+        alert('Developer tools are disabled on this secure page.');
+        return false;
+      }
 
-            // Ctrl+U (View Source)
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-                e.preventDefault();
-                alert('Viewing source is disabled on this secure page.');
-                return false;
-            }
+      // Ctrl+U (View Source)
+      if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+        e.preventDefault();
+        alert('Viewing source is disabled on this secure page.');
+        return false;
+      }
 
-            // Ctrl+S (Save)
-            if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
-                e.preventDefault();
-                alert('Saving this page is disabled.');
-                return false;
-            }
+      // Ctrl+S (Save)
+      if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
+        e.preventDefault();
+        alert('Saving this page is disabled.');
+        return false;
+      }
 
-            // Ctrl+P (Print)
-            if (e.ctrlKey && (e.key === 'P' || e.key === 'p')) {
-                e.preventDefault();
-                alert('Printing this page is disabled.');
-                return false;
-            }
-        });
+      // Ctrl+P (Print)
+      if (e.ctrlKey && (e.key === 'P' || e.key === 'p')) {
+        e.preventDefault();
+        alert('Printing this page is disabled.');
+        return false;
+      }
+    });
 
-        // Detect dev tools opening
-        let devToolsOpen = false;
-        
-        const detectDevTools = () => {
-            const threshold = 160;
-            const widthDiff = window.outerWidth - window.innerWidth > threshold;
-            const heightDiff = window.outerHeight - window.innerHeight > threshold;
-            
-            if (widthDiff || heightDiff) {
-                if (!devToolsOpen) {
-                    devToolsOpen = true;
-                    alert('Developer tools detected! This action has been logged.');
-                }
-            } else {
-                devToolsOpen = false;
-            }
-        };
+    // Detect dev tools opening
+    let devToolsOpen = false;
 
-        setInterval(detectDevTools, 1000);
+    const detectDevTools = () => {
+      const threshold = 160;
+      const widthDiff = window.outerWidth - window.innerWidth > threshold;
+      const heightDiff = window.outerHeight - window.innerHeight > threshold;
 
-        // Disable text selection (keeps buttons clickable)
-        document.addEventListener('selectstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
+      if (widthDiff || heightDiff) {
+        if (!devToolsOpen) {
+          devToolsOpen = true;
+          alert('Developer tools detected! This action has been logged.');
+        }
+      } else {
+        devToolsOpen = false;
+      }
+    };
 
-        // Disable drag and drop
-        document.addEventListener('dragstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
+    setInterval(detectDevTools, 1000);
 
-        // Clear console on load
-        console.clear();
-        console.log('%cSecurity Alert', 'color: red; font-size: 30px; font-weight: bold;');
-        console.log('%cThis is a private secure connection. Unauthorized access is prohibited.', 'color: orange; font-size: 16px;');
+    // Disable text selection (keeps buttons clickable)
+    document.addEventListener('selectstart', function(e) {
+      e.preventDefault();
+      return false;
+    });
 
-        // Disable inspect element via long press (mobile)
-        let touchTimer;
-        document.addEventListener('touchstart', function(e) {
-            touchTimer = setTimeout(function() {
-                alert('Inspect element is disabled on this secure page.');
-            }, 800);
-        });
+    // Disable drag and drop
+    document.addEventListener('dragstart', function(e) {
+      e.preventDefault();
+      return false;
+    });
 
-        document.addEventListener('touchend', function() {
-            clearTimeout(touchTimer);
-        });
+    // Clear console on load
+    console.clear();
+    console.log('%cSecurity Alert', 'color: red; font-size: 30px; font-weight: bold;');
+    console.log('%cThis is a private secure connection. Unauthorized access is prohibited.', 'color: orange; font-size: 16px;');
 
-        // Warn on page visibility change (potential tab switching to dev tools)
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                console.log('Page hidden - potential security concern');
-            }
-        });
-    </script>
+    // Disable inspect element via long press (mobile)
+    let touchTimer;
+    document.addEventListener('touchstart', function(e) {
+      touchTimer = setTimeout(function() {
+        alert('Inspect element is disabled on this secure page.');
+      }, 800);
+    });
+
+    document.addEventListener('touchend', function() {
+      clearTimeout(touchTimer);
+    });
+
+    // Warn on page visibility change (potential tab switching to dev tools)
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        console.log('Page hidden - potential security concern');
+      }
+    });
+  </script>
 </body>
 </html>
+```

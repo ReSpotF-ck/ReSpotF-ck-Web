@@ -2030,12 +2030,6 @@ Export Date: ${new Date().toISOString()}
                     }
                 });
             }
-            
-            // Pre-fill default Jamendo client ID if not set
-            if (!localStorage.getItem('jamendoClientId')) {
-                localStorage.setItem('jamendoClientId', 'c4ce16c7');
-                console.log('Set default Jamendo client ID');
-            }
         }).catch(error => {
             console.error('Failed to initialize API Handler:', error);
         });

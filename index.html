@@ -315,8 +315,6 @@
                 if (!devToolsOpen) {
                     devToolsOpen = true;
                     alert('Developer tools detected! This action has been logged.');
-                    // Optionally redirect or take other action
-                    // window.location.href = 'about:blank';
                 }
             } else {
                 devToolsOpen = false;
@@ -325,7 +323,7 @@
 
         setInterval(detectDevTools, 1000);
 
-        // Disable text selection
+        // Disable text selection (keeps buttons clickable)
         document.addEventListener('selectstart', function(e) {
             e.preventDefault();
             return false;

@@ -221,13 +221,19 @@ async function searchAudius(query, searchFilter = 'all') {
 function formatAudiusTrack(track, host) {
     let artwork = '';
     if (track.artwork) {
+        // Try multiple resolution options in order of preference
         artwork = track.artwork['1500x1500'] || 
+                  track.artwork['1000x1000'] ||
                   track.artwork['480x480'] || 
                   track.artwork['150x150'] || 
-                  track.artwork['1000x1000'] || '';
+                  track.artwork['600x600'] ||
+                  track.artwork['500x500'] || '';
     }
+    
+    // Fallback to generated avatar if no artwork
     if (!artwork) {
-        artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.title.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+        const artistInitials = track.user ? track.user.name.substring(0, 2) : track.title.substring(0, 2);
+        artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(artistInitials)}&background=dc2626&color=fff&size=500&font-size=0.33`;
     }
     
     return {
@@ -278,10 +284,18 @@ async function searchJamendo(query, searchFilter = 'all') {
         
         if (data.results && data.results.length > 0) {
             const tracks = data.results.map(track => {
-                let artwork = track.image || track.album_image || '';
+                // Try multiple artwork sources with fallbacks
+                let artwork = track.image || 
+                              track.album_image || 
+                              track.cover_image || 
+                              track.waveform_image || '';
+                
+                // If no artwork, generate avatar with artist initials
                 if (!artwork) {
-                    artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                    const artistInitials = track.artist_name ? track.artist_name.substring(0, 2) : track.name.substring(0, 2);
+                    artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(artistInitials)}&background=dc2626&color=fff&size=500&font-size=0.33`;
                 }
+                
                 return {
                     source: 'jamendo',
                     id: track.id,
@@ -346,13 +360,19 @@ async function searchYouTube(query, searchFilter = 'all') {
         
         if (data.items && data.items.length > 0) {
             const tracks = data.items.map(item => {
+                // Try multiple thumbnail sizes in order of preference
                 let thumbnail = item.snippet.thumbnails.maxres?.url || 
+                               item.snippet.thumbnails.standard?.url ||
                                item.snippet.thumbnails.high?.url || 
                                item.snippet.thumbnails.medium?.url || 
                                item.snippet.thumbnails.default?.url || '';
+                
+                // If no thumbnail, generate avatar with channel initials
                 if (!thumbnail) {
-                    thumbnail = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.snippet.title.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                    const channelInitials = item.snippet.channelTitle ? item.snippet.channelTitle.substring(0, 2) : item.snippet.title.substring(0, 2);
+                    thumbnail = `https://ui-avatars.com/api/?name=${encodeURIComponent(channelInitials)}&background=dc2626&color=fff&size=500&font-size=0.33`;
                 }
+                
                 return {
                     source: 'youtube',
                     videoId: item.id.videoId,
@@ -517,12 +537,19 @@ async function searchSpotify(query, searchFilter = 'all') {
  * Format Spotify track data
  */
 function formatSpotifyTrack(track) {
-    let artwork = track.album.images.find(img => img.height >= 600)?.url || 
+    // Try multiple image sizes in order of preference
+    let artwork = track.album.images.find(img => img.height >= 1000)?.url ||
+                  track.album.images.find(img => img.height >= 640)?.url ||
+                  track.album.images.find(img => img.height >= 600)?.url || 
                   track.album.images.find(img => img.height >= 300)?.url || 
                   track.album.images[0]?.url || '';
+    
+    // If no artwork, generate avatar with artist initials
     if (!artwork) {
-        artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+        const artistInitials = track.artists && track.artists[0] ? track.artists[0].name.substring(0, 2) : track.name.substring(0, 2);
+        artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(artistInitials)}&background=dc2626&color=fff&size=500&font-size=0.33`;
     }
+    
     return {
         source: 'spotify',
         spotifyUrl: track.external_urls.spotify,

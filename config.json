@@ -7,12 +7,12 @@
     },
     "youtube": {
       "apiKey": "",
-      "_comment": "YouTube Data API v3 key - Get from console.cloud.google.com. Required for YouTube music streaming. Leave empty to use Audius (FREE) instead."
+      "_comment": "ENTER YOUR YOUTUBE DATA API V3 KEY HERE - Get from console.cloud.google.com. Required for YouTube music streaming. Leave empty to use Audius (FREE) instead."
     },
     "spotify": {
       "clientId": "",
       "clientSecret": "",
-      "_comment": "Spotify API credentials - Get from developer.spotify.com. Required for Spotify integration (30-second previews only). Leave empty to use Audius (FREE) instead."
+      "_comment": "ENTER YOUR SPOTIFY CREDENTIALS HERE - Get from developer.spotify.com. Required for Spotify integration (30-second previews only). Leave empty to use Audius (FREE) instead."
     },
     "audius": {
       "enabled": true,

@@ -1,21 +1,27 @@
 {
+  "_comment": "This configuration file is used by the Spotfuck music player. API keys can be stored here for automatic loading from GitHub repositories. For security, consider using a private repository or environment variables for production deployments.",
   "api": {
     "jamendo": {
-      "clientId": "c4ce16c7"
+      "clientId": "c4ce16c7",
+      "_comment": "Jamendo Client ID - Get from jamendo.com. The default ID 'c4ce16c7' is for the free tier."
     },
     "youtube": {
-      "apiKey": ""
+      "apiKey": "",
+      "_comment": "YouTube Data API v3 key - Get from console.cloud.google.com. Required for YouTube music streaming."
     },
     "spotify": {
       "clientId": "",
-      "clientSecret": ""
+      "clientSecret": "",
+      "_comment": "Spotify API credentials - Get from developer.spotify.com. Required for Spotify integration (30-second previews only)."
     },
     "audius": {
-      "enabled": true
+      "enabled": true,
+      "_comment": "Audius is FREE and requires no API keys. Works out of the box."
     }
   },
   "app": {
     "name": "Spotfuck",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "_comment": "Application metadata"
   }
 }

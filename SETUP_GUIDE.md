@@ -237,6 +237,7 @@ If the repository fetch fails:
 ```
 your-repo/
 ├── config.json          # API configuration
+├── api-handler.js      # API handler (optional - if you want to customize API logic)
 ├── README.md           # Documentation
 └── .gitignore          # (optional)
 ```

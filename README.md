@@ -118,10 +118,12 @@ Create a `config.json` file in your GitHub repository:
 ```
 ReSpotFuck-Web/
 ├── owo.html           # Main application
+├── api-handler.js     # API handler - separates API logic from UI
 ├── index.html         # Landing page
-├── config.json        # Example configuration file
+├── config.json        # Configuration file for API keys
 ├── SETUP_GUIDE.md     # Detailed setup instructions
-└── README.md          # This file
+├── README.md          # This file
+└── test.html          # API test suite
 ```
 
 ## Contributing

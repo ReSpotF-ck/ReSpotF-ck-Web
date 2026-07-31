@@ -578,6 +578,9 @@
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
+    <!-- API Handler -->
+    <script src="api-handler.js"></script>
+
     <script>
         // State
         let tracks = [];
@@ -587,18 +590,6 @@
         let isRepeat = false;
         let currentSource = 'audius';
         let youtubePlayer = null;
-        let youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
-        let spotifyClientId = localStorage.getItem('spotifyClientId') || '';
-        let spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
-        let spotifyAccessToken = null;
-        let JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || '';
-        
-        // Debug: Log loaded credentials
-        console.log('Loaded credentials:', {
-            youtubeApiKey: youtubeApiKey ? 'Present' : 'Missing',
-            spotifyClientId: spotifyClientId ? 'Present' : 'Missing',
-            spotifyClientSecret: spotifyClientSecret ? 'Present' : 'Missing'
-        });
         
         // DOM Elements
         const audioPlayer = document.getElementById('audioPlayer');
@@ -648,84 +639,6 @@
         let queue = JSON.parse(localStorage.getItem('queue') || '[]');
         let currentSearchFilter = 'all';
         let searchHistoryList = JSON.parse(localStorage.getItem('searchHistory') || '[]');
-        
-        // Configuration
-        let config = {
-            api: {
-                jamendo: { clientId: '' },
-                youtube: { apiKey: '' },
-                spotify: { clientId: '', clientSecret: '' },
-                audius: { enabled: true }
-            }
-        };
-
-        // Fetch configuration from repository
-        async function fetchConfigFromRepo(repoUrl) {
-            try {
-                // Extract owner and repo from GitHub URL
-                const match = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-                if (!match) {
-                    console.error('Invalid GitHub repository URL');
-                    return false;
-                }
-
-                const [, owner, repo] = match;
-                const configUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/config.json`;
-
-                console.log('Fetching config from:', configUrl);
-                const response = await fetch(configUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const fetchedConfig = await response.json();
-                config = fetchedConfig;
-                console.log('Configuration loaded successfully:', config);
-                
-                // Update API keys from config (only if they exist and are not empty, and don't override existing localStorage values)
-                if (config.api) {
-                    if (config.api.jamendo?.clientId && config.api.jamendo.clientId.trim() !== '' && !localStorage.getItem('jamendoClientId')) {
-                        JAMENDO_CLIENT_ID = config.api.jamendo.clientId;
-                        localStorage.setItem('jamendoClientId', JAMENDO_CLIENT_ID);
-                        console.log('Updated Jamendo client ID from config');
-                    }
-                    if (config.api.youtube?.apiKey && config.api.youtube.apiKey.trim() !== '' && !localStorage.getItem('youtubeApiKey')) {
-                        youtubeApiKey = config.api.youtube.apiKey;
-                        localStorage.setItem('youtubeApiKey', youtubeApiKey);
-                        console.log('Updated YouTube API key from config');
-                    }
-                    if (config.api.spotify?.clientId && config.api.spotify.clientId.trim() !== '' && !localStorage.getItem('spotifyClientId')) {
-                        spotifyClientId = config.api.spotify.clientId;
-                        localStorage.setItem('spotifyClientId', spotifyClientId);
-                        console.log('Updated Spotify client ID from config');
-                    }
-                    if (config.api.spotify?.clientSecret && config.api.spotify.clientSecret.trim() !== '' && !localStorage.getItem('spotifyClientSecret')) {
-                        spotifyClientSecret = config.api.spotify.clientSecret;
-                        localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
-                        console.log('Updated Spotify client secret from config');
-                    }
-                }
-                
-                // Reload from localStorage after config fetch
-                youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
-                spotifyClientId = localStorage.getItem('spotifyClientId') || '';
-                spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
-                JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || '';
-                
-                console.log('API keys after config fetch:', {
-                    youtubeApiKey: youtubeApiKey ? 'Present' : 'Missing',
-                    spotifyClientId: spotifyClientId ? 'Present' : 'Missing',
-                    spotifyClientSecret: spotifyClientSecret ? 'Present' : 'Missing',
-                    JAMENDO_CLIENT_ID: JAMENDO_CLIENT_ID ? 'Present' : 'Missing'
-                });
-                
-                return true;
-            } catch (error) {
-                console.error('Error fetching config from repository:', error);
-                return false;
-            }
-        }
 
         // Recommended tracks data (curated from Jamendo)
         const recommendedTracksData = [
@@ -775,14 +688,22 @@
             // Add to search history
             addToSearchHistory(query);
             
+            let result;
             if (currentSource === 'jamendo') {
-                await searchJamendo(query);
+                result = await searchJamendo(query, currentSearchFilter);
             } else if (currentSource === 'youtube') {
-                await searchYouTube(query);
+                result = await searchYouTube(query, currentSearchFilter);
             } else if (currentSource === 'spotify') {
-                await searchSpotify(query);
+                result = await searchSpotify(query, currentSearchFilter);
             } else if (currentSource === 'audius') {
-                await searchAudius(query);
+                result = await searchAudius(query, currentSearchFilter);
+            }
+            
+            if (result.success) {
+                tracks = result.tracks;
+                renderTrackList();
+            } else {
+                showError(result.error);
             }
         }
         
@@ -1672,16 +1593,13 @@
                 const newSource = btn.dataset.source;
                 
                 // Check if source requires API keys
-                if (newSource === 'spotify' && (!spotifyClientId || !spotifyClientSecret)) {
-                    alert('Spotify requires API credentials. Please add them in Settings first, or use Audius (FREE) instead.');
-                    return;
-                }
-                if (newSource === 'youtube' && !youtubeApiKey) {
-                    alert('YouTube requires an API key. Please add it in Settings first, or use Audius (FREE) instead.');
-                    return;
-                }
-                if (newSource === 'jamendo' && !JAMENDO_CLIENT_ID) {
-                    alert('Jamendo requires a client ID. Please add it in Settings first, or use Audius (FREE) instead.');
+                if (!hasCredentialsForSource(newSource)) {
+                    const sourceNames = {
+                        spotify: 'Spotify requires API credentials',
+                        youtube: 'YouTube requires an API key',
+                        jamendo: 'Jamendo requires a client ID'
+                    };
+                    alert(`${sourceNames[newSource]}. Please add them in Settings first, or use Audius (FREE) instead.`);
                     return;
                 }
                 
@@ -1741,10 +1659,10 @@
         
         // Settings modal
         settingsBtn.addEventListener('click', () => {
-            youtubeApiKeyInput.value = youtubeApiKey;
-            spotifyClientIdInput.value = spotifyClientId;
-            spotifyClientSecretInput.value = spotifyClientSecret;
-            jamendoClientIdInput.value = JAMENDO_CLIENT_ID || '';
+            youtubeApiKeyInput.value = localStorage.getItem('youtubeApiKey') || '';
+            spotifyClientIdInput.value = localStorage.getItem('spotifyClientId') || '';
+            spotifyClientSecretInput.value = localStorage.getItem('spotifyClientSecret') || '';
+            jamendoClientIdInput.value = localStorage.getItem('jamendoClientId') || '';
             repoUrlInput.value = localStorage.getItem('repoUrl') || '';
             settingsModal.classList.remove('hidden');
             settingsModal.classList.add('flex');
@@ -1757,31 +1675,27 @@
         
         saveSettings.addEventListener('click', async () => {
             const repoUrl = repoUrlInput.value.trim();
-            youtubeApiKey = youtubeApiKeyInput.value.trim();
-            spotifyClientId = spotifyClientIdInput.value.trim();
-            spotifyClientSecret = spotifyClientSecretInput.value.trim();
-            const jamendoClientId = jamendoClientIdInput.value.trim();
+            const credentials = {
+                youtubeApiKey: youtubeApiKeyInput.value.trim(),
+                spotifyClientId: spotifyClientIdInput.value.trim(),
+                spotifyClientSecret: spotifyClientSecretInput.value.trim(),
+                jamendoClientId: jamendoClientIdInput.value.trim()
+            };
             
             console.log('Saving credentials:', {
-                youtubeApiKey: youtubeApiKey ? 'Present' : 'Missing',
-                youtubeApiKeyLength: youtubeApiKey.length,
-                spotifyClientId: spotifyClientId ? 'Present' : 'Missing',
-                spotifyClientIdLength: spotifyClientId.length,
-                spotifyClientSecret: spotifyClientSecret ? 'Present' : 'Missing',
-                spotifyClientSecretLength: spotifyClientSecret.length,
-                jamendoClientId: jamendoClientId ? 'Present' : 'Missing',
-                jamendoClientIdLength: jamendoClientId.length,
+                youtubeApiKey: credentials.youtubeApiKey ? 'Present' : 'Missing',
+                youtubeApiKeyLength: credentials.youtubeApiKey.length,
+                spotifyClientId: credentials.spotifyClientId ? 'Present' : 'Missing',
+                spotifyClientIdLength: credentials.spotifyClientId.length,
+                spotifyClientSecret: credentials.spotifyClientSecret ? 'Present' : 'Missing',
+                spotifyClientSecretLength: credentials.spotifyClientSecret.length,
+                jamendoClientId: credentials.jamendoClientId ? 'Present' : 'Missing',
+                jamendoClientIdLength: credentials.jamendoClientId.length,
                 repoUrl: repoUrl || 'Not set'
             });
             
-            // Save to localStorage immediately
-            localStorage.setItem('youtubeApiKey', youtubeApiKey);
-            localStorage.setItem('spotifyClientId', spotifyClientId);
-            localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
-            localStorage.setItem('jamendoClientId', jamendoClientId);
-            
-            // Update in-memory variables
-            JAMENDO_CLIENT_ID = jamendoClientId;
+            // Use API handler to save credentials
+            saveCredentials(credentials);
             
             // Save repository URL
             if (repoUrl) {
@@ -2135,6 +2049,9 @@
         // Apply initial theme
         applyTheme();
         
+        // Initialize API Handler
+        initAPIHandler();
+        
         // Load content after PIN and disclaimer (shown every time)
         console.log('PIN and disclaimer will be shown every time for privacy and legal compliance');
         
@@ -2146,15 +2063,6 @@
             localStorage.setItem('repoUrl', defaultRepoUrl);
             console.log('Set default repository URL:', defaultRepoUrl);
         }
-        
-        // Try to fetch config from repository (non-blocking)
-        const repoUrlToUse = savedRepoUrl || defaultRepoUrl;
-        console.log('Fetching config from:', repoUrlToUse);
-        fetchConfigFromRepo(repoUrlToUse).then(() => {
-            console.log('Config fetch complete');
-        }).catch(err => {
-            console.error('Config fetch failed:', err);
-        });
         
         // YouTube API ready callback
         function onYouTubeIframeAPIReady() {

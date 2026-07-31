@@ -676,49 +676,9 @@
         let currentSearchFilter = 'all';
         let searchHistoryList = JSON.parse(localStorage.getItem('searchHistory') || '[]');
 
-        // Recommended search queries for quick access
-        const recommendedQueries = [
-            { name: 'Chill Lofi', query: 'lofi chill', icon: '🎵' },
-            { name: 'Electronic Vibes', query: 'electronic synthwave', icon: '🎹' },
-            { name: 'Acoustic Morning', query: 'acoustic folk', icon: '🎸' },
-            { name: 'Jazz Cafe', query: 'jazz smooth', icon: '🎷' },
-            { name: 'Rock Anthem', query: 'rock alternative', icon: '🎤' },
-            { name: 'Hip Hop Beats', query: 'hip hop beats', icon: '🥁' }
-        ];
-        
-        // Load recommended tracks (enabled for initial content)
-        async function loadRecommendedTracks() {
-            console.log('Loading recommended tracks from Audius...');
-            try {
-                // Load some trending tracks from Audius
-                const result = await window.searchAudius('trending');
-                if (result.success && result.tracks && result.tracks.length > 0) {
-                    tracks = result.tracks;
-                    renderTrackList();
-                    console.log('Loaded', tracks.length, 'recommended tracks');
-                } else {
-                    console.log('No recommended tracks found, showing empty state');
-                    showEmptyState();
-                }
-            } catch (error) {
-                console.error('Error loading recommended tracks:', error);
-                showEmptyState();
-            }
-        }
-        
-        // Play recommended track
-        function playRecommendedTrack(index) {
-            if (tracks && tracks[index]) {
-                currentTrackIndex = index;
-                playTrack(index);
-                renderTrackList();
-            }
-        }
-        
-        // Search and play recommended
-        function searchAndPlayRecommended(query) {
-            searchInput.value = query;
-            searchTracks(query);
+        // Show empty state on load
+        function loadRecommendedTracks() {
+            showEmptyState();
         }
         
         // Search for tracks based on source
@@ -845,23 +805,13 @@
         
         
         function showEmptyState() {
-            const quickSearchButtons = recommendedQueries.map(item => 
-                `<button onclick="searchAndPlayRecommended('${item.query}')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full text-sm transition-colors">
-                    ${item.icon} ${item.name}
-                </button>`
-            ).join('');
-
             trackList.innerHTML = `
                 <div class="text-center py-12" style="color: var(--text-secondary);">
-                    <div class="w-20 h-20 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-music text-4xl text-red-500"></i>
+                    <div class="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-music text-3xl text-red-500"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-2">Welcome to Spotfuck</h3>
-                    <p class="text-sm mb-6 opacity-75">Search for music to get started</p>
-                    <div class="flex flex-wrap justify-center gap-2 mb-6">
-                        ${quickSearchButtons}
-                    </div>
-                    <p class="text-xs opacity-50">Powered by Audius (FREE) • No API key required</p>
+                    <h3 class="text-lg font-bold mb-2">Welcome to Spotfuck</h3>
+                    <p class="text-sm opacity-75">Search for music to get started</p>
                 </div>
             `;
         }

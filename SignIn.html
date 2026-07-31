@@ -19,28 +19,6 @@
       position: relative;
     }
 
-    .music-notes {
-      position: fixed;
-      font-size: 2rem;
-      opacity: 0.3;
-      animation: float 6s ease-in-out infinite;
-      pointer-events: none;
-      z-index: 0;
-      user-select: none;
-    }
-
-    .music-notes:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
-    .music-notes:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
-    .music-notes:nth-child(3) { bottom: 30%; left: 15%; animation-delay: 2s; }
-    .music-notes:nth-child(4) { bottom: 15%; right: 10%; animation-delay: 3s; }
-    .music-notes:nth-child(5) { top: 40%; left: 5%; animation-delay: 4s; }
-    .music-notes:nth-child(6) { top: 60%; right: 5%; animation-delay: 5s; }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(10deg); }
-    }
-
     .container {
       text-align: center;
       padding: 40px;
@@ -49,14 +27,14 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(139, 92, 246, 0.3);
-      max-width: 640px;
+      max-width: 500px;
       position: relative;
       z-index: 1;
     }
 
     .vinyl-record {
-      width: 200px;
-      height: 200px;
+      width: 150px;
+      height: 150px;
       background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
       border-radius: 50%;
       margin: 0 auto 2rem;
@@ -71,8 +49,8 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 60px;
-      height: 60px;
+      width: 45px;
+      height: 45px;
       background: linear-gradient(145deg, #8b5cf6, #6366f1);
       border-radius: 50%;
       box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
@@ -84,27 +62,11 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 15px;
-      height: 15px;
+      width: 12px;
+      height: 12px;
       background: #0a0a0a;
       border-radius: 50%;
     }
-
-    .grooves {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 180px;
-      height: 180px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .grooves:nth-child(2) { width: 150px; height: 150px; }
-    .grooves:nth-child(3) { width: 120px; height: 120px; }
-    .grooves:nth-child(4) { width: 90px; height: 90px; }
 
     @keyframes spin {
       from { transform: rotate(0deg); }
@@ -112,8 +74,8 @@
     }
 
     h1 {
-      font-size: 28px;
-      margin-bottom: 14px;
+      font-size: 24px;
+      margin-bottom: 16px;
       background: linear-gradient(135deg, #8b5cf6, #ec4899, #8b5cf6);
       background-size: 200% 200%;
       -webkit-background-clip: text;
@@ -131,383 +93,57 @@
       font-size: 16px;
       line-height: 1.6;
       color: #e2e8f0;
-      margin-bottom: 22px;
+      margin-bottom: 24px;
     }
 
-    .secure-badge {
+    .enter-btn {
       display: inline-block;
       background: linear-gradient(135deg, #8b5cf6, #6366f1);
       color: #fff;
-      padding: 10px 25px;
-      border-radius: 30px;
+      padding: 14px 32px;
+      border-radius: 50px;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 16px;
+      text-decoration: none;
       text-transform: uppercase;
       letter-spacing: 2px;
       box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      margin-top: 6px;
-      margin-bottom: 14px;
-      user-select: none;
+      transition: all 0.3s ease;
     }
 
-    .secure-badge:hover {
+    .enter-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
     }
 
-    .choices {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      margin: 18px 0 6px;
-      text-align: left;
-    }
-
-    .choice-btn {
-      width: 100%;
-      padding: 14px 16px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.06);
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+    .github-link {
+      display: inline-block;
+      margin-top: 16px;
+      color: #8b5cf6;
       text-decoration: none;
-      user-select: none;
-    }
-
-    .choice-btn:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.09);
-      box-shadow: 0 10px 25px rgba(139, 92, 246, 0.18);
-    }
-
-    .choice-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 0;
-    }
-
-    .choice-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
-      background: rgba(139, 92, 246, 0.12);
-      flex: 0 0 auto;
-    }
-
-    .choice-text {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 0;
-    }
-
-    .choice-title {
-      font-weight: 800;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .choice-subtitle {
-      font-size: 12.5px;
-      color: #cbd5e1;
-      line-height: 1.2;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .arrow {
-      opacity: 0.9;
-      font-size: 18px;
-    }
-
-    .warning {
-      margin-top: 18px;
-      padding: 14px;
-      background: rgba(139, 92, 246, 0.1);
-      border-left: 4px solid #8b5cf6;
-      text-align: left;
-      font-size: 14px;
-      color: #e2e8f0;
-      border-radius: 4px;
-    }
-
-    .form {
-      display: none;
-      text-align: left;
-      margin-top: 18px;
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .form.show { display: block; }
-
-    label {
-      display: block;
-      margin: 10px 0 6px;
-      font-size: 13.5px;
-      color: #e2e8f0;
-      letter-spacing: 0.2px;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.25);
-      color: #fff;
-      outline: none;
       font-size: 14px;
     }
 
-    textarea { min-height: 100px; resize: vertical; }
-
-    input:focus, textarea:focus {
-      border-color: rgba(139, 92, 246, 0.65);
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-
-    .primary {
-      background: linear-gradient(135deg, #8b5cf6, #6366f1);
-      border: 0;
-      color: #fff;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-weight: 800;
-      cursor: pointer;
-      flex: 1 1 160px;
-      transition: transform 0.15s ease, box-shadow 0.2s ease;
-    }
-
-    .primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.25);
-    }
-
-    .ghost {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.14);
-      color: #fff;
-      padding: 12px 14px;
-      border-radius: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      flex: 1 1 120px;
-    }
-
-    .result {
-      margin-top: 12px;
-      color: #cbd5e1;
-      font-size: 14px;
-      display: none;
-    }
-
-    .result.show { display: block; }
-
-    .equalizer {
-      display: flex;
-      justify-content: center;
-      gap: 4px;
-      margin: 22px 0 8px;
-      height: 80px;
-      align-items: flex-end;
-    }
-
-    .equalizer-bar {
-      width: 8px;
-      background: linear-gradient(to top, #8b5cf6, #ec4899);
-      border-radius: 4px;
-      animation: equalize 1s ease-in-out infinite;
-    }
-
-    .equalizer-bar:nth-child(1) { height: 40px; animation-delay: 0s; }
-    .equalizer-bar:nth-child(2) { height: 60px; animation-delay: 0.1s; }
-    .equalizer-bar:nth-child(3) { height: 30px; animation-delay: 0.2s; }
-    .equalizer-bar:nth-child(4) { height: 70px; animation-delay: 0.3s; }
-    .equalizer-bar:nth-child(5) { height: 50px; animation-delay: 0.4s; }
-    .equalizer-bar:nth-child(6) { height: 80px; animation-delay: 0.5s; }
-    .equalizer-bar:nth-child(7) { height: 45px; animation-delay: 0.6s; }
-    .equalizer-bar:nth-child(8) { height: 65px; animation-delay: 0.7s; }
-
-    @keyframes equalize {
-      0%, 100% { transform: scaleY(1); }
-      50% { transform: scaleY(0.5); }
-    }
-
-    @media (max-width: 520px) {
-      .container { padding: 26px; }
-      .vinyl-record { width: 170px; height: 170px; }
+    .github-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
-
 <body>
-  <div class="music-notes">🎵</div>
-  <div class="music-notes">🎶</div>
-  <div class="music-notes">🎵</div>
-  <div class="music-notes">🎶</div>
-  <div class="music-notes">🎵</div>
-  <div class="music-notes">🎶</div>
-
   <div class="container">
-    <div class="vinyl-record" aria-hidden="true">
-      <div class="grooves"></div>
-      <div class="grooves"></div>
-      <div class="grooves"></div>
-      <div class="grooves"></div>
-    </div>
-
-    <h1>Sign In</h1>
-    <p>
-      Join through Discord or Telegram. If those options aren’t available, submit a request form below.
-    </p>
-
-    <div class="secure-badge">Approved Access Only</div>
-
-    <div class="choices">
-      <a class="choice-btn" href="owo.html" id="directAccess">
-        <div class="choice-left">
-          <div class="choice-icon" style="background: rgba(99,102,241,0.16);">🎵</div>
-          <div class="choice-text">
-            <div class="choice-title">Enter App Directly</div>
-            <div class="choice-subtitle">Access the music player</div>
-          </div>
-        </div>
-        <div class="arrow">↗</div>
-      </a>
-
-      <a class="choice-btn" href="https://github.com/ReSpotF-ck/ReSpotFuck-Web" id="githubRepo">
-        <div class="choice-left">
-          <div class="choice-icon" style="background: rgba(139,92,246,0.16);">📦</div>
-          <div class="choice-text">
-            <div class="choice-title">View on GitHub</div>
-            <div class="choice-subtitle">Source code and documentation</div>
-          </div>
-        </div>
-        <div class="arrow">↗</div>
-      </a>
-
-      <button class="choice-btn" type="button" id="requestBtn" style="text-align:left;">
-        <div class="choice-left">
-          <div class="choice-icon" style="background: rgba(236,72,153,0.14);">📝</div>
-          <div class="choice-text">
-            <div class="choice-title">Request Access</div>
-            <div class="choice-subtitle">Use this if you need special access</div>
-          </div>
-        </div>
-        <div class="arrow">→</div>
-      </button>
-    </div>
-
-    <div class="equalizer" aria-hidden="true">
-      <div class="equalizer-bar"></div><div class="equalizer-bar"></div><div class="equalizer-bar"></div><div class="equalizer-bar"></div>
-      <div class="equalizer-bar"></div><div class="equalizer-bar"></div><div class="equalizer-bar"></div><div class="equalizer-bar"></div>
-    </div>
-
-    <div class="warning">
-      ⚠️ Access requests may be reviewed. Don’t share secrets or credentials—only submit the details requested.
-    </div>
-
-    <form class="form" id="requestForm" autocomplete="off">
-      <div style="font-weight: 900; margin-bottom: 6px; color:#fff;">Access Request</div>
-      <p style="margin: 0 0 6px; font-size: 13.5px; color:#cbd5e1;">
-        Tell us how to contact you, and why you need access.
-      </p>
-
-      <label for="name">Name (optional)</label>
-      <input id="name" name="name" type="text" placeholder="Your name" />
-
-      <label for="contact">Discord or Telegram handle</label>
-      <input id="contact" name="contact" type="text" placeholder="@username or +phone" required />
-
-      <label for="email">Email (for follow-up)</label>
-      <input id="email" name="email" type="email" placeholder="you@example.com" required />
-
-      <label for="reason">Reason for access</label>
-      <textarea id="reason" name="reason" placeholder="A short message..." required></textarea>
-
-      <div class="form-actions">
-        <button class="primary" type="submit">Submit Request</button>
-        <button class="ghost" type="button" id="cancelBtn">Cancel</button>
-      </div>
-
-      <div class="result" id="resultMsg"></div>
-    </form>
+    <div class="vinyl-record"></div>
+    <h1>Spotfuck</h1>
+    <p>Music streaming with multiple API integrations</p>
+    <a href="owo.html" class="enter-btn">Enter App</a>
+    <br>
+    <a href="https://github.com/ReSpotF-ck/ReSpotFuck-Web" class="github-link">View on GitHub</a>
   </div>
 
   <script>
-    // Toggle request form
-    const requestBtn = document.getElementById('requestBtn');
-    const requestForm = document.getElementById('requestForm');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const resultMsg = document.getElementById('resultMsg');
-
-    requestBtn.addEventListener('click', () => {
-      requestForm.classList.add('show');
-      resultMsg.classList.remove('show');
-    });
-
-    cancelBtn.addEventListener('click', () => {
-      requestForm.classList.remove('show');
-      resultMsg.classList.remove('show');
-    });
-
-    // Simple front-end submit handler (replace with your backend endpoint)
-    requestForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const formData = {
-        name: document.getElementById('name').value.trim(),
-        contact: document.getElementById('contact').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        reason: document.getElementById('reason').value.trim()
-      };
-
-      // Update this fetch URL to your request endpoint
-      const endpoint = 'https://your-request-endpoint.example/api/request';
-
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-
-        if (!res.ok) throw new Error('Request failed');
-
-        resultMsg.textContent = 'Request submitted. You’ll be contacted if approved.';
-        resultMsg.classList.add('show');
-
-        requestForm.reset();
-      } catch (err) {
-        resultMsg.textContent = 'Could not submit right now. Please try again later.';
-        resultMsg.classList.add('show');
-      }
-    });
+    // Auto-redirect after 2 seconds for smoother experience
+    setTimeout(() => {
+      window.location.href = 'owo.html';
+    }, 2000);
   </script>
 </body>
 </html>

@@ -602,6 +602,9 @@
                 <button class="library-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-view="library" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
                     <i class="fas fa-heart mr-2"></i> Liked Songs
                 </button>
+                <button class="library-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" id="queueBtnMain" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
+                    <i class="fas fa-list mr-2"></i> Queue <span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full queue-count">${queue.length}</span>
+                </button>
             </div>
         </div>
 
@@ -1156,6 +1159,7 @@
         const clearQueue = document.getElementById('clearQueue');
         const queueList = document.getElementById('queueList');
         const saveQueueAsPlaylist = document.getElementById('saveQueueAsPlaylist');
+        const queueBtnMain = document.getElementById('queueBtnMain');
         let isMiniPlayerMode = false;
         
         // Mini Player Toggle Functionality
@@ -1906,6 +1910,9 @@
         // Library button
         document.querySelectorAll('.library-btn').forEach(btn => {
             btn.addEventListener('click', () => {
+                // Skip queue button as it has its own handler
+                if (btn.id === 'queueBtnMain') return;
+                
                 document.querySelectorAll('.source-btn').forEach(b => {
                     b.classList.remove('active', 'bg-red-600');
                     b.classList.add('bg-white/10');
@@ -2461,32 +2468,20 @@ Export Date: ${new Date().toISOString()}
             }
         });
         
-        // Add queue button to library section
-        const librarySection = document.querySelector('.library-section');
-        let queueBtn = null;
-        if (librarySection) {
-            queueBtn = document.createElement('button');
-            queueBtn.className = 'library-btn flex flex-col items-center gap-2 p-3 rounded-xl transition-all';
-            queueBtn.style.background = 'rgba(255, 255, 255, 0.05)';
-            queueBtn.style.color = 'var(--text-color)';
-            queueBtn.innerHTML = `
-                <i class="fas fa-list text-xl"></i>
-                <span class="text-xs">Queue</span>
-                <span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full queue-count">${queue.length}</span>
-            `;
-            queueBtn.addEventListener('click', () => {
+        // Queue button handler
+        if (queueBtnMain) {
+            queueBtnMain.addEventListener('click', () => {
                 renderQueue();
                 queueModal.classList.remove('hidden');
                 queueModal.classList.add('flex');
             });
-            librarySection.appendChild(queueBtn);
         }
         
         function updateQueueCount() {
-            const queueCount = document.querySelector('.queue-count');
-            if (queueCount) {
-                queueCount.textContent = queue.length;
-            }
+            const queueCountElements = document.querySelectorAll('.queue-count');
+            queueCountElements.forEach(el => {
+                el.textContent = queue.length;
+            });
         }
         
         function addToQueue(track) {

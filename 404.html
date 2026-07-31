@@ -36,7 +36,7 @@
             margin: 0 auto 2rem;
             position: relative;
             animation: spin 3s linear infinite;
-            box-shadow: 0 0 60px rgba(139, 92, 246, 0.3);
+            box-shadow: 0 0 60px rgba(239, 68, 68, 0.3);
         }
 
         .vinyl-record::before {
@@ -47,9 +47,9 @@
             transform: translate(-50%, -50%);
             width: 60px;
             height: 60px;
-            background: linear-gradient(145deg, #8b5cf6, #6366f1);
+            background: linear-gradient(145deg, #ef4444, #dc2626);
             border-radius: 50%;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
         }
 
         .vinyl-record::after {
@@ -98,14 +98,14 @@
         .error-code {
             font-size: 8rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #8b5cf6, #ec4899, #8b5cf6);
+            background: linear-gradient(135deg, #ef4444, #f87171, #ef4444);
             background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             animation: gradient 3s ease infinite;
             margin-bottom: 1rem;
-            text-shadow: 0 0 40px rgba(139, 92, 246, 0.5);
+            text-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
         }
 
         @keyframes gradient {
@@ -146,18 +146,18 @@
 
         .countdown {
             font-size: 1.2rem;
-            color: #8b5cf6;
+            color: #ef4444;
             margin-top: 2rem;
             padding: 1rem 2rem;
-            background: rgba(139, 92, 246, 0.1);
+            background: rgba(239, 68, 68, 0.1);
             border-radius: 50px;
             display: inline-block;
-            border: 1px solid rgba(139, 92, 246, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         .countdown span {
             font-weight: bold;
-            color: #ec4899;
+            color: #ffffff;
         }
 
         .equalizer {
@@ -169,7 +169,7 @@
 
         .bar {
             width: 8px;
-            background: linear-gradient(to top, #8b5cf6, #ec4899);
+            background: linear-gradient(to top, #ef4444, #f87171);
             border-radius: 4px;
             animation: equalize 1s ease-in-out infinite;
         }
@@ -192,18 +192,18 @@
             display: inline-block;
             margin-top: 1.5rem;
             padding: 12px 32px;
-            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: white;
             text-decoration: none;
             border-radius: 50px;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
         }
 
         .redirect-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
         }
     </style>
 </head>
@@ -227,6 +227,10 @@
         <div class="error-message">Track Not Found</div>
         <div class="error-subtitle">This song seems to have skipped the playlist</div>
 
+        <div class="countdown">
+          Redirecting in <span id="countdown">2</span> seconds...
+        </div>
+
         <div class="equalizer">
             <div class="bar"></div>
             <div class="bar"></div>
@@ -242,10 +246,19 @@
     </div>
 
     <script>
-        // Auto-redirect after 2 seconds
-        setTimeout(() => {
-            window.location.href = 'owo.html';
-        }, 2000);
+        // Auto-redirect after 2 seconds with countdown
+        let countdown = 2;
+        const countdownElement = document.getElementById('countdown');
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            if (countdownElement) {
+                countdownElement.textContent = countdown;
+            }
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = 'owo.html';
+            }
+        }, 1000);
     </script>
 </body>
 </html>

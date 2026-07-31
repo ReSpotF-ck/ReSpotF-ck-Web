@@ -213,7 +213,7 @@
 
     .enter-btn {
       display: inline-block;
-      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      background: linear-gradient(135deg, #ef4444, #dc2626);
       color: #fff;
       padding: 16px 40px;
       border-radius: 50px;
@@ -222,13 +222,30 @@
       text-decoration: none;
       text-transform: uppercase;
       letter-spacing: 2px;
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
       transition: all 0.3s ease;
     }
 
     .enter-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+    }
+
+    .countdown {
+      font-size: 1.2rem;
+      color: #ef4444;
+      margin: 1.5rem 0;
+      padding: 1rem 2rem;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 50px;
+      display: inline-block;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .countdown span {
+      font-weight: bold;
+      color: #ffffff;
+      font-size: 1.5rem;
     }
 
     .equalizer {
@@ -285,6 +302,9 @@
     <p>
       Open-source music streaming with multiple API integrations
     </p>
+    <div class="countdown">
+      Redirecting in <span id="countdown">3</span> seconds...
+    </div>
     <div class="equalizer">
       <div class="equalizer-bar"></div>
       <div class="equalizer-bar"></div>
@@ -355,6 +375,20 @@
         console.log('Page hidden - potential security concern');
       }
     });
+
+    // Auto-redirect to main app
+    let countdown = 3;
+    const countdownElement = document.getElementById('countdown');
+    const countdownInterval = setInterval(() => {
+      countdown--;
+      if (countdownElement) {
+        countdownElement.textContent = countdown;
+      }
+      if (countdown <= 0) {
+        clearInterval(countdownInterval);
+        window.location.href = 'owo.html';
+      }
+    }, 1000);
   </script>
 </body>
 </html>

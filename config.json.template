@@ -1,17 +1,17 @@
 {
-  "_comment": "This configuration file is used by the Spotfuck music player. API keys can be stored here for automatic loading from GitHub repositories. For security, consider using a private repository or environment variables for production deployments.",
+  "_comment": "This is a template file. Copy this to config.json and add your actual API keys.",
   "api": {
     "jamendo": {
       "clientId": "c4ce16c7",
       "_comment": "Jamendo Client ID - Get from jamendo.com. The default ID 'c4ce16c7' is for the free tier and should work immediately."
     },
     "youtube": {
-      "apiKey": "",
+      "apiKey": "YOUR_YOUTUBE_API_KEY",
       "_comment": "YouTube Data API v3 key - Get from console.cloud.google.com. Required for YouTube music streaming. Leave empty to use Audius (FREE) instead."
     },
     "spotify": {
-      "clientId": "",
-      "clientSecret": "",
+      "clientId": "YOUR_SPOTIFY_CLIENT_ID",
+      "clientSecret": "YOUR_SPOTIFY_CLIENT_SECRET",
       "_comment": "Spotify API credentials - Get from developer.spotify.com. Required for Spotify integration (30-second previews only). Leave empty to use Audius (FREE) instead."
     },
     "audius": {

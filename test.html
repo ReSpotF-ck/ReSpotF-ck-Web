@@ -307,6 +307,9 @@
         <p style="color: #b3b3b3; text-align: center;">Click a test button above to begin...</p>
     </div>
 
+    <!-- API Handler -->
+    <script src="api-handler.js"></script>
+
     <script>
         let testStats = { total: 0, passed: 0, failed: 0 };
         
@@ -398,32 +401,21 @@
             const query = document.getElementById('audiusQuery').value;
             
             try {
-                addLog('Step 1: Getting Audius host...', 'info');
-                const hostResponse = await fetch('https://api.audius.co');
-                const hostData = await hostResponse.json();
-                
-                if (!hostData.data || hostData.data.length === 0) {
-                    throw new Error('No Audius hosts available');
+                // Initialize API handler if not already done
+                if (typeof window.initAPIHandler === 'function') {
+                    await window.initAPIHandler();
                 }
                 
-                const host = hostData.data[0];
-                addLog(`✓ Got host: ${host}`, 'success');
+                addLog(`Searching for "${query}"...`, 'info');
+                const result = await window.searchAudius(query);
                 
-                addLog(`Step 2: Searching for "${query}"...`, 'info');
-                const searchResponse = await fetch(`https://${host}/v1/tracks/search?query=${encodeURIComponent(query)}&limit=5`);
-                const searchData = await searchResponse.json();
-                
-                if (!searchData.data || searchData.data.length === 0) {
-                    throw new Error('No tracks found');
-                }
-                
-                addLog(`✓ Found ${searchData.data.length} tracks`, 'success');
-                
-                searchData.data.forEach(track => {
-                    const artwork = track.artwork?.['480x480'] || track.artwork?.['150x150'] || '';
-                    const trackDiv = document.createElement('div');
-                    trackDiv.className = 'track';
-                    trackDiv.innerHTML = `
+                if (result.success && result.tracks && result.tracks.length > 0) {
+                    addLog(`✓ Found ${result.tracks.length} tracks`, 'success');
+                    
+                    result.tracks.forEach(track => {
+                        const trackDiv = document.createElement('div');
+                        trackDiv.className = 'track';
+                        trackDiv.innerHTML = `
                         <img src="${artwork}" onerror="this.src='https://via.placeholder.com/60'" alt="">
                         <div class="track-info">
                             <h4>${track.title}</h4>
@@ -507,38 +499,33 @@
             }
             
             try {
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(query + ' music')}&type=video&key=${apiKey}`;
-                addLog(`Fetching: ${url.substring(0, 80)}...`, 'info');
+                // Save credentials first
+                window.saveCredentials({ youtubeApiKey: apiKey });
                 
-                const response = await fetch(url);
-                const data = await response.json();
+                addLog(`Searching for "${query}"...`, 'info');
+                const result = await window.searchYouTube(query);
                 
-                if (data.error) {
-                    throw new Error(data.error.message);
+                if (result.success && result.tracks && result.tracks.length > 0) {
+                    addLog(`✓ Found ${result.tracks.length} videos`, 'success');
+                    
+                    result.tracks.forEach(track => {
+                        const trackDiv = document.createElement('div');
+                        trackDiv.className = 'track';
+                        trackDiv.innerHTML = `
+                            <img src="${track.image}" onerror="this.src='https://via.placeholder.com/60'" alt="">
+                            <div class="track-info">
+                                <h4>${track.name}</h4>
+                                <p>Artist: ${track.artist_name}</p>
+                            </div>
+                        `;
+                        document.getElementById('results').appendChild(trackDiv);
+                    });
+                    
+                    addLog('✓ YouTube test completed successfully', 'success');
+                    updateStats(true);
+                } else {
+                    throw new Error(result.error || 'No results found');
                 }
-                
-                if (!data.items || data.items.length === 0) {
-                    throw new Error('No results found');
-                }
-                
-                addLog(`✓ Found ${data.items.length} videos`, 'success');
-                
-                data.items.forEach(item => {
-                    const thumbnail = item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || '';
-                    const trackDiv = document.createElement('div');
-                    trackDiv.className = 'track';
-                    trackDiv.innerHTML = `
-                        <img src="${thumbnail}" onerror="this.src='https://via.placeholder.com/60'" alt="">
-                        <div class="track-info">
-                            <h4>${item.snippet.title}</h4>
-                            <p>Channel: ${item.snippet.channelTitle}</p>
-                        </div>
-                    `;
-                    document.getElementById('results').appendChild(trackDiv);
-                });
-                
-                addLog('✓ YouTube test completed successfully', 'success');
-                updateStats(true);
             } catch (error) {
                 addLog(`✗ YouTube test failed: ${error.message}`, 'error');
                 updateStats(false);
@@ -623,56 +610,36 @@
             }
             
             try {
-                // Get token first
-                const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
-                    },
-                    body: 'grant_type=client_credentials'
+                // Save credentials first
+                window.saveCredentials({ 
+                    spotifyClientId: clientId, 
+                    spotifyClientSecret: clientSecret 
                 });
                 
-                const tokenData = await tokenResponse.json();
+                addLog(`Searching for "${query}"...`, 'info');
+                const result = await window.searchSpotify(query);
                 
-                if (!tokenData.access_token) {
-                    throw new Error('Failed to get access token');
+                if (result.success && result.tracks && result.tracks.length > 0) {
+                    addLog(`✓ Found ${result.tracks.length} tracks`, 'success');
+                    
+                    result.tracks.forEach(track => {
+                        const trackDiv = document.createElement('div');
+                        trackDiv.className = 'track';
+                        trackDiv.innerHTML = `
+                            <img src="${track.image}" onerror="this.src='https://via.placeholder.com/60'" alt="">
+                            <div class="track-info">
+                                <h4>${track.name}</h4>
+                                <p>Artist: ${track.artist_name}</p>
+                            </div>
+                        `;
+                        document.getElementById('results').appendChild(trackDiv);
+                    });
+                    
+                    addLog('✓ Spotify test completed successfully', 'success');
+                    updateStats(true);
+                } else {
+                    throw new Error(result.error || 'No results found');
                 }
-                
-                // Search
-                const searchResponse = await fetch(
-                    `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=5`,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${tokenData.access_token}`
-                        }
-                    }
-                );
-                
-                const searchData = await searchResponse.json();
-                
-                if (!searchData.tracks || !searchData.tracks.items || searchData.tracks.items.length === 0) {
-                    throw new Error('No tracks found');
-                }
-                
-                addLog(`✓ Found ${searchData.tracks.items.length} tracks`, 'success');
-                
-                searchData.tracks.items.forEach(track => {
-                    const artwork = track.album.images[0]?.url || '';
-                    const trackDiv = document.createElement('div');
-                    trackDiv.className = 'track';
-                    trackDiv.innerHTML = `
-                        <img src="${artwork}" onerror="this.src='https://via.placeholder.com/60'" alt="">
-                        <div class="track-info">
-                            <h4>${track.name}</h4>
-                            <p>Artist: ${track.artists[0]?.name} | Album: ${track.album.name}</p>
-                        </div>
-                    `;
-                    document.getElementById('results').appendChild(trackDiv);
-                });
-                
-                addLog('✓ Spotify test completed successfully', 'success');
-                updateStats(true);
             } catch (error) {
                 addLog(`✗ Spotify test failed: ${error.message}`, 'error');
                 updateStats(false);
@@ -739,37 +706,29 @@
             }
             
             try {
-                const url = `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=jsonpretty&limit=5&include=musicinfo&imagesize=500&search=${encodeURIComponent(query)}`;
-                addLog(`Fetching from Jamendo...`, 'info');
+                // Save credentials first
+                window.saveCredentials({ jamendoClientId: clientId });
                 
-                const response = await fetch(url);
-                const data = await response.json();
+                addLog(`Searching for "${query}"...`, 'info');
+                const result = await window.searchJamendo(query);
                 
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
-                
-                if (!data.results || data.results.length === 0) {
-                    throw new Error('No tracks found');
-                }
-                
-                addLog(`✓ Found ${data.results.length} tracks`, 'success');
-                
-                data.results.forEach(track => {
-                    const artwork = track.image || track.album_image || '';
-                    const trackDiv = document.createElement('div');
-                    trackDiv.className = 'track';
-                    trackDiv.innerHTML = `
-                        <img src="${artwork}" onerror="this.src='https://via.placeholder.com/60'" alt="">
-                        <div class="track-info">
-                            <h4>${track.name}</h4>
-                            <p>Artist: ${track.artist_name} | Duration: ${track.duration}s</p>
-                        </div>
-                    `;
-                    document.getElementById('results').appendChild(trackDiv);
-                });
-                
-                addLog('✓ Jamendo test completed successfully', 'success');
+                if (result.success && result.tracks && result.tracks.length > 0) {
+                    addLog(`✓ Found ${result.tracks.length} tracks`, 'success');
+                    
+                    result.tracks.forEach(track => {
+                        const trackDiv = document.createElement('div');
+                        trackDiv.className = 'track';
+                        trackDiv.innerHTML = `
+                            <img src="${track.image}" onerror="this.src='https://via.placeholder.com/60'" alt="">
+                            <div class="track-info">
+                                <h4>${track.name}</h4>
+                                <p>Artist: ${track.artist_name} | Duration: ${track.duration}s</p>
+                            </div>
+                        `;
+                        document.getElementById('results').appendChild(trackDiv);
+                    });
+                    
+                    addLog('✓ Jamendo test completed successfully', 'success');
                 updateStats(true);
             } catch (error) {
                 addLog(`✗ Jamendo test failed: ${error.message}`, 'error');

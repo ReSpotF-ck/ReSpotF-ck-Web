@@ -8,14 +8,18 @@ Spotfuck is a music streaming app with a Spotify mobile-inspired design and AMOL
 
 **Default Repository:** https://github.com/ReSpotF-ck/ReSpotFuck-Web
 
-**Version:** 1.1.0
+**Version:** 1.2.0
 
-## Recent Fixes
+## Recent Fixes (v1.2.0)
 
-- **API Handler Fixed**: All API functions are now properly exposed and accessible
-- **YouTube Integration Improved**: Better error handling and API readiness checks
-- **Automatic Config Loading**: Configuration is automatically fetched from GitHub on startup
-- **Jamendo Working**: Default Jamendo client ID is pre-configured and should work immediately
+- **Fixed Index Page**: Removed "Access Denied" screen, now redirects to main app
+- **Updated Sign In Page**: Added direct app access and GitHub repository links
+- **Enhanced API Handler**: Improved credential management and config loading
+- **Updated Configuration**: Added comprehensive feature flags and app settings
+- **Improved Test Suite**: Integrated with API handler for comprehensive testing
+- **Fixed 404 Page**: Now redirects to main app instead of external URL
+- **Better Error Handling**: More descriptive error messages and user feedback
+- **Streamlined Navigation**: All pages now properly integrate with main application
 
 ## Access Control
 
@@ -31,14 +35,15 @@ Spotfuck is a music streaming app with a Spotify mobile-inspired design and AMOL
 
 ## Quick Start
 
-1. Open `owo.html` in your browser
-2. Enter PIN: `1412`
-3. Accept the DMCA disclaimer
-4. Select a music source (Audius is FREE and selected by default)
-5. Search and play music
-6. Use the bottom player controls for playback
-7. Like songs to add them to your library
-8. Add tracks to queue for later playback
+1. Open `index.html` in your browser (it will auto-redirect to the main app)
+2. Or directly open `owo.html` in your browser
+3. Enter PIN: `1412`
+4. Accept the DMCA disclaimer
+5. Select a music source (Audius is FREE and selected by default)
+6. Search and play music
+7. Use the bottom player controls for playback
+8. Like songs to add them to your library
+9. Add tracks to queue for later playback
 
 ## Player Features
 
@@ -133,7 +138,24 @@ Create a `config.json` file in your GitHub repository with the following structu
   },
   "app": {
     "name": "Spotfuck",
-    "version": "1.0.0"
+    "version": "1.2.0",
+    "defaultSource": "audius",
+    "pin": "1412"
+  },
+  "features": {
+    "downloads": {
+      "enabled": true,
+      "supportedSources": ["audius", "jamendo"]
+    },
+    "library": {
+      "likedSongs": true,
+      "queue": true
+    },
+    "player": {
+      "keyboardShortcuts": true,
+      "bottomPlayer": true,
+      "progressBar": true
+    }
   }
 }
 ```
@@ -234,6 +256,43 @@ The app supports exporting and importing your API settings for backup and sharin
 - Shows how many fields were successfully imported
 - Requires manual save to apply changes to localStorage
 
+## Testing API Integrations
+
+The app includes a comprehensive test suite (`test.html`) to verify all API integrations:
+
+### Using the Test Suite
+
+1. Open `test.html` in your browser
+2. The test suite will automatically load the API handler
+3. Enter your API credentials in the respective input fields:
+   - YouTube API Key
+   - Spotify Client ID and Client Secret
+   - Jamendo Client ID (pre-filled with default)
+4. Click individual test buttons or "Run All API Tests"
+5. View detailed results including:
+   - Connection status
+   - Track listings with artwork
+   - Error messages if any
+   - Summary statistics (passed/failed tests)
+
+### Test Coverage
+
+- **Configuration Test**: Validates config.json fetching from GitHub
+- **LocalStorage Test**: Verifies browser storage functionality
+- **Audius API Test**: Tests the free Audius integration (no API key required)
+- **YouTube API Test**: Tests YouTube search and thumbnail fetching
+- **Spotify API Test**: Tests Spotify token generation and search
+- **Jamendo API Test**: Tests Jamendo search and artwork fetching
+
+### Troubleshooting with Test Suite
+
+If APIs aren't working in the main app:
+1. Use the test suite to isolate the issue
+2. Check the detailed error messages
+3. Verify your API keys are correct
+4. Ensure your API keys have proper permissions
+5. Check browser console for additional error details
+
 ## Downloading Tracks
 
 ### Supported Sources
@@ -268,6 +327,73 @@ If the repository fetch fails:
 - **Public Repositories**: If your repository is public, your API keys will be visible to anyone
 - **Private Repositories**: The app uses GitHub's raw content URL which may not work with private repos
 - **Recommendation**: Use a separate private repository for config, or use environment variables for production
+
+## Navigation and Pages
+
+### Index Page (`index.html`)
+- Landing page with animated vinyl record and equalizer
+- Auto-redirects to main app after 3 seconds
+- Manual "Enter App" button for immediate access
+
+### Sign In Page (`SignIn.html`)
+- Access control and authentication options
+- Direct app access button
+- GitHub repository link
+- Access request form for special permissions
+
+### Main Application (`owo.html`)
+- Full-featured music player
+- PIN entry (1412) required on every load
+- DMCA disclaimer acceptance required
+- Complete API integration and settings management
+
+### 404 Error Page (`404.html`)
+- Custom error page with music-themed design
+- Auto-redirects to main app after 30 seconds
+- Manual redirect button available
+
+### Test Suite (`test.html`)
+- Comprehensive API testing interface
+- Individual and batch testing capabilities
+- Real-time results and error reporting
+- Statistics tracking for test results
+
+## Troubleshooting
+
+### Common Issues
+
+**App won't load or shows errors:**
+1. Check browser console for error messages (F12)
+2. Verify all files are present in the directory
+3. Ensure you're using a modern browser
+4. Try clearing browser cache and reloading
+
+**APIs not working:**
+1. Use the test suite to validate API connectivity
+2. Verify your API keys are correct and active
+3. Check that API keys have proper permissions
+4. Ensure your GitHub repository has a valid config.json
+
+**Audio won't play:**
+1. Check browser audio permissions
+2. Try a different music source (Audius is most reliable)
+3. Verify your internet connection
+4. Check if the track is available in your region
+
+**Settings not saving:**
+1. Verify localStorage is enabled in your browser
+2. Check browser privacy settings
+3. Try incognito/private mode to test
+4. Clear browser data and try again
+
+### Getting Help
+
+If you encounter issues:
+1. Check the [Setup Guide](SETUP_GUIDE.md) for detailed instructions
+2. Use the test suite to diagnose API problems
+3. Check browser console for error messages
+4. Verify your API keys and permissions
+5. Review the [README.md](README.md) for additional information
 
 ## Troubleshooting
 

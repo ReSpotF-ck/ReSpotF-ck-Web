@@ -24,6 +24,7 @@ Spotfuck is an open-source music streaming web application with a Spotify mobile
 - **Privacy Protection**: PIN required on every page load (PIN: 1412)
 - **Legal Compliance**: DMCA disclaimer shown on every visit
 - **Settings Export/Import**: Export settings as TXT, JSON, or screenshot; import from TXT or JSON files
+- **Comprehensive API Testing**: Built-in test suite for validating all API integrations
 
 ## Supported Music Services
 
@@ -65,6 +66,15 @@ Spotfuck is an open-source music streaming web application with a Spotify mobile
 
 For detailed setup instructions, see the [Setup Guide](SETUP_GUIDE.md).
 
+## Documentation
+
+- **[README.md](README.md)** - This file (overview and quick start)
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Detailed setup and troubleshooting
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
+- **[NOTES.md](NOTES.md)** - Development notes and architecture
+- **[LICENSE](LICENSE)** - MIT License
+
 ## Getting API Keys
 
 ### YouTube API Key
@@ -102,7 +112,24 @@ Create a `config.json` file in your GitHub repository:
   },
   "app": {
     "name": "Spotfuck",
-    "version": "1.0.0"
+    "version": "1.2.0",
+    "defaultSource": "audius",
+    "pin": "1412"
+  },
+  "features": {
+    "downloads": {
+      "enabled": true,
+      "supportedSources": ["audius", "jamendo"]
+    },
+    "library": {
+      "likedSongs": true,
+      "queue": true
+    },
+    "player": {
+      "keyboardShortcuts": true,
+      "bottomPlayer": true,
+      "progressBar": true
+    }
   }
 }
 ```
@@ -118,34 +145,76 @@ Create a `config.json` file in your GitHub repository:
 
 ```
 ReSpotFuck-Web/
-├── owo.html           # Main application
-├── api-handler.js     # API handler - separates API logic from UI
-├── index.html         # Landing page
-├── 404.html           # 404 error page
-├── config.json        # Configuration file for API keys
-├── SETUP_GUIDE.md     # Detailed setup instructions
-├── README.md          # This file
-└── test.html          # API test suite
+├── owo.html                # Main application
+├── api-handler.js          # API handler - separates API logic from UI
+├── index.html              # Landing page (auto-redirects to app)
+├── SignIn.html             # Sign in / access page
+├── 404.html                # 404 error page (auto-redirects to app)
+├── config.json             # Configuration file for API keys
+├── config.json.template    # Configuration template for custom setup
+├── test.html               # API test suite
+├── README.md               # This file
+├── SETUP_GUIDE.md          # Detailed setup instructions
+├── CHANGELOG.md            # Version history and changes
+├── CONTRIBUTING.md         # Contribution guidelines
+├── NOTES.md                # Development notes and architecture
+├── LICENSE                 # MIT License
+└── .gitignore              # Git ignore rules
 ```
 
-## Recent Updates
+## Recent Updates (v1.2.0)
 
-- **Fixed API Handler**: Functions now properly exposed to browser window object for direct access
-- **Improved YouTube Integration**: Better error handling and API readiness checks
-- **Enhanced Initialization**: Automatic config loading from GitHub repository on startup
-- **Better Error Messages**: More descriptive error messages for API failures
+- **Fixed Index Page**: Removed "Access Denied" screen, now redirects to main app
+- **Updated Sign In Page**: Added direct app access and GitHub repository links
+- **Enhanced API Handler**: Improved credential management and config loading
+- **Updated Configuration**: Added comprehensive feature flags and app settings
+- **Improved Test Suite**: Integrated with API handler for comprehensive testing
+- **Fixed 404 Page**: Now redirects to main app instead of external URL
+- **Better Error Handling**: More descriptive error messages and user feedback
+- **Streamlined Navigation**: All pages now properly integrate with main application
+- **Added Documentation**: Comprehensive CHANGELOG, CONTRIBUTING, and NOTES files
+- **Enhanced Project Structure**: Added config template and proper gitignore
 
-## Contributing
+## Testing APIs
 
-Pull requests are welcome! Please feel free to submit issues or enhancement requests.
+Use the built-in test suite (`test.html`) to verify your API integrations:
+
+1. Open `test.html` in your browser
+2. Enter your API credentials in the respective fields
+3. Click individual test buttons or "Run All API Tests"
+4. View detailed results and track listings
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT License - See [LICENSE](LICENSE) file for details
+
+## Contributors
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+- **ReSpotF-ck** - Project maintainer
+- **Devin** - Code generation and assistance
+
+## Acknowledgments
+
+- **Audius** - Free decentralized music streaming platform
+- **Jamendo** - Free music platform with API access
+- **YouTube** - Music streaming via YouTube Data API
+- **Spotify** - Music discovery via Spotify Web API
+- **Font Awesome** - Icon library
+- **Tailwind CSS** - CSS framework (via CDN)
+- **html2canvas** - Screenshot functionality
+
+## Contributing
+
+Pull requests are welcome! Please feel free to submit issues or enhancement requests. See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## Support
 
 For issues or questions:
 - Check the [Setup Guide](SETUP_GUIDE.md) for troubleshooting
+- Review [NOTES.md](NOTES.md) for technical details
 - Verify your API keys are valid and have proper permissions
 - Check browser console for error messages
+- Use the test suite to validate API connectivity
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines

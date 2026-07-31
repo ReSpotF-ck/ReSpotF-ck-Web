@@ -1,10 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Private Secure Connection</title>
+  <title>Spotfuck - Music Player</title>
   <style>
     * {
       margin: 0;
@@ -22,27 +21,6 @@
       color: #ffffff;
       overflow: hidden;
       position: relative;
-    }
-
-    /* Top-right Sign In button */
-    .top-signin {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      z-index: 1000;
-      padding: 10px 16px;
-      border-radius: 999px;
-      text-decoration: none;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-      color: #fff;
-      background: linear-gradient(135deg, #8b5cf6, #6366f1);
-      box-shadow: 0 10px 25px rgba(139, 92, 246, 0.25);
-      user-select: none;
-    }
-    .top-signin:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.35);
     }
 
     .music-notes {
@@ -169,34 +147,24 @@
       margin-bottom: 30px;
     }
 
-    .secure-badge {
+    .enter-btn {
       display: inline-block;
       background: linear-gradient(135deg, #8b5cf6, #6366f1);
       color: #fff;
-      padding: 10px 25px;
-      border-radius: 30px;
+      padding: 16px 40px;
+      border-radius: 50px;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 18px;
+      text-decoration: none;
       text-transform: uppercase;
       letter-spacing: 2px;
       box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
       transition: all 0.3s ease;
     }
 
-    .secure-badge:hover {
+    .enter-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
-    }
-
-    .warning {
-      margin-top: 30px;
-      padding: 15px;
-      background: rgba(139, 92, 246, 0.1);
-      border-left: 4px solid #8b5cf6;
-      text-align: left;
-      font-size: 14px;
-      color: #e2e8f0;
-      border-radius: 4px;
     }
 
     .equalizer {
@@ -231,8 +199,6 @@
   </style>
 </head>
 <body>
-  <a class="top-signin" href="https://spotfuck.netlify.app/signin">Sign In</a>
-
   <div class="music-notes">🎵</div>
   <div class="music-notes">🎶</div>
   <div class="music-notes">🎵</div>
@@ -247,9 +213,9 @@
       <div class="grooves"></div>
       <div class="grooves"></div>
     </div>
-    <h1>Access Denied</h1>
+    <h1>Spotfuck</h1>
     <p>
-      Sorry, this is a private secure connection. Only approved members can use this service.
+      Open-source music streaming with multiple API integrations
     </p>
     <div class="equalizer">
       <div class="equalizer-bar"></div>
@@ -261,73 +227,17 @@
       <div class="equalizer-bar"></div>
       <div class="equalizer-bar"></div>
     </div>
-    <div class="secure-badge">Secure Connection</div>
-    <div class="warning">
-      ⚠️ This page is protected by multiple security measures. Unauthorized access attempts are monitored and logged.
-    </div>
+    <a href="owo.html" class="enter-btn">Enter App</a>
   </div>
 
   <script>
-    // Disable right-click
-    document.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-      alert('Right-click is disabled on this secure page.');
-      return false;
-    });
-
-    // Disable common keyboard shortcuts for dev tools
-    document.addEventListener('keydown', function(e) {
-      // F12
-      if (e.key === 'F12' || e.keyCode === 123) {
-        e.preventDefault();
-        alert('Developer tools are disabled on this secure page.');
-        return false;
-      }
-
-      // Ctrl+Shift+I (Chrome/Edge DevTools)
-      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
-        e.preventDefault();
-        alert('Developer tools are disabled on this secure page.');
-        return false;
-      }
-
-      // Ctrl+Shift+J (Chrome/Edge Console)
-      if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
-        e.preventDefault();
-        alert('Developer tools are disabled on this secure page.');
-        return false;
-      }
-
-      // Ctrl+Shift+C (Chrome/Edge Element Inspector)
-      if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
-        e.preventDefault();
-        alert('Developer tools are disabled on this secure page.');
-        return false;
-      }
-
-      // Ctrl+U (View Source)
-      if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-        e.preventDefault();
-        alert('Viewing source is disabled on this secure page.');
-        return false;
-      }
-
-      // Ctrl+S (Save)
-      if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
-        e.preventDefault();
-        alert('Saving this page is disabled.');
-        return false;
-      }
-
-      // Ctrl+P (Print)
-      if (e.ctrlKey && (e.key === 'P' || e.key === 'p')) {
-        e.preventDefault();
-        alert('Printing this page is disabled.');
-        return false;
-      }
-    });
-
-    // Detect dev tools opening
+    // Auto-redirect after 3 seconds
+    setTimeout(() => {
+      window.location.href = 'owo.html';
+    }, 3000);
+  </script>
+</body>
+</html>
     let devToolsOpen = false;
 
     const detectDevTools = () => {

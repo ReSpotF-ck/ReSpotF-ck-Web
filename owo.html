@@ -245,6 +245,58 @@
             max-width: 480px;
             margin: 0 auto;
             padding-bottom: 100px; /* Space for bottom player */
+            transition: all 0.3s ease;
+        }
+        
+        /* Mini player mode */
+        .mini-player-mode .mobile-container {
+            padding-bottom: 80px;
+        }
+        
+        .mini-player-mode #searchHistory,
+        .mini-player-mode footer,
+        .mini-player-mode #trackList,
+        .mini-player-mode .header-section,
+        .mini-player-mode .source-selector,
+        .mini-player-mode .search-section {
+            display: none;
+        }
+        
+        .mini-player-mode #miniPlayerContent {
+            display: flex;
+        }
+        
+        .mini-player-mode .bottom-player {
+            padding: 12px 16px;
+        }
+        
+        .mini-player-mode .bottom-player-art {
+            width: 48px;
+            height: 48px;
+        }
+        
+        .mini-player-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 1000;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+        
+        .mini-player-toggle:hover {
+            background: var(--primary-color);
+            color: #ffffff;
+            transform: scale(1.1);
         }
         
         /* Responsive design for larger screens */
@@ -471,6 +523,11 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
         }
+
+        .active-speed {
+            background: var(--primary-color) !important;
+            color: #ffffff !important;
+        }
         
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -492,9 +549,22 @@
     </style>
 </head>
 <body class="dark-mode">
-    <div class="mobile-container">
+    <!-- Mini Player Toggle -->
+    <button id="miniPlayerToggle" class="mini-player-toggle" title="Toggle Mini Player">
+        <i class="fas fa-compress"></i>
+    </button>
+    <div class="mobile-container" id="mainContainer">
+        <!-- Mini Player Content -->
+        <div id="miniPlayerContent" class="hidden flex items-center justify-center h-screen">
+            <div class="text-center" style="color: var(--text-secondary);">
+                <i class="fas fa-music text-4xl mb-4 opacity-50"></i>
+                <p>Mini Player Mode</p>
+                <p class="text-sm mt-2">Toggle to return to full view</p>
+            </div>
+        </div>
+        
         <!-- Header -->
-        <header class="flex items-center justify-between p-4 sticky top-0 z-50" style="background: var(--bg-secondary);">
+        <header class="header-section flex items-center justify-between p-4 sticky top-0 z-50" style="background: var(--bg-secondary);">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
                     <i class="fas fa-music text-sm"></i>
@@ -515,7 +585,7 @@
         </header>
 
         <!-- Source Selector - Horizontal Scroll -->
-        <div class="px-4 mb-4">
+        <div class="source-selector px-4 mb-4">
             <div class="flex gap-2 overflow-x-auto pb-2" style="scrollbar-width: none;">
                 <button class="source-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-source="jamendo" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
                     <i class="fas fa-headphones mr-2"></i> Jamendo <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API</span>
@@ -536,7 +606,7 @@
         </div>
 
         <!-- Search Bar -->
-        <div class="px-4 mb-4">
+        <div class="search-section px-4 mb-4">
             <div class="relative">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2" style="color: var(--text-secondary);"></i>
                 <input 
@@ -550,6 +620,30 @@
                     autocomplete="off"
                 >
             </div>
+        </div>
+
+        <!-- Search History -->
+        <div id="searchHistory" class="px-4 mb-4 hidden">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-medium" style="color: var(--text-secondary);">Recent Searches</h3>
+                <button id="clearSearchHistory" class="text-xs transition-colors hover:text-red-400" style="color: var(--text-secondary);">
+                    <i class="fas fa-trash mr-1"></i>Clear
+                </button>
+            </div>
+            <div id="historyTags" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Recently Played -->
+        <div id="recentlyPlayedSection" class="px-4 mb-4 hidden">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-medium" style="color: var(--text-secondary);">
+                    <i class="fas fa-history mr-2"></i>Recently Played
+                </h3>
+                <button id="clearRecentlyPlayed" class="text-xs transition-colors hover:text-red-400" style="color: var(--text-secondary);">
+                    <i class="fas fa-trash mr-1"></i>Clear
+                </button>
+            </div>
+            <div id="recentlyPlayedTracks" class="space-y-2"></div>
         </div>
 
         <!-- Track List -->
@@ -726,6 +820,40 @@
                     <input type="file" id="importFile" class="hidden" accept=".txt,.json">
                 </div>
                 
+                <!-- Sleep Timer Section -->
+                <div class="mt-6 pt-6 border-t" style="border-color: var(--glass-border);">
+                    <h3 class="text-sm font-medium mb-3" style="color: var(--text-color);">
+                        <i class="fas fa-moon mr-2"></i>Sleep Timer
+                    </h3>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="sleep-timer-btn py-2 px-3 rounded-lg text-sm transition-all" data-minutes="15" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">15m</button>
+                        <button class="sleep-timer-btn py-2 px-3 rounded-lg text-sm transition-all" data-minutes="30" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">30m</button>
+                        <button class="sleep-timer-btn py-2 px-3 rounded-lg text-sm transition-all" data-minutes="45" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">45m</button>
+                        <button class="sleep-timer-btn py-2 px-3 rounded-lg text-sm transition-all" data-minutes="60" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">1h</button>
+                    </div>
+                    <div id="sleepTimerStatus" class="text-xs mt-2 hidden" style="color: var(--text-secondary);">
+                        <i class="fas fa-clock mr-1"></i>Timer set for <span id="sleepTimerDisplay">0:00</span>
+                        <button id="cancelSleepTimer" class="ml-2 text-red-400 hover:text-red-300">Cancel</button>
+                    </div>
+                </div>
+                
+                <!-- Playback Speed Section -->
+                <div class="mt-6 pt-6 border-t" style="border-color: var(--glass-border);">
+                    <h3 class="text-sm font-medium mb-3" style="color: var(--text-color);">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Playback Speed
+                    </h3>
+                    <div class="grid grid-cols-5 gap-2">
+                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all" data-speed="0.5" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">0.5x</button>
+                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all" data-speed="0.75" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">0.75x</button>
+                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all active-speed" data-speed="1.0" style="background: var(--primary-color); color: #ffffff;">1x</button>
+                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all" data-speed="1.25" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">1.25x</button>
+                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all" data-speed="1.5" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">1.5x</button>
+                    </div>
+                    <div class="text-xs mt-2" style="color: var(--text-secondary);">
+                        Current speed: <span id="currentSpeedDisplay">1.0x</span>
+                    </div>
+                </div>
+                
                 <button id="saveSettings" class="w-full py-3.5 rounded-xl font-medium mt-6 transition-all" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); color: #ffffff; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
                     Save Settings
                 </button>
@@ -768,6 +896,150 @@
                     <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="0">0</button>
                     <button id="deletePin" class="bg-red-600/50 hover:bg-red-600 rounded-xl py-4 text-lg font-medium transition-colors">
                         <i class="fas fa-backspace"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Queue Management Modal -->
+        <div id="queueModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+            <div class="glass-effect rounded-xl p-6 max-w-lg w-full mx-4 border-2 border-red-600 max-h-[80vh] overflow-y-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold">Queue Management</h2>
+                    <button id="closeQueue" class="transition-colors p-2 rounded-lg hover:bg-white/10" style="color: var(--text-secondary);">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                
+                <div class="flex gap-2 mb-4">
+                    <button id="shuffleQueue" class="flex-1 py-2 px-3 rounded-lg text-sm transition-all" style="background: rgba(255, 255, 255, 0.1); color: var(--text-color);">
+                        <i class="fas fa-random mr-2"></i>Shuffle Queue
+                    </button>
+                    <button id="clearQueue" class="flex-1 py-2 px-3 rounded-lg text-sm transition-all" style="background: rgba(239, 68, 68, 0.2); color: var(--text-color);">
+                        <i class="fas fa-trash mr-2"></i>Clear Queue
+                    </button>
+                </div>
+                
+                <div id="queueList" class="space-y-2">
+                    <div class="text-center py-8" style="color: var(--text-secondary);">
+                        <i class="fas fa-list text-3xl mb-2 opacity-50"></i>
+                        <p>Queue is empty</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t" style="border-color: var(--glass-border);">
+                    <button id="saveQueueAsPlaylist" class="w-full py-2.5 rounded-lg font-medium transition-all" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); color: #ffffff;">
+                        <i class="fas fa-save mr-2"></i>Save Queue as Playlist
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcuts Modal -->
+        <div id="shortcutsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+            <div class="glass-effect rounded-xl p-6 max-w-lg w-full mx-4 border-2 border-red-600">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold">Keyboard Shortcuts</h2>
+                    <button id="closeShortcuts" class="transition-colors p-2 rounded-lg hover:bg-white/10" style="color: var(--text-secondary);">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Play/Pause</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Space</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Next Track</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Shift + →</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Previous Track</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Shift + ←</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Forward 10s</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">→</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Rewind 10s</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">←</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Volume Up</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">↑</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Volume Down</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">↓</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Toggle Shuffle</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">S</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Toggle Repeat</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">R</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Like Track</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">L</kbd>
+                    </div>
+                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                        <span style="color: var(--text-color);">Mute/Unmute</span>
+                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">M</kbd>
+                    </div>
+                </div>
+                
+                <p class="text-xs mt-4 text-center" style="color: var(--text-secondary);">
+                    Press <kbd class="px-1 py-0.5 rounded" style="background: rgba(255, 255, 255, 0.1);">?</kbd> to open this help
+                </p>
+            </div>
+        </div>
+
+        <!-- Track Info Modal -->
+        <div id="trackInfoModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+            <div class="glass-effect rounded-xl p-6 max-w-md w-full mx-4 border-2 border-red-600">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold">Track Information</h2>
+                    <button id="closeTrackInfo" class="transition-colors p-2 rounded-lg hover:bg-white/10" style="color: var(--text-secondary);">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                
+                <div id="trackInfoContent" class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <img id="trackInfoImage" src="" alt="Track Art" class="w-24 h-24 rounded-lg object-cover">
+                        <div class="flex-1">
+                            <h3 id="trackInfoTitle" class="font-bold text-lg"></h3>
+                            <p id="trackInfoArtist" class="text-sm" style="color: var(--text-secondary);"></p>
+                            <p id="trackInfoSource" class="text-xs mt-1" style="color: var(--primary-color);"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                            <p class="text-xs" style="color: var(--text-secondary);">Duration</p>
+                            <p id="trackInfoDuration" class="font-medium"></p>
+                        </div>
+                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
+                            <p class="text-xs" style="color: var(--text-secondary);">Source</p>
+                            <p id="trackInfoSourceBadge" class="font-medium"></p>
+                        </div>
+                    </div>
+                    
+                    <div id="trackInfoMetadata" class="space-y-2 text-sm">
+                        <!-- Additional metadata will be populated dynamically -->
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button id="copyTrackInfo" class="flex-1 py-2.5 rounded-lg font-medium transition-all" style="background: rgba(255, 255, 255, 0.1); color: var(--text-color);">
+                        <i class="fas fa-copy mr-2"></i>Copy Info
+                    </button>
+                    <button id="shareTrack" class="flex-1 py-2.5 rounded-lg font-medium transition-all" style="background: var(--primary-color); color: #ffffff;">
+                        <i class="fas fa-share mr-2"></i>Share
                     </button>
                 </div>
             </div>
@@ -869,6 +1141,43 @@
         const footerText = document.getElementById('footerText');
         const disclaimerModal = document.getElementById('disclaimerModal');
         const acceptDisclaimer = document.getElementById('acceptDisclaimer');
+        const trackInfoModal = document.getElementById('trackInfoModal');
+        const closeTrackInfo = document.getElementById('closeTrackInfo');
+        const copyTrackInfo = document.getElementById('copyTrackInfo');
+        const shareTrack = document.getElementById('shareTrack');
+        const shortcutsModal = document.getElementById('shortcutsModal');
+        const closeShortcuts = document.getElementById('closeShortcuts');
+        const miniPlayerToggle = document.getElementById('miniPlayerToggle');
+        const mainContainer = document.getElementById('mainContainer');
+        const miniPlayerContent = document.getElementById('miniPlayerContent');
+        const queueModal = document.getElementById('queueModal');
+        const closeQueue = document.getElementById('closeQueue');
+        const shuffleQueue = document.getElementById('shuffleQueue');
+        const clearQueue = document.getElementById('clearQueue');
+        const queueList = document.getElementById('queueList');
+        const saveQueueAsPlaylist = document.getElementById('saveQueueAsPlaylist');
+        let isMiniPlayerMode = false;
+        
+        // Mini Player Toggle Functionality
+        miniPlayerToggle.addEventListener('click', () => {
+            isMiniPlayerMode = !isMiniPlayerMode;
+            
+            if (isMiniPlayerMode) {
+                document.body.classList.add('mini-player-mode');
+                miniPlayerToggle.innerHTML = '<i class="fas fa-expand"></i>';
+                miniPlayerToggle.title = 'Exit Mini Player';
+                miniPlayerContent.classList.remove('hidden');
+                miniPlayerContent.classList.add('flex');
+            } else {
+                document.body.classList.remove('mini-player-mode');
+                miniPlayerToggle.innerHTML = '<i class="fas fa-compress"></i>';
+                miniPlayerToggle.title = 'Toggle Mini Player';
+                miniPlayerContent.classList.add('hidden');
+                miniPlayerContent.classList.remove('flex');
+            }
+            
+            console.log('Mini player mode:', isMiniPlayerMode);
+        });
         const pinModal = document.getElementById('pinModal');
         const pinDisplay = document.getElementById('pinDisplay');
         const pinError = document.getElementById('pinError');
@@ -876,6 +1185,10 @@
         const deletePin = document.getElementById('deletePin');
         const searchHistory = document.getElementById('searchHistory');
         const historyTags = document.getElementById('historyTags');
+        const clearSearchHistory = document.getElementById('clearSearchHistory');
+        const recentlyPlayedSection = document.getElementById('recentlyPlayedSection');
+        const recentlyPlayedTracks = document.getElementById('recentlyPlayedTracks');
+        const clearRecentlyPlayed = document.getElementById('clearRecentlyPlayed');
         const trendingSearches = document.getElementById('trendingSearches');
         const trendingTags = document.getElementById('trendingTags');
         const searchFilters = document.querySelectorAll('.search-filter');
@@ -889,6 +1202,7 @@
         let queue = JSON.parse(localStorage.getItem('queue') || '[]');
         let currentSearchFilter = 'all';
         let searchHistoryList = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+        let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed') || '[]');
 
         // Show empty state on load
         function loadRecommendedTracks() {
@@ -903,9 +1217,9 @@
             
             // Show loading state
             trackList.innerHTML = `
-                <div class="loading-container">
-                    <div class="loading-spinner"></div>
-                    <p class="loading-text">Searching ${currentSource.charAt(0).toUpperCase() + currentSource.slice(1)} for "${query}"...</p>
+                <div class="loading-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px;">
+                    <div class="loading-spinner" style="width: 40px; height: 40px; border: 3px solid rgba(239, 68, 68, 0.2); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+                    <p class="loading-text" style="color: var(--text-secondary);">Searching ${currentSource.charAt(0).toUpperCase() + currentSource.slice(1)} for "${query}"...</p>
                 </div>
             `;
             
@@ -914,6 +1228,13 @@
             
             let result;
             try {
+                // Wait for API handler to be ready
+                if (typeof window.searchAudius === 'undefined' || typeof window.searchJamendo === 'undefined') {
+                    console.log('API functions not ready, waiting for initialization...');
+                    await window.initAPIHandler();
+                    console.log('API Handler initialized during search');
+                }
+                
                 console.log('API functions available:', {
                     searchAudius: typeof window.searchAudius,
                     searchJamendo: typeof window.searchJamendo,
@@ -933,6 +1254,8 @@
                 } else if (currentSource === 'audius') {
                     console.log('Calling searchAudius');
                     result = await window.searchAudius(query, currentSearchFilter);
+                } else {
+                    throw new Error(`Unknown music source: ${currentSource}`);
                 }
                 
                 console.log('Search result:', result);
@@ -989,6 +1312,80 @@
                 searchHistory.classList.add('hidden');
             }
         }
+        
+        // Clear search history
+        clearSearchHistory.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear your search history?')) {
+                searchHistoryList = [];
+                localStorage.setItem('searchHistory', JSON.stringify(searchHistoryList));
+                renderSearchHistory();
+                console.log('Search history cleared');
+            }
+        });
+        
+        // Recently Played Functions
+        function addToRecentlyPlayed(track) {
+            if (!track) return;
+            
+            // Remove if already exists
+            const existingIndex = recentlyPlayed.findIndex(t => t.id === track.id);
+            if (existingIndex > -1) {
+                recentlyPlayed.splice(existingIndex, 1);
+            }
+            
+            // Add to beginning
+            recentlyPlayed.unshift(track);
+            
+            // Keep only last 20 tracks
+            if (recentlyPlayed.length > 20) {
+                recentlyPlayed.pop();
+            }
+            
+            localStorage.setItem('recentlyPlayed', JSON.stringify(recentlyPlayed));
+            renderRecentlyPlayed();
+        }
+        
+        function renderRecentlyPlayed() {
+            if (recentlyPlayed.length > 0) {
+                recentlyPlayedSection.classList.remove('hidden');
+                recentlyPlayedTracks.innerHTML = recentlyPlayed.slice(0, 5).map((track, index) => `
+                    <div class="recent-track flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-white/5" data-index="${index}">
+                        <img src="${track.image || 'https://via.placeholder.com/40'}" alt="${track.name}" class="w-10 h-10 rounded object-cover">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-medium truncate" style="color: var(--text-color);">${track.name}</h4>
+                            <p class="text-xs truncate" style="color: var(--text-secondary);">${track.artist}</p>
+                        </div>
+                        <span class="text-xs" style="color: var(--text-secondary);">${track.source || currentSource}</span>
+                    </div>
+                `).join('');
+                
+                // Add click handlers
+                document.querySelectorAll('.recent-track').forEach(trackEl => {
+                    trackEl.addEventListener('click', () => {
+                        const index = parseInt(trackEl.dataset.index);
+                        const track = recentlyPlayed[index];
+                        if (track) {
+                            tracks = [track];
+                            currentTrackIndex = 0;
+                            renderTrackList();
+                            playTrack(0);
+                        }
+                    });
+                });
+            } else {
+                recentlyPlayedSection.classList.add('hidden');
+            }
+        }
+        
+        // Clear recently played
+        clearRecentlyPlayed.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear your recently played history?')) {
+                recentlyPlayed = [];
+                localStorage.setItem('recentlyPlayed', JSON.stringify(recentlyPlayed));
+                renderRecentlyPlayed();
+                console.log('Recently played cleared');
+            }
+        });
         
         // Search filter handling
         document.querySelectorAll('.search-filter').forEach(filter => {
@@ -1105,7 +1502,7 @@
                                 <i class="fas fa-download"></i>
                             </button>
                             <div class="text-xs" style="color: var(--text-secondary);">
-                                ${formatTime(track.duration)}
+                                ${track.duration ? formatTime(track.duration) : '0:00'}
                             </div>
                         </div>
                     </div>
@@ -1128,7 +1525,12 @@
                     e.stopPropagation();
                     const index = parseInt(btn.dataset.index);
                     addToQueue(tracks[index]);
-                    alert(`"${tracks[index].name}" added to queue!`);
+                    // Show brief notification instead of alert
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-20 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                    notification.innerHTML = `<i class="fas fa-check mr-2"></i>"${tracks[index].name}" added to queue!`;
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 2000);
                 });
             });
             
@@ -1197,6 +1599,9 @@
         function playTrack(index) {
             currentTrackIndex = index;
             const track = tracks[index];
+            
+            // Add to recently played
+            addToRecentlyPlayed(track);
             
             // Show loading state on the track item
             const trackItem = document.querySelector(`[data-index="${index}"]`);
@@ -1340,6 +1745,7 @@
         
         // Format time
         function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -1954,6 +2360,151 @@ Export Date: ${new Date().toISOString()}
         // Initialize search history
         renderSearchHistory();
         
+        // Initialize recently played
+        renderRecentlyPlayed();
+        
+        // Queue Management Functions
+        function renderQueue() {
+            if (queue.length > 0) {
+                queueList.innerHTML = queue.map((track, index) => `
+                    <div class="queue-item flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-white/5" data-index="${index}">
+                        <span class="text-xs font-medium" style="color: var(--text-secondary);">${index + 1}</span>
+                        <img src="${track.image || 'https://via.placeholder.com/40'}" alt="${track.name}" class="w-10 h-10 rounded object-cover">
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-medium truncate" style="color: var(--text-color);">${track.name}</h4>
+                            <p class="text-xs truncate" style="color: var(--text-secondary);">${track.artist}</p>
+                        </div>
+                        <button class="remove-from-queue p-1 hover:text-red-400 transition-colors" style="color: var(--text-secondary);" data-index="${index}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+                
+                // Add click handlers for playing tracks
+                document.querySelectorAll('.queue-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.closest('.remove-from-queue')) {
+                            const index = parseInt(item.dataset.index);
+                            const track = queue[index];
+                            if (track) {
+                                tracks = queue;
+                                currentTrackIndex = index;
+                                renderTrackList();
+                                playTrack(index);
+                            }
+                        }
+                    });
+                });
+                
+                // Add click handlers for removing tracks
+                document.querySelectorAll('.remove-from-queue').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = parseInt(btn.dataset.index);
+                        queue.splice(index, 1);
+                        localStorage.setItem('queue', JSON.stringify(queue));
+                        renderQueue();
+                    });
+                });
+            } else {
+                queueList.innerHTML = `
+                    <div class="text-center py-8" style="color: var(--text-secondary);">
+                        <i class="fas fa-list text-3xl mb-2 opacity-50"></i>
+                        <p>Queue is empty</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Queue modal controls
+        closeQueue.addEventListener('click', () => {
+            queueModal.classList.add('hidden');
+            queueModal.classList.remove('flex');
+        });
+        
+        shuffleQueue.addEventListener('click', () => {
+            if (queue.length > 1) {
+                for (let i = queue.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [queue[i], queue[j]] = [queue[j], queue[i]];
+                }
+                localStorage.setItem('queue', JSON.stringify(queue));
+                renderQueue();
+                console.log('Queue shuffled');
+            }
+        });
+        
+        clearQueue.addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear the queue?')) {
+                queue = [];
+                localStorage.setItem('queue', JSON.stringify(queue));
+                renderQueue();
+                console.log('Queue cleared');
+            }
+        });
+        
+        saveQueueAsPlaylist.addEventListener('click', () => {
+            if (queue.length === 0) {
+                alert('Queue is empty. Add some tracks first.');
+                return;
+            }
+            
+            const playlistName = prompt('Enter playlist name:', 'My Playlist');
+            if (playlistName) {
+                const playlists = JSON.parse(localStorage.getItem('playlists') || '{}');
+                playlists[playlistName] = {
+                    tracks: queue,
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem('playlists', JSON.stringify(playlists));
+                alert(`Playlist "${playlistName}" saved with ${queue.length} tracks`);
+            }
+        });
+        
+        // Add queue button to library section
+        const librarySection = document.querySelector('.library-section');
+        let queueBtn = null;
+        if (librarySection) {
+            queueBtn = document.createElement('button');
+            queueBtn.className = 'library-btn flex flex-col items-center gap-2 p-3 rounded-xl transition-all';
+            queueBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+            queueBtn.style.color = 'var(--text-color)';
+            queueBtn.innerHTML = `
+                <i class="fas fa-list text-xl"></i>
+                <span class="text-xs">Queue</span>
+                <span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full queue-count">${queue.length}</span>
+            `;
+            queueBtn.addEventListener('click', () => {
+                renderQueue();
+                queueModal.classList.remove('hidden');
+                queueModal.classList.add('flex');
+            });
+            librarySection.appendChild(queueBtn);
+        }
+        
+        function updateQueueCount() {
+            const queueCount = document.querySelector('.queue-count');
+            if (queueCount) {
+                queueCount.textContent = queue.length;
+            }
+        }
+        
+        function addToQueue(track) {
+            if (!track) return;
+            
+            // Check if already in queue
+            const exists = queue.some(t => t.id === track.id);
+            if (exists) {
+                alert('Track is already in queue');
+                return;
+            }
+            
+            queue.push(track);
+            localStorage.setItem('queue', JSON.stringify(queue));
+            updateQueueCount();
+            console.log('Added to queue:', track.name);
+        }
+        
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             // Don't trigger if typing in input
@@ -2001,6 +2552,12 @@ Export Date: ${new Date().toISOString()}
                     break;
                 case 'KeyM':
                     volumeBtn.click();
+                    break;
+                case 'Slash':
+                case 'QuestionMark':
+                    e.preventDefault();
+                    shortcutsModal.classList.remove('hidden');
+                    shortcutsModal.classList.add('flex');
                     break;
             }
         });
@@ -2076,9 +2633,19 @@ Export Date: ${new Date().toISOString()}
             pinError.classList.add('hidden');
         });
         
-        // Always show PIN modal on load for privacy
-        pinModal.classList.remove('hidden');
-        pinModal.classList.add('flex');
+        // Always show PIN modal on load for privacy - execute immediately
+        function showPinModal() {
+            console.log('Showing PIN modal');
+            pinModal.classList.remove('hidden');
+            pinModal.classList.add('flex');
+        }
+        
+        // Show PIN modal immediately when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', showPinModal);
+        } else {
+            showPinModal();
+        }
         
         acceptDisclaimer.addEventListener('click', () => {
             // Don't save acceptance - show disclaimer every time for legal compliance
@@ -2149,6 +2716,238 @@ Export Date: ${new Date().toISOString()}
         
         // Load content after PIN and disclaimer (shown every time)
         console.log('PIN and disclaimer will be shown every time for privacy and legal compliance');
+        
+        // Sleep Timer Functionality
+        let sleepTimerInterval = null;
+        let sleepTimerRemaining = 0;
+        
+        function setSleepTimer(minutes) {
+            // Clear any existing timer
+            if (sleepTimerInterval) {
+                clearInterval(sleepTimerInterval);
+            }
+            
+            sleepTimerRemaining = minutes * 60; // Convert to seconds
+            
+            // Update display
+            const sleepTimerStatus = document.getElementById('sleepTimerStatus');
+            const sleepTimerDisplay = document.getElementById('sleepTimerDisplay');
+            sleepTimerStatus.classList.remove('hidden');
+            updateSleepTimerDisplay();
+            
+            // Start countdown
+            sleepTimerInterval = setInterval(() => {
+                sleepTimerRemaining--;
+                updateSleepTimerDisplay();
+                
+                if (sleepTimerRemaining <= 0) {
+                    clearInterval(sleepTimerInterval);
+                    sleepTimerInterval = null;
+                    
+                    // Stop playback
+                    if (isPlaying) {
+                        playPauseBtn.click();
+                    }
+                    
+                    // Hide status
+                    sleepTimerStatus.classList.add('hidden');
+                    
+                    // Show notification
+                    alert('Sleep timer expired - playback stopped');
+                }
+            }, 1000);
+            
+            console.log(`Sleep timer set for ${minutes} minutes`);
+        }
+        
+        function updateSleepTimerDisplay() {
+            const sleepTimerDisplay = document.getElementById('sleepTimerDisplay');
+            const minutes = Math.floor(sleepTimerRemaining / 60);
+            const seconds = sleepTimerRemaining % 60;
+            sleepTimerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        function cancelSleepTimer() {
+            if (sleepTimerInterval) {
+                clearInterval(sleepTimerInterval);
+                sleepTimerInterval = null;
+            }
+            sleepTimerRemaining = 0;
+            
+            const sleepTimerStatus = document.getElementById('sleepTimerStatus');
+            sleepTimerStatus.classList.add('hidden');
+            
+            console.log('Sleep timer cancelled');
+        }
+        
+        // Sleep timer button handlers
+        document.querySelectorAll('.sleep-timer-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const minutes = parseInt(btn.dataset.minutes);
+                setSleepTimer(minutes);
+                
+                // Visual feedback
+                document.querySelectorAll('.sleep-timer-btn').forEach(b => {
+                    b.style.background = 'rgba(255, 255, 255, 0.08)';
+                    b.style.color = 'var(--text-color)';
+                });
+                btn.style.background = 'var(--primary-color)';
+                btn.style.color = '#ffffff';
+            });
+        });
+        
+        document.getElementById('cancelSleepTimer').addEventListener('click', cancelSleepTimer);
+        
+        // Playback Speed Control
+        let currentPlaybackSpeed = 1.0;
+        
+        function setPlaybackSpeed(speed) {
+            currentPlaybackSpeed = speed;
+            audioPlayer.playbackRate = speed;
+            
+            // Update display
+            document.getElementById('currentSpeedDisplay').textContent = speed + 'x';
+            
+            // Update button styles
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                const btnSpeed = parseFloat(btn.dataset.speed);
+                if (btnSpeed === speed) {
+                    btn.style.background = 'var(--primary-color)';
+                    btn.style.color = '#ffffff';
+                } else {
+                    btn.style.background = 'rgba(255, 255, 255, 0.08)';
+                    btn.style.color = 'var(--text-color)';
+                }
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('playbackSpeed', speed);
+            
+            console.log(`Playback speed set to ${speed}x`);
+        }
+        
+        // Speed button handlers
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const speed = parseFloat(btn.dataset.speed);
+                setPlaybackSpeed(speed);
+            });
+        });
+        
+        // Load saved playback speed
+        const savedSpeed = localStorage.getItem('playbackSpeed');
+        if (savedSpeed) {
+            setPlaybackSpeed(parseFloat(savedSpeed));
+        }
+        
+        // Track Info Modal Functionality
+        function showTrackInfo(track) {
+            if (!track) return;
+            
+            // Populate track info
+            document.getElementById('trackInfoImage').src = track.image || 'https://via.placeholder.com/100';
+            document.getElementById('trackInfoTitle').textContent = track.name || 'Unknown Track';
+            document.getElementById('trackInfoArtist').textContent = track.artist || 'Unknown Artist';
+            document.getElementById('trackInfoSource').textContent = 'Source: ' + (track.source || currentSource).toUpperCase();
+            document.getElementById('trackInfoSourceBadge').textContent = (track.source || currentSource).toUpperCase();
+            
+            // Format duration if available
+            const duration = track.duration ? formatTime(track.duration) : 'Unknown';
+            document.getElementById('trackInfoDuration').textContent = duration;
+            
+            // Additional metadata
+            const metadataContainer = document.getElementById('trackInfoMetadata');
+            let metadataHTML = '';
+            
+            if (track.album) {
+                metadataHTML += `<div class="flex justify-between"><span style="color: var(--text-secondary);">Album:</span><span>${track.album}</span></div>`;
+            }
+            if (track.genre) {
+                metadataHTML += `<div class="flex justify-between"><span style="color: var(--text-secondary);">Genre:</span><span>${track.genre}</span></div>`;
+            }
+            if (track.year) {
+                metadataHTML += `<div class="flex justify-between"><span style="color: var(--text-secondary);">Year:</span><span>${track.year}</span></div>`;
+            }
+            
+            metadataContainer.innerHTML = metadataHTML;
+            
+            // Show modal
+            trackInfoModal.classList.remove('hidden');
+            trackInfoModal.classList.add('flex');
+        }
+        
+        
+        // Close track info modal
+        closeTrackInfo.addEventListener('click', () => {
+            trackInfoModal.classList.add('hidden');
+            trackInfoModal.classList.remove('flex');
+        });
+        
+        // Copy track info
+        copyTrackInfo.addEventListener('click', () => {
+            const track = tracks[currentTrackIndex];
+            if (!track) return;
+            
+            const trackInfoText = `🎵 ${track.name}\n🎤 ${track.artist}\n📀 Source: ${track.source || currentSource}\n⏱️ Duration: ${track.duration ? formatTime(track.duration) : 'Unknown'}`;
+            
+            navigator.clipboard.writeText(trackInfoText).then(() => {
+                copyTrackInfo.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
+                setTimeout(() => {
+                    copyTrackInfo.innerHTML = '<i class="fas fa-copy mr-2"></i>Copy Info';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy track info');
+            });
+        });
+        
+        // Share track
+        shareTrack.addEventListener('click', () => {
+            const track = tracks[currentTrackIndex];
+            if (!track) return;
+            
+            const shareText = `🎵 Listening to "${track.name}" by ${track.artist} on Spotfuck!`;
+            const shareUrl = window.location.href;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: track.name,
+                    text: shareText,
+                    url: shareUrl
+                }).catch(err => {
+                    console.log('Share failed:', err);
+                });
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
+                    shareTrack.innerHTML = '<i class="fas fa-check mr-2"></i>Link Copied!';
+                    setTimeout(() => {
+                        shareTrack.innerHTML = '<i class="fas fa-share mr-2"></i>Share';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy share link:', err);
+                });
+            }
+        });
+        
+        // Add click handler to show track info when clicking on album art in bottom player
+        const bottomPlayerArt = document.querySelector('.bottom-player-art');
+        if (bottomPlayerArt) {
+            bottomPlayerArt.addEventListener('click', () => {
+                if (tracks[currentTrackIndex]) {
+                    showTrackInfo(tracks[currentTrackIndex]);
+                }
+            });
+            bottomPlayerArt.style.cursor = 'pointer';
+        }
+        
+        // Keyboard Shortcuts Modal
+        closeShortcuts.addEventListener('click', () => {
+            shortcutsModal.classList.add('hidden');
+            shortcutsModal.classList.remove('flex');
+        });
+        
+
         
         // YouTube API ready callback
         function onYouTubeIframeAPIReady() {

@@ -308,6 +308,9 @@
                 <button class="source-btn active bg-red-600 px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap" data-source="audius">
                     Audius <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full ml-1">FREE</span>
                 </button>
+                <button class="library-btn bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap" data-view="library">
+                    <i class="fas fa-heart mr-1"></i> Liked Songs
+                </button>
             </div>
         </div>
 
@@ -357,8 +360,14 @@
                 <div id="bottomPlayerTitle" class="bottom-player-title">No track selected</div>
                 <div id="bottomPlayerArtist" class="bottom-player-artist">-</div>
             </div>
+            <button id="likeBtn" class="bottom-player-btn" title="Like track">
+                <i class="far fa-heart" id="likeIcon"></i>
+            </button>
         </div>
         <div class="bottom-player-controls">
+            <button id="shuffleBtn" class="bottom-player-btn" title="Shuffle">
+                <i class="fas fa-random"></i>
+            </button>
             <button id="prevBtn" class="bottom-player-btn">
                 <i class="fas fa-step-backward"></i>
             </button>
@@ -368,21 +377,27 @@
             <button id="nextBtn" class="bottom-player-btn">
                 <i class="fas fa-step-forward"></i>
             </button>
+            <button id="repeatBtn" class="bottom-player-btn" title="Repeat">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+        <div class="flex items-center gap-3">
+            <button id="volumeBtn" class="bottom-player-btn" title="Volume">
+                <i class="fas fa-volume-up" id="volumeIcon"></i>
+            </button>
+            <input type="range" id="volumeBar" class="w-20" value="80" min="0" max="100">
         </div>
     </div>
 
-    <!-- Hidden progress bar for audio player -->
-    <input type="range" id="progressBar" class="hidden" value="0" min="0" max="100">
-    <span id="currentTime" class="hidden"></span>
-    <span id="duration" class="hidden"></span>
-    
-    <!-- Hidden shuffle/repeat buttons -->
-    <button id="shuffleBtn" class="hidden"></button>
-    <button id="repeatBtn" class="hidden"></button>
-    
-    <!-- Hidden volume bar -->
-    <input type="range" id="volumeBar" class="hidden" value="80" min="0" max="100">
-    
+    <!-- Progress Bar Section -->
+    <div id="progressSection" class="fixed bottom-20 left-0 right-0 px-4 hidden" style="background: var(--bg-secondary); padding: 8px 16px;">
+        <div class="flex items-center gap-3 max-w-7xl mx-auto">
+            <span id="currentTime" class="text-xs" style="color: var(--text-secondary); min-width: 40px;">0:00</span>
+            <input type="range" id="progressBar" class="flex-1" value="0" min="0" max="100">
+            <span id="duration" class="text-xs" style="color: var(--text-secondary); min-width: 40px;">0:00</span>
+        </div>
+    </div>
+
     <!-- Hidden search button -->
     <button id="searchBtn" class="hidden"></button>
 
@@ -548,7 +563,7 @@
                 </button>
                 
                 <p class="text-xs text-center mt-3" style="color: var(--secondary-text);">
-                    This notice will not appear again after acceptance.
+                    This notice will appear every time for legal compliance.
                 </p>
             </div>
         </div>
@@ -624,13 +639,20 @@
         const trendingTags = document.getElementById('trendingTags');
         const searchFilters = document.querySelectorAll('.search-filter');
         const recommendedTracks = document.getElementById('recommendedTracks');
+        const likeBtn = document.getElementById('likeBtn');
+        const likeIcon = document.getElementById('likeIcon');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const progressSection = document.getElementById('progressSection');
+        let currentView = 'search'; // 'search' or 'library'
+        let queue = JSON.parse(localStorage.getItem('queue') || '[]');
         let currentSearchFilter = 'all';
         let searchHistoryList = JSON.parse(localStorage.getItem('searchHistory') || '[]');
         
         // Configuration
         let config = {
             api: {
-                jamendo: { clientId: 'c4ce16c7' },
+                jamendo: { clientId: '' },
                 youtube: { apiKey: '' },
                 spotify: { clientId: '', clientSecret: '' },
                 audius: { enabled: true }
@@ -661,22 +683,27 @@
                 config = fetchedConfig;
                 console.log('Configuration loaded successfully:', config);
                 
-                // Update API keys from config
+                // Update API keys from config (only if they exist and are not empty)
                 if (config.api) {
-                    if (config.api.jamendo?.clientId) {
+                    if (config.api.jamendo?.clientId && config.api.jamendo.clientId.trim() !== '') {
                         JAMENDO_CLIENT_ID = config.api.jamendo.clientId;
+                        localStorage.setItem('jamendoClientId', JAMENDO_CLIENT_ID);
+                        console.log('Updated Jamendo client ID from config');
                     }
-                    if (config.api.youtube?.apiKey) {
+                    if (config.api.youtube?.apiKey && config.api.youtube.apiKey.trim() !== '') {
                         youtubeApiKey = config.api.youtube.apiKey;
                         localStorage.setItem('youtubeApiKey', youtubeApiKey);
+                        console.log('Updated YouTube API key from config');
                     }
-                    if (config.api.spotify?.clientId) {
+                    if (config.api.spotify?.clientId && config.api.spotify.clientId.trim() !== '') {
                         spotifyClientId = config.api.spotify.clientId;
                         localStorage.setItem('spotifyClientId', spotifyClientId);
+                        console.log('Updated Spotify client ID from config');
                     }
-                    if (config.api.spotify?.clientSecret) {
+                    if (config.api.spotify?.clientSecret && config.api.spotify.clientSecret.trim() !== '') {
                         spotifyClientSecret = config.api.spotify.clientSecret;
                         localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
+                        console.log('Updated Spotify client secret from config');
                     }
                 }
                 
@@ -831,15 +858,22 @@
                 const data = await response.json();
                 
                 if (data.results && data.results.length > 0) {
-                    tracks = data.results.map(track => ({
-                        source: 'jamendo',
-                        id: track.id,
-                        audio: track.audio,
-                        image: track.image || track.album_image || `https://via.placeholder.com/150/dc2626/ffffff?text=${encodeURIComponent(track.name.substring(0, 2))}`,
-                        name: track.name,
-                        artist_name: track.artist_name,
-                        duration: track.duration
-                    }));
+                    tracks = data.results.map(track => {
+                        // Get album cover with multiple fallbacks
+                        let artwork = track.image || track.album_image || '';
+                        if (!artwork) {
+                            artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                        }
+                        return {
+                            source: 'jamendo',
+                            id: track.id,
+                            audio: track.audio,
+                            image: artwork,
+                            name: track.name,
+                            artist_name: track.artist_name,
+                            duration: track.duration
+                        };
+                    });
                     renderTrackList();
                 } else {
                     showNoResults();
@@ -900,14 +934,24 @@
                 }
                 
                 if (data.items && data.items.length > 0) {
-                    tracks = data.items.map(item => ({
-                        source: 'youtube',
-                        videoId: item.id.videoId,
-                        name: item.snippet.title,
-                        artist_name: item.snippet.channelTitle,
-                        image: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url || `https://via.placeholder.com/150/dc2626/ffffff?text=${encodeURIComponent(item.snippet.title.substring(0, 2))}`,
-                        duration: 0 // Will be fetched when needed
-                    }));
+                    tracks = data.items.map(item => {
+                        // Get thumbnail with multiple fallbacks
+                        let thumbnail = item.snippet.thumbnails.maxres?.url || 
+                                       item.snippet.thumbnails.high?.url || 
+                                       item.snippet.thumbnails.medium?.url || 
+                                       item.snippet.thumbnails.default?.url || '';
+                        if (!thumbnail) {
+                            thumbnail = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.snippet.title.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                        }
+                        return {
+                            source: 'youtube',
+                            videoId: item.id.videoId,
+                            name: item.snippet.title,
+                            artist_name: item.snippet.channelTitle,
+                            image: thumbnail,
+                            duration: 0 // Will be fetched when needed
+                        };
+                    });
                     renderTrackList();
                 } else {
                     showNoResults();
@@ -976,15 +1020,24 @@
                 const data = await response.json();
                 
                 if (data.tracks && data.tracks.items.length > 0) {
-                    tracks = data.tracks.items.map(track => ({
-                        source: 'spotify',
-                        spotifyUrl: track.external_urls.spotify,
-                        name: track.name,
-                        artist_name: track.artists.map(a => a.name).join(', '),
-                        image: track.album.images.find(img => img.height >= 300)?.url || track.album.images[0]?.url || `https://via.placeholder.com/150/dc2626/ffffff?text=${encodeURIComponent(track.name.substring(0, 2))}`,
-                        duration: track.duration_ms / 1000,
-                        preview_url: track.preview_url
-                    }));
+                    tracks = data.tracks.items.map(track => {
+                        // Get album cover with multiple fallbacks
+                        let artwork = track.album.images.find(img => img.height >= 600)?.url || 
+                                      track.album.images.find(img => img.height >= 300)?.url || 
+                                      track.album.images[0]?.url || '';
+                        if (!artwork) {
+                            artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                        }
+                        return {
+                            source: 'spotify',
+                            spotifyUrl: track.external_urls.spotify,
+                            name: track.name,
+                            artist_name: track.artists.map(a => a.name).join(', '),
+                            image: artwork,
+                            duration: track.duration_ms / 1000,
+                            preview_url: track.preview_url
+                        };
+                    });
                     renderTrackList();
                 } else if (data.artists && data.artists.items.length > 0) {
                     // For artist search, get top tracks
@@ -1000,15 +1053,24 @@
                     const tracksData = await tracksResponse.json();
                     
                     if (tracksData.tracks && tracksData.tracks.length > 0) {
-                        tracks = tracksData.tracks.map(track => ({
-                            source: 'spotify',
-                            spotifyUrl: track.external_urls.spotify,
-                            name: track.name,
-                            artist_name: track.artists.map(a => a.name).join(', '),
-                            image: track.album.images.find(img => img.height >= 300)?.url || track.album.images[0]?.url || `https://via.placeholder.com/150/dc2626/ffffff?text=${encodeURIComponent(track.name.substring(0, 2))}`,
-                            duration: track.duration_ms / 1000,
-                            preview_url: track.preview_url
-                        }));
+                        tracks = tracksData.tracks.map(track => {
+                            // Get album cover with multiple fallbacks
+                            let artwork = track.album.images.find(img => img.height >= 600)?.url || 
+                                          track.album.images.find(img => img.height >= 300)?.url || 
+                                          track.album.images[0]?.url || '';
+                            if (!artwork) {
+                                artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                            }
+                            return {
+                                source: 'spotify',
+                                spotifyUrl: track.external_urls.spotify,
+                                name: track.name,
+                                artist_name: track.artists.map(a => a.name).join(', '),
+                                image: artwork,
+                                duration: track.duration_ms / 1000,
+                                preview_url: track.preview_url
+                            };
+                        });
                         renderTrackList();
                     } else {
                         showNoResults();
@@ -1027,13 +1089,19 @@
                     const albumData = await albumResponse.json();
                     
                     if (albumData.items && albumData.items.length > 0) {
-                        const albumImage = data.albums.items[0].images.find(img => img.height >= 300)?.url || data.albums.items[0].images[0]?.url;
+                        // Get album cover with multiple fallbacks
+                        let albumImage = data.albums.items[0].images.find(img => img.height >= 600)?.url || 
+                                        data.albums.items[0].images.find(img => img.height >= 300)?.url || 
+                                        data.albums.items[0].images[0]?.url || '';
+                        if (!albumImage) {
+                            albumImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.albums.items[0].name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                        }
                         tracks = albumData.items.map(track => ({
                             source: 'spotify',
                             spotifyUrl: track.external_urls.spotify,
                             name: track.name,
                             artist_name: data.albums.items[0].artists.map(a => a.name).join(', '),
-                            image: albumImage || `https://via.placeholder.com/150/dc2626/ffffff?text=${encodeURIComponent(track.name.substring(0, 2))}`,
+                            image: albumImage,
                             duration: track.duration_ms / 1000,
                             preview_url: track.preview_url
                         }));
@@ -1127,15 +1195,28 @@
                         console.log('Audius artist tracks response:', tracksData);
                         
                         if (tracksData.data && tracksData.data.length > 0) {
-                            tracks = tracksData.data.map(track => ({
-                                source: 'audius',
-                                id: track.id,
-                                audio: `https://${host}/v1/tracks/${track.id}/stream`,
-                                image: track.artwork && (track.artwork['480x480'] || track.artwork['150x150']) ? (track.artwork['480x480'] || track.artwork['150x150']) : `https://via.placeholder.com/150/dc2626/ffffff?text=${encodeURIComponent(track.title.substring(0, 2))}`,
-                                name: track.title,
-                                artist_name: track.user.name,
-                                duration: track.duration
-                            }));
+                            tracks = tracksData.data.map(track => {
+                                // Get artwork with multiple fallbacks
+                                let artwork = '';
+                                if (track.artwork) {
+                                    artwork = track.artwork['1500x1500'] || 
+                                              track.artwork['480x480'] || 
+                                              track.artwork['150x150'] || 
+                                              track.artwork['1000x1000'] || '';
+                                }
+                                if (!artwork) {
+                                    artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.title.substring(0, 2))}&background=dc2626&color=fff&size=150`;
+                                }
+                                return {
+                                    source: 'audius',
+                                    id: track.id,
+                                    audio: `https://${host}/v1/tracks/${track.id}/stream`,
+                                    image: artwork,
+                                    name: track.title,
+                                    artist_name: track.user.name,
+                                    duration: track.duration
+                                };
+                            });
                             renderTrackList();
                         } else {
                             showNoResults();
@@ -1155,7 +1236,10 @@
                             // Get artwork with multiple fallbacks
                             let artwork = '';
                             if (track.artwork) {
-                                artwork = track.artwork['480x480'] || track.artwork['150x150'] || track.artwork['1000x1000'] || '';
+                                artwork = track.artwork['1500x1500'] || 
+                                          track.artwork['480x480'] || 
+                                          track.artwork['150x150'] || 
+                                          track.artwork['1000x1000'] || '';
                             }
                             // Fallback to gradient if no artwork
                             if (!artwork) {
@@ -1231,6 +1315,9 @@
                             <p class="text-xs truncate" style="color: var(--text-secondary);">${track.artist_name}</p>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button class="queue-btn text-xs px-2 py-1 rounded" style="background: var(--bg-tertiary); color: var(--text-color);" data-index="${index}" title="Add to queue">
+                                <i class="fas fa-list"></i>
+                            </button>
                             <button class="download-btn text-xs px-2 py-1 rounded" style="background: var(--primary-color); color: white;" data-index="${index}" title="Download/Save locally">
                                 <i class="fas fa-download"></i>
                             </button>
@@ -1245,10 +1332,20 @@
             // Add click listeners for track items
             document.querySelectorAll('.track-item').forEach(item => {
                 item.addEventListener('click', (e) => {
-                    if (!e.target.closest('.download-btn')) {
+                    if (!e.target.closest('.download-btn') && !e.target.closest('.queue-btn')) {
                         const index = parseInt(item.dataset.index);
                         playTrack(index);
                     }
+                });
+            });
+            
+            // Add click listeners for queue buttons
+            document.querySelectorAll('.queue-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const index = parseInt(btn.dataset.index);
+                    addToQueue(tracks[index]);
+                    alert(`"${tracks[index].name}" added to queue!`);
                 });
             });
             
@@ -1402,6 +1499,7 @@
             const bottomPlayerArtIcon = document.getElementById('bottomPlayerArtIcon');
             
             bottomPlayer.classList.remove('hidden');
+            progressSection.classList.remove('hidden');
             bottomPlayerTitle.textContent = track.name;
             bottomPlayerArtist.textContent = track.artist_name;
             
@@ -1413,6 +1511,9 @@
                 bottomPlayerArtImg.style.display = 'none';
                 bottomPlayerArtIcon.style.display = 'block';
             }
+            
+            // Update like button state
+            updateLikeButton();
         }
         
         // Update play/pause button
@@ -1431,6 +1532,97 @@
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Like button functionality
+        let likedTracks = JSON.parse(localStorage.getItem('likedTracks') || '[]');
+        
+        function updateLikeButton() {
+            if (tracks.length > 0) {
+                const currentTrack = tracks[currentTrackIndex];
+                const isLiked = likedTracks.some(t => t.id === currentTrack.id && t.source === currentTrack.source);
+                if (isLiked) {
+                    likeIcon.classList.remove('far');
+                    likeIcon.classList.add('fas');
+                    likeIcon.style.color = '#dc2626';
+                } else {
+                    likeIcon.classList.remove('fas');
+                    likeIcon.classList.add('far');
+                    likeIcon.style.color = 'var(--text-secondary)';
+                }
+            }
+        }
+        
+        function toggleLike() {
+            if (tracks.length === 0) return;
+            const currentTrack = tracks[currentTrackIndex];
+            const existingIndex = likedTracks.findIndex(t => t.id === currentTrack.id && t.source === currentTrack.source);
+            
+            if (existingIndex > -1) {
+                likedTracks.splice(existingIndex, 1);
+            } else {
+                likedTracks.push({
+                    id: currentTrack.id,
+                    source: currentTrack.source,
+                    name: currentTrack.name,
+                    artist_name: currentTrack.artist_name,
+                    image: currentTrack.image,
+                    audio: currentTrack.audio,
+                    videoId: currentTrack.videoId,
+                    preview_url: currentTrack.preview_url,
+                    spotifyUrl: currentTrack.spotifyUrl,
+                    duration: currentTrack.duration
+                });
+            }
+            
+            localStorage.setItem('likedTracks', JSON.stringify(likedTracks));
+            updateLikeButton();
+            
+            // Refresh library view if currently viewing
+            if (currentView === 'library') {
+                renderLikedTracks();
+            }
+        }
+        
+        function renderLikedTracks() {
+            if (likedTracks.length === 0) {
+                trackList.innerHTML = `
+                    <div class="text-center py-12" style="color: var(--text-secondary);">
+                        <i class="fas fa-heart text-5xl mb-4 opacity-50"></i>
+                        <p>No liked songs yet</p>
+                        <p class="text-sm mt-2">Like songs to add them to your library</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            tracks = likedTracks;
+            renderTrackList();
+        }
+        
+        // Queue management
+        function addToQueue(track) {
+            const existingIndex = queue.findIndex(t => t.id === track.id && t.source === track.source);
+            if (existingIndex === -1) {
+                queue.push(track);
+                localStorage.setItem('queue', JSON.stringify(queue));
+                console.log('Added to queue:', track.name);
+            }
+        }
+        
+        function playNextInQueue() {
+            if (queue.length > 0) {
+                const nextTrack = queue.shift();
+                localStorage.setItem('queue', JSON.stringify(queue));
+                tracks = [nextTrack];
+                currentTrackIndex = 0;
+                playTrack(0);
+            }
+        }
+        
+        function clearQueue() {
+            queue = [];
+            localStorage.setItem('queue', JSON.stringify(queue));
         }
         
         // Event Listeners
@@ -1464,10 +1656,15 @@
                     b.classList.remove('active', 'bg-indigo-500');
                     b.classList.add('bg-white/10');
                 });
+                document.querySelectorAll('.library-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-red-600');
+                    b.classList.add('bg-white/10');
+                });
                 btn.classList.add('active', 'bg-red-600');
                 btn.classList.remove('bg-white/10');
                 
                 currentSource = newSource;
+                currentView = 'search';
                 updateFooterText();
                 
                 // Clear current tracks
@@ -1486,6 +1683,26 @@
                 }
                 isPlaying = false;
                 updatePlayPauseButton();
+            });
+        });
+        
+        // Library button
+        document.querySelectorAll('.library-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.source-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-red-600');
+                    b.classList.add('bg-white/10');
+                });
+                document.querySelectorAll('.library-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-red-600');
+                    b.classList.add('bg-white/10');
+                });
+                btn.classList.add('active', 'bg-red-600');
+                btn.classList.remove('bg-white/10');
+                
+                currentView = 'library';
+                renderLikedTracks();
+                footerText.textContent = 'Spotfuck - Liked Songs';
             });
         });
         
@@ -1628,22 +1845,47 @@
         
         shuffleBtn.addEventListener('click', () => {
             isShuffle = !isShuffle;
-            shuffleBtn.classList.toggle('text-red-500', isShuffle);
-            shuffleBtn.classList.toggle('text-gray-400', !isShuffle);
+            shuffleBtn.style.color = isShuffle ? '#dc2626' : 'var(--text-secondary)';
         });
         
         repeatBtn.addEventListener('click', () => {
             isRepeat = !isRepeat;
-            repeatBtn.classList.toggle('text-red-500', isRepeat);
-            repeatBtn.classList.toggle('text-gray-400', !isRepeat);
+            repeatBtn.style.color = isRepeat ? '#dc2626' : 'var(--text-secondary)';
             audioPlayer.loop = isRepeat;
             if (youtubePlayer) {
                 youtubePlayer.setLoop(isRepeat);
             }
         });
         
+        likeBtn.addEventListener('click', toggleLike);
+        
+        volumeBtn.addEventListener('click', () => {
+            if (audioPlayer.volume > 0) {
+                audioPlayer.volume = 0;
+                volumeBar.value = 0;
+                volumeIcon.classList.remove('fa-volume-up');
+                volumeIcon.classList.add('fa-volume-mute');
+            } else {
+                audioPlayer.volume = 0.8;
+                volumeBar.value = 80;
+                volumeIcon.classList.remove('fa-volume-mute');
+                volumeIcon.classList.add('fa-volume-up');
+            }
+        });
+        
         volumeBar.addEventListener('input', (e) => {
             audioPlayer.volume = e.target.value / 100;
+            // Update volume icon based on level
+            if (audioPlayer.volume === 0) {
+                volumeIcon.classList.remove('fa-volume-up', 'fa-volume-down');
+                volumeIcon.classList.add('fa-volume-mute');
+            } else if (audioPlayer.volume < 0.5) {
+                volumeIcon.classList.remove('fa-volume-up', 'fa-volume-mute');
+                volumeIcon.classList.add('fa-volume-down');
+            } else {
+                volumeIcon.classList.remove('fa-volume-down', 'fa-volume-mute');
+                volumeIcon.classList.add('fa-volume-up');
+            }
         });
         
         progressBar.addEventListener('input', (e) => {
@@ -1692,6 +1934,57 @@
         
         // Initialize search history
         renderSearchHistory();
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger if typing in input
+            if (e.target.tagName === 'INPUT') return;
+            
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    if (tracks.length > 0) {
+                        playPauseBtn.click();
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (e.shiftKey) {
+                        nextBtn.click();
+                    } else {
+                        audioPlayer.currentTime = Math.min(audioPlayer.currentTime + 10, audioPlayer.duration);
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if (e.shiftKey) {
+                        prevBtn.click();
+                    } else {
+                        audioPlayer.currentTime = Math.max(audioPlayer.currentTime - 10, 0);
+                    }
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    audioPlayer.volume = Math.min(audioPlayer.volume + 0.1, 1);
+                    volumeBar.value = audioPlayer.volume * 100;
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    audioPlayer.volume = Math.max(audioPlayer.volume - 0.1, 0);
+                    volumeBar.value = audioPlayer.volume * 100;
+                    break;
+                case 'KeyS':
+                    shuffleBtn.click();
+                    break;
+                case 'KeyR':
+                    repeatBtn.click();
+                    break;
+                case 'KeyL':
+                    likeBtn.click();
+                    break;
+                case 'KeyM':
+                    volumeBtn.click();
+                    break;
+            }
+        });
         
         // Enter key for search
         searchInput.addEventListener('keypress', (e) => {

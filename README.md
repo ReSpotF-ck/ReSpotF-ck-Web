@@ -9,8 +9,13 @@ Spotfuck is an open-source music streaming web application with a Spotify mobile
 - **Spotify Mobile-Style UI**: Clean, modern interface inspired by Spotify's mobile app
 - **AMOLED Red Theme**: Pure black background with red accents for true AMOLED displays
 - **Responsive Design**: Optimized for mobile, tablet, and desktop screens
+- **Full-Featured Player**: Progress bar with seek, volume control, shuffle/repeat, and time display
+- **Liked Songs Library**: Save your favorite tracks with persistent storage
+- **Queue Management**: Add tracks to queue for later playback
+- **Keyboard Shortcuts**: Full keyboard control for power users (Space, arrows, S/R/L/M keys)
 - **Bottom Player Bar**: Fixed bottom player with album art, controls, and track info
 - **Multi-Platform Integration**: Stream music from YouTube, Spotify, Jamendo, and Audius
+- **Enhanced Album Art**: High-resolution artwork fetching with multiple fallbacks
 - **GitHub-Based Configuration**: Automatically fetch API keys and settings from a `config.json` file in your GitHub repository
 - **Dynamic Configuration**: Change API keys and settings without redeploying the app
 - **Fallback Support**: Manual API key entry if repository fetch fails

@@ -27,6 +27,51 @@ Spotfuck is a music streaming app with a Spotify mobile-inspired design and AMOL
 3. Accept the DMCA disclaimer
 4. Select a music source (Audius is FREE and selected by default)
 5. Search and play music
+6. Use the bottom player controls for playback
+7. Like songs to add them to your library
+8. Add tracks to queue for later playback
+
+## Player Features
+
+### Bottom Player Controls
+- **Play/Pause**: Toggle playback with center button
+- **Previous/Next**: Skip tracks with arrow buttons
+- **Shuffle**: Randomize playback order (S key)
+- **Repeat**: Loop current track (R key)
+- **Like**: Add track to liked songs library (L key)
+- **Volume**: Adjust volume with slider or mute button (M key)
+
+### Progress Bar
+- Located above the bottom player
+- Shows current time and total duration
+- Drag to seek to any position in the track
+- Works with all music sources
+
+### Liked Songs Library
+- Click the heart icon in bottom player to like current track
+- Access liked songs via "Liked Songs" button in source selector
+- Liked songs persist in localStorage
+- Remove songs by clicking the heart icon again
+
+### Queue Management
+- Click the list icon on any track to add to queue
+- Queue persists in localStorage
+- Play next in queue functionality available
+
+### Keyboard Shortcuts
+- **Space**: Play/Pause
+- **Arrow Left/Right**: Seek 10 seconds
+- **Shift + Arrow Left/Right**: Previous/Next track
+- **Arrow Up/Down**: Volume control
+- **S**: Toggle shuffle
+- **R**: Toggle repeat
+- **L**: Toggle like
+- **M**: Mute/Unmute
+
+### Enhanced Album Art
+- High-resolution artwork fetching for all sources
+- Multiple resolution fallbacks for best quality
+- Automatic fallback to generated avatars when no artwork available
 
 ## Music Sources
 

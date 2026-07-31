@@ -1874,15 +1874,18 @@
                 }
                 
                 document.querySelectorAll('.source-btn').forEach(b => {
-                    b.classList.remove('active', 'bg-indigo-500');
-                    b.classList.add('bg-white/10');
+                    b.classList.remove('active');
+                    b.style.background = 'rgba(255, 255, 255, 0.08)';
+                    b.style.color = 'var(--text-color)';
                 });
                 document.querySelectorAll('.library-btn').forEach(b => {
-                    b.classList.remove('active', 'bg-red-600');
-                    b.classList.add('bg-white/10');
+                    b.classList.remove('active');
+                    b.style.background = 'rgba(255, 255, 255, 0.08)';
+                    b.style.color = 'var(--text-color)';
                 });
-                btn.classList.add('active', 'bg-red-600');
-                btn.classList.remove('bg-white/10');
+                btn.classList.add('active');
+                btn.style.background = 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))';
+                btn.style.color = '#ffffff';
                 
                 currentSource = newSource;
                 currentView = 'search';
@@ -1914,15 +1917,18 @@
                 if (btn.id === 'queueBtnMain') return;
                 
                 document.querySelectorAll('.source-btn').forEach(b => {
-                    b.classList.remove('active', 'bg-red-600');
-                    b.classList.add('bg-white/10');
+                    b.classList.remove('active');
+                    b.style.background = 'rgba(255, 255, 255, 0.08)';
+                    b.style.color = 'var(--text-color)';
                 });
                 document.querySelectorAll('.library-btn').forEach(b => {
-                    b.classList.remove('active', 'bg-red-600');
-                    b.classList.add('bg-white/10');
+                    b.classList.remove('active');
+                    b.style.background = 'rgba(255, 255, 255, 0.08)';
+                    b.style.color = 'var(--text-color)';
                 });
-                btn.classList.add('active', 'bg-red-600');
-                btn.classList.remove('bg-white/10');
+                btn.classList.add('active');
+                btn.style.background = 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))';
+                btn.style.color = '#ffffff';
                 
                 currentView = 'library';
                 renderLikedTracks();
@@ -2369,6 +2375,109 @@ Export Date: ${new Date().toISOString()}
         
         // Initialize recently played
         renderRecentlyPlayed();
+        
+        // Make sure settings button works - ensure DOM is loaded
+        function initializeEventListeners() {
+            // Settings modal
+            if (settingsBtn && settingsModal) {
+                settingsBtn.addEventListener('click', () => {
+                    youtubeApiKeyInput.value = localStorage.getItem('youtubeApiKey') || '';
+                    spotifyClientIdInput.value = localStorage.getItem('spotifyClientId') || '';
+                    spotifyClientSecretInput.value = localStorage.getItem('spotifyClientSecret') || '';
+                    jamendoClientIdInput.value = localStorage.getItem('jamendoClientId') || '';
+                    repoUrlInput.value = localStorage.getItem('repoUrl') || '';
+                    settingsModal.classList.remove('hidden');
+                    settingsModal.classList.add('flex');
+                });
+            }
+
+            if (closeSettings && settingsModal) {
+                closeSettings.addEventListener('click', () => {
+                    settingsModal.classList.add('hidden');
+                    settingsModal.classList.remove('flex');
+                });
+            }
+
+            // Source selector
+            document.querySelectorAll('.source-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const newSource = btn.dataset.source;
+                    
+                    console.log('Switching to source:', newSource);
+                    console.log('Credentials check for', newSource, ':', window.hasCredentialsForSource(newSource));
+                    
+                    // Check if source requires API keys
+                    if (newSource !== 'audius' && !window.hasCredentialsForSource(newSource)) {
+                        const sourceNames = {
+                            spotify: 'Spotify requires API credentials',
+                            youtube: 'YouTube requires an API key',
+                            jamendo: 'Jamendo requires a client ID'
+                        };
+                        alert(`${sourceNames[newSource]}. Please add them in Settings first, or use Audius (FREE) instead.`);
+                        return;
+                    }
+
+                    document.querySelectorAll('.source-btn').forEach(b => {
+                        b.classList.remove('active');
+                        b.style.background = 'rgba(255, 255, 255, 0.08)';
+                        b.style.color = 'var(--text-color)';
+                    });
+                    document.querySelectorAll('.library-btn').forEach(b => {
+                        b.classList.remove('active');
+                        b.style.background = 'rgba(255, 255, 255, 0.08)';
+                        b.style.color = 'var(--text-color)';
+                    });
+                    btn.classList.add('active');
+                    btn.style.background = 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))';
+                    btn.style.color = '#ffffff';
+
+                    currentSource = newSource;
+                    currentView = 'search';
+                    updateFooterText();
+
+                    // Stop current playback
+                    audioPlayer.pause();
+                    if (youtubePlayer) {
+                        youtubePlayer.stopVideo();
+                    }
+                    isPlaying = false;
+                    updatePlayPauseButton();
+                });
+            });
+
+            // Library button
+            document.querySelectorAll('.library-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Skip queue button as it has its own handler
+                    if (btn.id === 'queueBtnMain') return;
+                    
+                    document.querySelectorAll('.source-btn').forEach(b => {
+                        b.classList.remove('active');
+                        b.style.background = 'rgba(255, 255, 255, 0.08)';
+                        b.style.color = 'var(--text-color)';
+                    });
+                    document.querySelectorAll('.library-btn').forEach(b => {
+                        b.classList.remove('active');
+                        b.style.background = 'rgba(255, 255, 255, 0.08)';
+                        b.style.color = 'var(--text-color)';
+                    });
+                    btn.classList.add('active');
+                    btn.style.background = 'linear-gradient(135deg, var(--primary-color), var(--primary-hover))';
+                    btn.style.color = '#ffffff';
+                    
+                    currentView = 'library';
+                    renderLikedTracks();
+                    footerText.textContent = 'Spotfuck - Liked Songs';
+                });
+            });
+        }
+        
+        // Initialize event listeners when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeEventListeners);
+        } else {
+            initializeEventListeners();
+        }
         
         // Queue Management Functions
         function renderQueue() {

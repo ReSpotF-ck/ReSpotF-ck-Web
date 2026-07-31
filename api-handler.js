@@ -593,3 +593,15 @@ if (typeof module !== 'undefined' && module.exports) {
         hasCredentialsForSource
     };
 }
+
+// Expose functions to browser window object
+if (typeof window !== 'undefined') {
+    window.initAPIHandler = initAPIHandler;
+    window.searchAudius = searchAudius;
+    window.searchJamendo = searchJamendo;
+    window.searchYouTube = searchYouTube;
+    window.searchSpotify = searchSpotify;
+    window.saveCredentials = saveCredentials;
+    window.fetchConfigFromRepo = fetchConfigFromRepo;
+    window.hasCredentialsForSource = hasCredentialsForSource;
+}

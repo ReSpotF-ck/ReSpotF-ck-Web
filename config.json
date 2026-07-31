@@ -3,25 +3,25 @@
   "api": {
     "jamendo": {
       "clientId": "c4ce16c7",
-      "_comment": "Jamendo Client ID - Get from jamendo.com. The default ID 'c4ce16c7' is for the free tier."
+      "_comment": "Jamendo Client ID - Get from jamendo.com. The default ID 'c4ce16c7' is for the free tier and should work immediately."
     },
     "youtube": {
       "apiKey": "",
-      "_comment": "YouTube Data API v3 key - Get from console.cloud.google.com. Required for YouTube music streaming."
+      "_comment": "YouTube Data API v3 key - Get from console.cloud.google.com. Required for YouTube music streaming. Leave empty to use Audius (FREE) instead."
     },
     "spotify": {
       "clientId": "",
       "clientSecret": "",
-      "_comment": "Spotify API credentials - Get from developer.spotify.com. Required for Spotify integration (30-second previews only)."
+      "_comment": "Spotify API credentials - Get from developer.spotify.com. Required for Spotify integration (30-second previews only). Leave empty to use Audius (FREE) instead."
     },
     "audius": {
       "enabled": true,
-      "_comment": "Audius is FREE and requires no API keys. Works out of the box."
+      "_comment": "Audius is FREE and requires no API keys. Works out of the box - no setup required!"
     }
   },
   "app": {
     "name": "Spotfuck",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "_comment": "Application metadata"
   }
 }

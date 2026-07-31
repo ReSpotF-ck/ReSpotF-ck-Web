@@ -23,6 +23,7 @@ Spotfuck is an open-source music streaming web application with a Spotify mobile
 - **Download/Save Tracks**: Download Audius and Jamendo tracks locally (with cache warning)
 - **Privacy Protection**: PIN required on every page load (PIN: 1412)
 - **Legal Compliance**: DMCA disclaimer shown on every visit
+- **Settings Export/Import**: Export settings as TXT, JSON, or screenshot; import from TXT or JSON files
 
 ## Supported Music Services
 
@@ -120,11 +121,19 @@ ReSpotFuck-Web/
 ├── owo.html           # Main application
 ├── api-handler.js     # API handler - separates API logic from UI
 ├── index.html         # Landing page
+├── 404.html           # 404 error page
 ├── config.json        # Configuration file for API keys
 ├── SETUP_GUIDE.md     # Detailed setup instructions
 ├── README.md          # This file
 └── test.html          # API test suite
 ```
+
+## Recent Updates
+
+- **Fixed API Handler**: Functions now properly exposed to browser window object for direct access
+- **Improved YouTube Integration**: Better error handling and API readiness checks
+- **Enhanced Initialization**: Automatic config loading from GitHub repository on startup
+- **Better Error Messages**: More descriptive error messages for API failures
 
 ## Contributing
 

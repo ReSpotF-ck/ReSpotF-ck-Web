@@ -7,6 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23dc2626'/%3E%3Cpath d='M8 5v14l11-7z' fill='white'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -482,6 +483,29 @@
                     </div>
                 </div>
                 
+                <!-- Export/Import Actions -->
+                <div class="mt-6 pt-4 border-t" style="border-color: var(--glass-border);">
+                    <p class="text-sm font-medium mb-3" style="color: var(--text-secondary);">Export/Import Settings</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="copySettings" class="bg-white/10 hover:bg-white/20 py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-copy"></i> Copy Settings
+                        </button>
+                        <button id="exportTxt" class="bg-white/10 hover:bg-white/20 py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-file-download"></i> Export TXT
+                        </button>
+                        <button id="exportJson" class="bg-white/10 hover:bg-white/20 py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-code"></i> Export JSON
+                        </button>
+                        <button id="exportScreenshot" class="bg-white/10 hover:bg-white/20 py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2">
+                            <i class="fas fa-camera"></i> Screenshot
+                        </button>
+                        <button id="importSettings" class="bg-white/10 hover:bg-white/20 py-2 px-3 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 col-span-2">
+                            <i class="fas fa-file-upload"></i> Import Settings
+                        </button>
+                    </div>
+                    <input type="file" id="importFile" class="hidden" accept=".txt,.json">
+                </div>
+                
                 <button id="saveSettings" class="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-medium mt-6 transition-colors">
                     Save Settings
                 </button>
@@ -616,6 +640,12 @@
         const spotifyClientSecretInput = document.getElementById('spotifyClientSecret');
         const repoUrlInput = document.getElementById('repoUrl');
         const jamendoClientIdInput = document.getElementById('jamendoClientId');
+        const copySettingsBtn = document.getElementById('copySettings');
+        const exportTxtBtn = document.getElementById('exportTxt');
+        const exportJsonBtn = document.getElementById('exportJson');
+        const exportScreenshotBtn = document.getElementById('exportScreenshot');
+        const importSettingsBtn = document.getElementById('importSettings');
+        const importFile = document.getElementById('importFile');
         const footerText = document.getElementById('footerText');
         const disclaimerModal = document.getElementById('disclaimerModal');
         const acceptDisclaimer = document.getElementById('acceptDisclaimer');
@@ -692,13 +722,13 @@
             let result;
             try {
                 if (currentSource === 'jamendo') {
-                    result = await searchJamendo(query, currentSearchFilter);
+                    result = await window.searchJamendo(query, currentSearchFilter);
                 } else if (currentSource === 'youtube') {
-                    result = await searchYouTube(query, currentSearchFilter);
+                    result = await window.searchYouTube(query, currentSearchFilter);
                 } else if (currentSource === 'spotify') {
-                    result = await searchSpotify(query, currentSearchFilter);
+                    result = await window.searchSpotify(query, currentSearchFilter);
                 } else if (currentSource === 'audius') {
-                    result = await searchAudius(query, currentSearchFilter);
+                    result = await window.searchAudius(query, currentSearchFilter);
                 }
                 
                 if (result.success) {
@@ -777,459 +807,6 @@
             });
         });
         
-        // Search Jamendo
-        async function searchJamendo(query) {
-            // Reload from localStorage to get latest values
-            JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || '';
-            console.log('Jamendo Client ID:', JAMENDO_CLIENT_ID ? 'Present' : 'Missing');
-            
-            if (!JAMENDO_CLIENT_ID || JAMENDO_CLIENT_ID.trim() === '') {
-                trackList.innerHTML = `
-                    <div class="text-center py-8 text-yellow-400">
-                        <i class="fas fa-key text-4xl mb-3"></i>
-                        <p>Jamendo Client ID required. Click settings to add it.</p>
-                        <button onclick="document.getElementById('settingsBtn').click()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">
-                            Open Settings
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-            
-            try {
-                // Add timeout to prevent hanging
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000)
-                );
-                
-                let url = `https://api.jamendo.com/v3.0/tracks/?client_id=${JAMENDO_CLIENT_ID}&format=jsonpretty&limit=20&include=musicinfo&imagesize=500`;
-                
-                console.log('Jamendo search URL:', url);
-                
-                // Apply search filter
-                if (currentSearchFilter === 'artists') {
-                    url += `&artists=${encodeURIComponent(query)}`;
-                } else if (currentSearchFilter === 'albums') {
-                    url += `&albums=${encodeURIComponent(query)}`;
-                } else {
-                    url += `&search=${encodeURIComponent(query)}`;
-                }
-                
-                const response = await Promise.race([fetch(url), timeoutPromise]);
-                const data = await response.json();
-                
-                if (data.results && data.results.length > 0) {
-                    tracks = data.results.map(track => {
-                        // Get album cover with multiple fallbacks
-                        let artwork = track.image || track.album_image || '';
-                        if (!artwork) {
-                            artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
-                        }
-                        return {
-                            source: 'jamendo',
-                            id: track.id,
-                            audio: track.audio,
-                            image: artwork,
-                            name: track.name,
-                            artist_name: track.artist_name,
-                            duration: track.duration
-                        };
-                    });
-                    renderTrackList();
-                } else {
-                    showNoResults(query);
-                }
-            } catch (error) {
-                console.error('Error searching Jamendo:', error);
-                showError(`Jamendo Error: ${error.message}`, query);
-            }
-        }
-        
-        // Search YouTube
-        async function searchYouTube(query) {
-            // Reload from localStorage to get latest values
-            youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
-            console.log('YouTube API key check:', youtubeApiKey ? 'Present' : 'Missing');
-            console.log('YouTube API key length:', youtubeApiKey ? youtubeApiKey.length : 0);
-            
-            if (!youtubeApiKey || youtubeApiKey.trim() === '') {
-                trackList.innerHTML = `
-                    <div class="text-center py-8 text-yellow-400">
-                        <i class="fas fa-key text-4xl mb-3"></i>
-                        <p>YouTube API key required. Click settings to add it.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            try {
-                // Add timeout to prevent hanging
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000)
-                );
-                
-                let searchQuery = query;
-                // Apply search filter
-                if (currentSearchFilter === 'artists') {
-                    searchQuery = query + ' artist music';
-                } else if (currentSearchFilter === 'albums') {
-                    searchQuery = query + ' album music';
-                } else {
-                    searchQuery = query + ' music';
-                }
-                
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(searchQuery)}&type=video&key=${youtubeApiKey}`;
-                console.log('YouTube search URL:', url);
-                
-                const response = await Promise.race([fetch(url), timeoutPromise]);
-                const data = await response.json();
-                
-                console.log('YouTube response:', data);
-                
-                if (data.error) {
-                    console.error('YouTube API error:', data.error);
-                    trackList.innerHTML = `
-                        <div class="text-center py-8 text-red-400">
-                            <i class="fas fa-exclamation-circle text-4xl mb-3"></i>
-                            <p>YouTube API Error: ${data.error.message}</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                if (data.items && data.items.length > 0) {
-                    tracks = data.items.map(item => {
-                        // Get thumbnail with multiple fallbacks
-                        let thumbnail = item.snippet.thumbnails.maxres?.url || 
-                                       item.snippet.thumbnails.high?.url || 
-                                       item.snippet.thumbnails.medium?.url || 
-                                       item.snippet.thumbnails.default?.url || '';
-                        if (!thumbnail) {
-                            thumbnail = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.snippet.title.substring(0, 2))}&background=dc2626&color=fff&size=150`;
-                        }
-                        return {
-                            source: 'youtube',
-                            videoId: item.id.videoId,
-                            name: item.snippet.title,
-                            artist_name: item.snippet.channelTitle,
-                            image: thumbnail,
-                            duration: 0 // Will be fetched when needed
-                        };
-                    });
-                    renderTrackList();
-                } else {
-                    showNoResults(query);
-                }
-            } catch (error) {
-                console.error('Error searching YouTube:', error);
-                showError('YouTube search failed. Please try again.', query);
-            }
-        }
-        
-        // Search Spotify
-        async function searchSpotify(query) {
-            // Reload credentials from localStorage to get latest values
-            spotifyClientId = localStorage.getItem('spotifyClientId') || '';
-            spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
-            
-            console.log('Spotify credentials check:', { 
-                clientId: spotifyClientId ? 'Present' : 'Missing', 
-                clientSecret: spotifyClientSecret ? 'Present' : 'Missing',
-                clientIdLength: spotifyClientId?.length,
-                clientSecretLength: spotifyClientSecret?.length
-            });
-            
-            if (!spotifyClientId || !spotifyClientSecret || spotifyClientId.trim() === '' || spotifyClientSecret.trim() === '') {
-                trackList.innerHTML = `
-                    <div class="text-center py-8 text-yellow-400">
-                        <i class="fas fa-key text-4xl mb-3"></i>
-                        <p>Spotify API credentials required. Click settings to add them.</p>
-                        <button onclick="document.getElementById('settingsBtn').click()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">
-                            Open Settings
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Get access token if not available or expired
-            if (!spotifyAccessToken) {
-                await getSpotifyAccessToken();
-            }
-            
-            try {
-                let searchType = 'track';
-                // Apply search filter
-                if (currentSearchFilter === 'artists') {
-                    searchType = 'artist';
-                } else if (currentSearchFilter === 'albums') {
-                    searchType = 'album';
-                }
-                
-                const response = await fetch(
-                    `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=${searchType}&limit=20`,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${spotifyAccessToken}` 
-                        }
-                    }
-                );
-                
-                if (response.status === 401) {
-                    // Token expired, get new one and retry
-                    await getSpotifyAccessToken();
-                    return searchSpotify(query);
-                }
-                
-                const data = await response.json();
-                
-                if (data.tracks && data.tracks.items.length > 0) {
-                    tracks = data.tracks.items.map(track => {
-                        // Get album cover with multiple fallbacks
-                        let artwork = track.album.images.find(img => img.height >= 600)?.url || 
-                                      track.album.images.find(img => img.height >= 300)?.url || 
-                                      track.album.images[0]?.url || '';
-                        if (!artwork) {
-                            artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
-                        }
-                        return {
-                            source: 'spotify',
-                            spotifyUrl: track.external_urls.spotify,
-                            name: track.name,
-                            artist_name: track.artists.map(a => a.name).join(', '),
-                            image: artwork,
-                            duration: track.duration_ms / 1000,
-                            preview_url: track.preview_url
-                        };
-                    });
-                    renderTrackList();
-                } else if (data.artists && data.artists.items.length > 0) {
-                    // For artist search, get top tracks
-                    const artistId = data.artists.items[0].id;
-                    const tracksResponse = await fetch(
-                        `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US&limit=20`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${spotifyAccessToken}` 
-                            }
-                        }
-                    );
-                    const tracksData = await tracksResponse.json();
-                    
-                    if (tracksData.tracks && tracksData.tracks.length > 0) {
-                        tracks = tracksData.tracks.map(track => {
-                            // Get album cover with multiple fallbacks
-                            let artwork = track.album.images.find(img => img.height >= 600)?.url || 
-                                          track.album.images.find(img => img.height >= 300)?.url || 
-                                          track.album.images[0]?.url || '';
-                            if (!artwork) {
-                                artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
-                            }
-                            return {
-                                source: 'spotify',
-                                spotifyUrl: track.external_urls.spotify,
-                                name: track.name,
-                                artist_name: track.artists.map(a => a.name).join(', '),
-                                image: artwork,
-                                duration: track.duration_ms / 1000,
-                                preview_url: track.preview_url
-                            };
-                        });
-                        renderTrackList();
-                    } else {
-                        showNoResults(query);
-                    }
-                } else if (data.albums && data.albums.items.length > 0) {
-                    // For album search, get album tracks
-                    const albumId = data.albums.items[0].id;
-                    const albumResponse = await fetch(
-                        `https://api.spotify.com/v1/albums/${albumId}/tracks?limit=20`,
-                        {
-                            headers: {
-                                'Authorization': `Bearer ${spotifyAccessToken}` 
-                            }
-                        }
-                    );
-                    const albumData = await albumResponse.json();
-                    
-                    if (albumData.items && albumData.items.length > 0) {
-                        // Get album cover with multiple fallbacks
-                        let albumImage = data.albums.items[0].images.find(img => img.height >= 600)?.url || 
-                                        data.albums.items[0].images.find(img => img.height >= 300)?.url || 
-                                        data.albums.items[0].images[0]?.url || '';
-                        if (!albumImage) {
-                            albumImage = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.albums.items[0].name.substring(0, 2))}&background=dc2626&color=fff&size=150`;
-                        }
-                        tracks = albumData.items.map(track => ({
-                            source: 'spotify',
-                            spotifyUrl: track.external_urls.spotify,
-                            name: track.name,
-                            artist_name: data.albums.items[0].artists.map(a => a.name).join(', '),
-                            image: albumImage,
-                            duration: track.duration_ms / 1000,
-                            preview_url: track.preview_url
-                        }));
-                        renderTrackList();
-                    } else {
-                        showNoResults(query);
-                    }
-                } else {
-                    showNoResults(query);
-                }
-            } catch (error) {
-                console.error('Error searching Spotify:', error);
-                showError('Spotify search failed. Please try again.', query);
-            }
-        }
-        
-        // Get Spotify access token
-        async function getSpotifyAccessToken() {
-            try {
-                const response = await fetch('https://accounts.spotify.com/api/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Basic ' + btoa(spotifyClientId + ':' + spotifyClientSecret)
-                    },
-                    body: 'grant_type=client_credentials'
-                });
-                
-                const data = await response.json();
-                if (data.access_token) {
-                    spotifyAccessToken = data.access_token;
-                } else {
-                    console.error('Failed to get Spotify access token:', data);
-                }
-            } catch (error) {
-                console.error('Error getting Spotify access token:', error);
-            }
-        }
-        
-        // Search Audius
-        async function searchAudius(query) {
-            try {
-                console.log('Audius search starting...');
-                
-                // Add timeout to prevent hanging
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Request timed out after 15 seconds')), 15000)
-                );
-                
-                // First get the host from the discovery API
-                const hostResponse = await Promise.race([
-                    fetch('https://api.audius.co'),
-                    timeoutPromise
-                ]);
-                
-                if (!hostResponse.ok) {
-                    throw new Error('Failed to connect to Audius discovery API');
-                }
-                
-                const hostData = await hostResponse.json();
-                
-                console.log('Audius host data:', hostData);
-                
-                if (!hostData.data || hostData.data.length === 0) {
-                    throw new Error('No Audius hosts available');
-                }
-                
-                const host = hostData.data[0];
-                console.log('Using Audius host:', host);
-                
-                let url = `https://${host}/v1/tracks/search?query=${encodeURIComponent(query)}&limit=20`;
-                
-                // Apply search filter
-                if (currentSearchFilter === 'artists') {
-                    url = `https://${host}/v1/users/search?query=${encodeURIComponent(query)}&limit=5`;
-                    console.log('Audius artist search URL:', url);
-                    const response = await Promise.race([fetch(url), timeoutPromise]);
-                    const data = await response.json();
-                    
-                    console.log('Audius artist response:', data);
-                    
-                    if (data.data && data.data.length > 0) {
-                        // Get tracks from the first artist
-                        const artistId = data.data[0].id;
-                        const tracksResponse = await Promise.race([
-                            fetch(`https://${host}/v1/users/${artistId}/tracks?limit=20`),
-                            timeoutPromise
-                        ]);
-                        const tracksData = await tracksResponse.json();
-                        
-                        console.log('Audius artist tracks response:', tracksData);
-                        
-                        if (tracksData.data && tracksData.data.length > 0) {
-                            tracks = tracksData.data.map(track => {
-                                // Get artwork with multiple fallbacks
-                                let artwork = '';
-                                if (track.artwork) {
-                                    artwork = track.artwork['1500x1500'] || 
-                                              track.artwork['480x480'] || 
-                                              track.artwork['150x150'] || 
-                                              track.artwork['1000x1000'] || '';
-                                }
-                                if (!artwork) {
-                                    artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.title.substring(0, 2))}&background=dc2626&color=fff&size=150`;
-                                }
-                                return {
-                                    source: 'audius',
-                                    id: track.id,
-                                    audio: `https://${host}/v1/tracks/${track.id}/stream`,
-                                    image: artwork,
-                                    name: track.title,
-                                    artist_name: track.user.name,
-                                    duration: track.duration
-                                };
-                            });
-                            renderTrackList();
-                        } else {
-                            showNoResults(query);
-                        }
-                    } else {
-                        showNoResults(query);
-                    }
-                } else {
-                    console.log('Audius track search URL:', url);
-                    const response = await Promise.race([fetch(url), timeoutPromise]);
-                    const data = await response.json();
-                    
-                    console.log('Audius track response:', data);
-                    
-                    if (data.data && data.data.length > 0) {
-                        tracks = data.data.map(track => {
-                            // Get artwork with multiple fallbacks
-                            let artwork = '';
-                            if (track.artwork) {
-                                artwork = track.artwork['1500x1500'] || 
-                                          track.artwork['480x480'] || 
-                                          track.artwork['150x150'] || 
-                                          track.artwork['1000x1000'] || '';
-                            }
-                            // Fallback to gradient if no artwork
-                            if (!artwork) {
-                                artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.title.substring(0, 2))}&background=dc2626&color=fff&size=150`;
-                            }
-                            
-                            return {
-                                source: 'audius',
-                                id: track.id,
-                                audio: `https://${host}/v1/tracks/${track.id}/stream`,
-                                image: artwork,
-                                name: track.title,
-                                artist_name: track.user.name,
-                                duration: track.duration
-                            };
-                        });
-                        renderTrackList();
-                    } else {
-                        showNoResults(query);
-                    }
-                }
-            } catch (error) {
-                console.error('Error searching Audius:', error);
-                showError(`Audius Error: ${error.message}`, query);
-            }
-        }
         
         function showNoResults(query) {
             trackList.innerHTML = `
@@ -1427,6 +1004,12 @@
         }
         
         function playYouTubeTrack(track) {
+            if (!window.ytApiReady) {
+                console.error('YouTube API not ready yet');
+                alert('YouTube API is still loading. Please try again in a moment.');
+                return;
+            }
+            
             if (!youtubePlayer) {
                 youtubePlayer = new YT.Player('youtubePlayer', {
                     height: '0',
@@ -1434,10 +1017,19 @@
                     videoId: track.videoId,
                     playerVars: {
                         'autoplay': 1,
-                        'controls': 0
+                        'controls': 0,
+                        'playsinline': 1
                     },
                     events: {
-                        'onStateChange': onYouTubeStateChange
+                        'onStateChange': onYouTubeStateChange,
+                        'onReady': (event) => {
+                            console.log('YouTube player ready');
+                            event.target.playVideo();
+                        },
+                        'onError': (event) => {
+                            console.error('YouTube player error:', event.data);
+                            alert('Error playing YouTube video. Error code: ' + event.data);
+                        }
                     }
                 });
             } else {
@@ -1618,7 +1210,7 @@
                 const newSource = btn.dataset.source;
                 
                 // Check if source requires API keys
-                if (!hasCredentialsForSource(newSource)) {
+                if (newSource !== 'audius' && !window.hasCredentialsForSource(newSource)) {
                     const sourceNames = {
                         spotify: 'Spotify requires API credentials',
                         youtube: 'YouTube requires an API key',
@@ -1720,13 +1312,13 @@
             });
             
             // Use API handler to save credentials
-            saveCredentials(credentials);
+            window.saveCredentials(credentials);
             
             // Save repository URL
             if (repoUrl) {
                 localStorage.setItem('repoUrl', repoUrl);
                 // Try to fetch config from repository
-                const success = await fetchConfigFromRepo(repoUrl);
+                const success = await window.fetchConfigFromRepo(repoUrl);
                 if (success) {
                     alert('Configuration loaded from repository successfully!');
                 } else {
@@ -1759,6 +1351,205 @@
                     searchTracks(query);
                 }
             }
+        });
+        
+        // Copy Settings to Clipboard
+        copySettingsBtn.addEventListener('click', () => {
+            const settings = {
+                repoUrl: repoUrlInput.value.trim(),
+                jamendoClientId: jamendoClientIdInput.value.trim(),
+                youtubeApiKey: youtubeApiKeyInput.value.trim(),
+                spotifyClientId: spotifyClientIdInput.value.trim(),
+                spotifyClientSecret: spotifyClientSecretInput.value.trim()
+            };
+            
+            const settingsText = `Spotfuck API Settings
+=====================
+Repository URL: ${settings.repoUrl}
+Jamendo Client ID: ${settings.jamendoClientId}
+YouTube API Key: ${settings.youtubeApiKey}
+Spotify Client ID: ${settings.spotifyClientId}
+Spotify Client Secret: ${settings.spotifyClientSecret}
+`;
+            
+            navigator.clipboard.writeText(settingsText).then(() => {
+                alert('Settings copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy settings:', err);
+                alert('Failed to copy settings to clipboard.');
+            });
+        });
+        
+        // Export Settings as TXT File
+        exportTxtBtn.addEventListener('click', () => {
+            const settings = {
+                repoUrl: repoUrlInput.value.trim(),
+                jamendoClientId: jamendoClientIdInput.value.trim(),
+                youtubeApiKey: youtubeApiKeyInput.value.trim(),
+                spotifyClientId: spotifyClientIdInput.value.trim(),
+                spotifyClientSecret: spotifyClientSecretInput.value.trim()
+            };
+            
+            const settingsText = `Spotfuck API Settings
+=====================
+Repository URL: ${settings.repoUrl}
+Jamendo Client ID: ${settings.jamendoClientId}
+YouTube API Key: ${settings.youtubeApiKey}
+Spotify Client ID: ${settings.spotifyClientId}
+Spotify Client Secret: ${settings.spotifyClientSecret}
+Export Date: ${new Date().toISOString()}
+`;
+            
+            const blob = new Blob([settingsText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'spotfuck-settings.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Settings exported as TXT file!');
+        });
+        
+        // Export Settings as JSON File
+        exportJsonBtn.addEventListener('click', () => {
+            const settings = {
+                repoUrl: repoUrlInput.value.trim(),
+                jamendoClientId: jamendoClientIdInput.value.trim(),
+                youtubeApiKey: youtubeApiKeyInput.value.trim(),
+                spotifyClientId: spotifyClientIdInput.value.trim(),
+                spotifyClientSecret: spotifyClientSecretInput.value.trim(),
+                exportDate: new Date().toISOString(),
+                version: '1.1.0'
+            };
+            
+            const settingsJson = JSON.stringify(settings, null, 2);
+            const blob = new Blob([settingsJson], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'spotfuck-settings.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('Settings exported as JSON file!');
+        });
+        
+        // Export Settings as Screenshot
+        exportScreenshotBtn.addEventListener('click', async () => {
+            try {
+                // Use html2canvas for proper screenshot
+                if (typeof html2canvas !== 'undefined') {
+                    // Temporarily show the modal if hidden
+                    const wasHidden = settingsModal.classList.contains('hidden');
+                    if (wasHidden) {
+                        settingsModal.classList.remove('hidden');
+                        settingsModal.classList.add('flex');
+                    }
+                    
+                    const canvas = await html2canvas(settingsModal, {
+                        backgroundColor: '#1a1a1a',
+                        scale: 2, // Higher quality
+                        logging: false,
+                        useCORS: true
+                    });
+                    
+                    const url = canvas.toDataURL('image/png');
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'spotfuck-settings-screenshot.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    // Hide modal again if it was hidden
+                    if (wasHidden) {
+                        settingsModal.classList.add('hidden');
+                        settingsModal.classList.remove('flex');
+                    }
+                    
+                    alert('Screenshot saved as PNG!');
+                } else {
+                    throw new Error('html2canvas library not loaded');
+                }
+            } catch (error) {
+                console.error('Screenshot error:', error);
+                alert('Failed to create screenshot. Please try again.');
+            }
+        });
+        
+        // Import Settings
+        importSettingsBtn.addEventListener('click', () => {
+            importFile.click();
+        });
+        
+        importFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const content = event.target.result;
+                    
+                    // Try to parse as JSON first
+                    let settings;
+                    try {
+                        const jsonSettings = JSON.parse(content);
+                        // Validate it's a settings object
+                        if (jsonSettings && typeof jsonSettings === 'object') {
+                            settings = {
+                                repoUrl: jsonSettings.repoUrl || '',
+                                jamendoClientId: jsonSettings.jamendoClientId || '',
+                                youtubeApiKey: jsonSettings.youtubeApiKey || '',
+                                spotifyClientId: jsonSettings.spotifyClientId || '',
+                                spotifyClientSecret: jsonSettings.spotifyClientSecret || ''
+                            };
+                        } else {
+                            throw new Error('Invalid JSON structure');
+                        }
+                    } catch (jsonError) {
+                        // Parse as text file
+                        settings = {};
+                        const lines = content.split('\n');
+                        lines.forEach(line => {
+                            if (line.includes('Repository URL:')) {
+                                settings.repoUrl = line.split('Repository URL:')[1].trim();
+                            } else if (line.includes('Jamendo Client ID:')) {
+                                settings.jamendoClientId = line.split('Jamendo Client ID:')[1].trim();
+                            } else if (line.includes('YouTube API Key:')) {
+                                settings.youtubeApiKey = line.split('YouTube API Key:')[1].trim();
+                            } else if (line.includes('Spotify Client ID:')) {
+                                settings.spotifyClientId = line.split('Spotify Client ID:')[1].trim();
+                            } else if (line.includes('Spotify Client Secret:')) {
+                                settings.spotifyClientSecret = line.split('Spotify Client Secret:')[1].trim();
+                            }
+                        });
+                    }
+                    
+                    // Apply settings to inputs
+                    if (settings.repoUrl !== undefined) repoUrlInput.value = settings.repoUrl;
+                    if (settings.jamendoClientId !== undefined) jamendoClientIdInput.value = settings.jamendoClientId;
+                    if (settings.youtubeApiKey !== undefined) youtubeApiKeyInput.value = settings.youtubeApiKey;
+                    if (settings.spotifyClientId !== undefined) spotifyClientIdInput.value = settings.spotifyClientId;
+                    if (settings.spotifyClientSecret !== undefined) spotifyClientSecretInput.value = settings.spotifyClientSecret;
+                    
+                    // Show confirmation with details
+                    const importedCount = Object.values(settings).filter(v => v && v.trim() !== '').length;
+                    alert(`Settings imported successfully!\n\nImported ${importedCount} field(s).\nClick "Save Settings" to apply changes.`);
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Failed to import settings. Invalid file format.\n\nSupported formats: .txt, .json');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            importFile.value = '';
         });
         
         function updateFooterText() {
@@ -1833,9 +1624,8 @@
             isRepeat = !isRepeat;
             repeatBtn.style.color = isRepeat ? '#dc2626' : 'var(--text-secondary)';
             audioPlayer.loop = isRepeat;
-            if (youtubePlayer) {
-                youtubePlayer.setLoop(isRepeat);
-            }
+            // YouTube IFrame API doesn't have a direct setLoop method
+            // Loop is handled in the onStateChange event
         });
         
         likeBtn.addEventListener('click', toggleLike);
@@ -2074,24 +1864,37 @@
         // Apply initial theme
         applyTheme();
         
-        // Initialize API Handler
-        initAPIHandler();
+        // Initialize API Handler and load config immediately
+        window.initAPIHandler().then(() => {
+            console.log('API Handler initialized');
+            
+            // Set default repo URL if not already set
+            const defaultRepoUrl = 'https://github.com/ReSpotF-ck/ReSpotFuck-Web';
+            const savedRepoUrl = localStorage.getItem('repoUrl');
+            
+            if (!savedRepoUrl) {
+                localStorage.setItem('repoUrl', defaultRepoUrl);
+                console.log('Set default repository URL:', defaultRepoUrl);
+            }
+            
+            // Try to fetch config from repository on startup
+            const repoUrl = localStorage.getItem('repoUrl');
+            if (repoUrl) {
+                window.fetchConfigFromRepo(repoUrl).then(success => {
+                    if (success) {
+                        console.log('Configuration loaded from repository on startup');
+                    }
+                });
+            }
+        });
         
         // Load content after PIN and disclaimer (shown every time)
         console.log('PIN and disclaimer will be shown every time for privacy and legal compliance');
         
-        // Set default repo URL if not already set
-        const defaultRepoUrl = 'https://github.com/ReSpotF-ck/ReSpotFuck-Web';
-        const savedRepoUrl = localStorage.getItem('repoUrl');
-        
-        if (!savedRepoUrl) {
-            localStorage.setItem('repoUrl', defaultRepoUrl);
-            console.log('Set default repository URL:', defaultRepoUrl);
-        }
-        
         // YouTube API ready callback
         function onYouTubeIframeAPIReady() {
             console.log('YouTube API ready');
+            window.ytApiReady = true;
         }
         
         // Security measures enabled

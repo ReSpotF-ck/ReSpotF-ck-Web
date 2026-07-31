@@ -8,6 +8,15 @@ Spotfuck is a music streaming app with a Spotify mobile-inspired design and AMOL
 
 **Default Repository:** https://github.com/ReSpotF-ck/ReSpotFuck-Web
 
+**Version:** 1.1.0
+
+## Recent Fixes
+
+- **API Handler Fixed**: All API functions are now properly exposed and accessible
+- **YouTube Integration Improved**: Better error handling and API readiness checks
+- **Automatic Config Loading**: Configuration is automatically fetched from GitHub on startup
+- **Jamendo Working**: Default Jamendo client ID is pre-configured and should work immediately
+
 ## Access Control
 
 ### PIN Entry (Privacy)
@@ -178,6 +187,52 @@ After saving settings:
 1. Check the browser console (F12) for success messages
 2. You should see: "Configuration loaded successfully"
 3. The app will now use the API keys from your repository
+
+## Settings Export/Import
+
+The app supports exporting and importing your API settings for backup and sharing purposes.
+
+### Export Settings
+
+1. Click the **Settings** button (gear icon) in the top right
+2. In the Export/Import Settings section, you have several options:
+
+**Copy Settings to Clipboard**
+- Copies all settings as formatted text to your clipboard
+- Easy to paste into notes or share
+
+**Export as TXT**
+- Downloads a `spotfuck-settings.txt` file
+- Human-readable format with all your API keys and configuration
+- Includes export date for reference
+
+**Export as JSON**
+- Downloads a `spotfuck-settings.json` file
+- Machine-readable format ideal for programmatic use
+- Includes version information and export date
+- Best for importing back into the app
+
+**Screenshot**
+- Takes a visual screenshot of the settings modal
+- Downloads as `spotfuck-settings-screenshot.png`
+- Uses html2canvas library for high-quality capture
+- Useful for visual documentation or sharing
+
+### Import Settings
+
+1. Click the **Import Settings** button in the Export/Import section
+2. Select a previously exported file (.txt or .json)
+3. The app will automatically parse and populate the settings fields
+4. Click **Save Settings** to apply the imported settings
+
+**Supported Import Formats:**
+- **JSON files**: Preferred format - includes all settings with proper structure
+- **TXT files**: Legacy format - parses key-value pairs from text
+
+**Import Validation:**
+- The app validates the file structure before importing
+- Shows how many fields were successfully imported
+- Requires manual save to apply changes to localStorage
 
 ## Downloading Tracks
 

@@ -605,11 +605,11 @@
     <!-- Audio Element -->
     <audio id="audioPlayer"></audio>
     
+    <!-- API Handler - Load BEFORE main script -->
+    <script src="api-handler.js"></script>
+    
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
-
-    <!-- API Handler -->
-    <script src="api-handler.js"></script>
 
     <script>
         // State
@@ -713,6 +713,8 @@
         async function searchTracks(query) {
             if (!query.trim()) return;
             
+            console.log('Starting search for:', query, 'using source:', currentSource);
+            
             // Show loading state
             trackList.innerHTML = `
                 <div class="text-center py-8">
@@ -727,24 +729,40 @@
             
             let result;
             try {
+                console.log('API functions available:', {
+                    searchAudius: typeof window.searchAudius,
+                    searchJamendo: typeof window.searchJamendo,
+                    searchYouTube: typeof window.searchYouTube,
+                    searchSpotify: typeof window.searchSpotify
+                });
+                
                 if (currentSource === 'jamendo') {
+                    console.log('Calling searchJamendo');
                     result = await window.searchJamendo(query, currentSearchFilter);
                 } else if (currentSource === 'youtube') {
+                    console.log('Calling searchYouTube');
                     result = await window.searchYouTube(query, currentSearchFilter);
                 } else if (currentSource === 'spotify') {
+                    console.log('Calling searchSpotify');
                     result = await window.searchSpotify(query, currentSearchFilter);
                 } else if (currentSource === 'audius') {
+                    console.log('Calling searchAudius');
                     result = await window.searchAudius(query, currentSearchFilter);
                 }
                 
+                console.log('Search result:', result);
+                
                 if (result.success) {
                     if (result.tracks && result.tracks.length > 0) {
+                        console.log('Found', result.tracks.length, 'tracks');
                         tracks = result.tracks;
                         renderTrackList();
                     } else {
+                        console.log('No tracks found in result');
                         showNoResults(query);
                     }
                 } else {
+                    console.log('Search failed with error:', result.error);
                     showError(result.error, query);
                 }
             } catch (error) {
@@ -1874,6 +1892,15 @@ Export Date: ${new Date().toISOString()}
         window.initAPIHandler().then(() => {
             console.log('API Handler initialized');
             
+            // Verify API functions are available
+            console.log('Verifying API functions:', {
+                searchAudius: typeof window.searchAudius,
+                searchJamendo: typeof window.searchJamendo,
+                searchYouTube: typeof window.searchYouTube,
+                searchSpotify: typeof window.searchSpotify,
+                hasCredentialsForSource: typeof window.hasCredentialsForSource
+            });
+            
             // Set default repo URL if not already set
             const defaultRepoUrl = 'https://github.com/ReSpotF-ck/ReSpotFuck-Web';
             const savedRepoUrl = localStorage.getItem('repoUrl');
@@ -1892,6 +1919,8 @@ Export Date: ${new Date().toISOString()}
                     }
                 });
             }
+        }).catch(error => {
+            console.error('Failed to initialize API Handler:', error);
         });
         
         // Load content after PIN and disclaimer (shown every time)

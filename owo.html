@@ -1233,6 +1233,9 @@
             btn.addEventListener('click', () => {
                 const newSource = btn.dataset.source;
                 
+                console.log('Switching to source:', newSource);
+                console.log('Credentials check for', newSource, ':', window.hasCredentialsForSource(newSource));
+                
                 // Check if source requires API keys
                 if (newSource !== 'audius' && !window.hasCredentialsForSource(newSource)) {
                     const sourceNames = {
@@ -1362,6 +1365,9 @@
                 jamendoClientIdLength: localStorage.getItem('jamendoClientId')?.length
             });
             
+            // Reload credentials in API handler
+            window.loadCredentialsFromStorage();
+            
             settingsModal.classList.add('hidden');
             settingsModal.classList.remove('flex');
             
@@ -1375,6 +1381,8 @@
                     searchTracks(query);
                 }
             }
+            
+            alert('Settings saved successfully!');
         });
         
         // Copy Settings to Clipboard

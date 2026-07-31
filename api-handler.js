@@ -565,16 +565,25 @@ function formatSpotifyTrack(track) {
  * Check if API credentials are available for a source
  */
 function hasCredentialsForSource(source) {
+    // Reload from localStorage to get latest values
+    loadCredentialsFromStorage();
+    
     switch (source) {
         case 'audius':
             return true; // No credentials needed
         case 'jamendo':
-            return !!(JAMENDO_CLIENT_ID && JAMENDO_CLIENT_ID.trim() !== '');
+            const hasJamendo = !!(JAMENDO_CLIENT_ID && JAMENDO_CLIENT_ID.trim() !== '');
+            console.log('Jamendo credentials check:', hasJamendo, 'ID length:', JAMENDO_CLIENT_ID.length);
+            return hasJamendo;
         case 'youtube':
-            return !!(youtubeApiKey && youtubeApiKey.trim() !== '');
+            const hasYouTube = !!(youtubeApiKey && youtubeApiKey.trim() !== '');
+            console.log('YouTube credentials check:', hasYouTube, 'Key length:', youtubeApiKey.length);
+            return hasYouTube;
         case 'spotify':
-            return !!(spotifyClientId && spotifyClientId.trim() !== '' && 
-                     spotifyClientSecret && spotifyClientSecret.trim() !== '');
+            const hasSpotify = !!(spotifyClientId && spotifyClientId.trim() !== '' && 
+                                spotifyClientSecret && spotifyClientSecret.trim() !== '');
+            console.log('Spotify credentials check:', hasSpotify, 'Client ID length:', spotifyClientId.length, 'Secret length:', spotifyClientSecret.length);
+            return hasSpotify;
         default:
             return false;
     }

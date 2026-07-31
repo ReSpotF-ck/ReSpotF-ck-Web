@@ -2,7 +2,7 @@
 
 Spotfuck is an open-source music streaming web application with a Spotify mobile-inspired design and AMOLED red theme. It integrates with multiple music APIs to provide a unified listening experience. The app fetches configuration from a GitHub repository, making it easy to manage API keys and settings across instances.
 
-**Live Demo:** https://spotfuck.netlify.app/
+**Live Demo:** https://respotfuck.netlify.app/
 
 ## Features
 

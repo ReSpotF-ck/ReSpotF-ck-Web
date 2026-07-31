@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotfuck</title>
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com/ajax/libs https://www.youtube.com https://api.audius.co https://raw.githubusercontent.com https://*.jamendo.com https://*.spotify.com https://accounts.spotify.com https://api.spotify.com https://www.googleapis.com; img-src 'self' data: https: https://ui-avatars.com https://*.ytimg.com; media-src 'self' https: blob:; connect-src 'self' https:;">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23dc2626'/%3E%3Cpath d='M8 5v14l11-7z' fill='white'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1930,6 +1936,18 @@ Export Date: ${new Date().toISOString()}
                 return false;
             }
             
+            // Ctrl+Shift+K (Firefox Console)
+            if (e.ctrlKey && e.shiftKey && (e.key === 'K' || e.key === 'k')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+Shift+M (Responsive Design Mode)
+            if (e.ctrlKey && e.shiftKey && (e.key === 'M' || e.key === 'm')) {
+                e.preventDefault();
+                return false;
+            }
+            
             // Ctrl+U (View Source)
             if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
                 e.preventDefault();
@@ -1947,6 +1965,22 @@ Export Date: ${new Date().toISOString()}
                 e.preventDefault();
                 return false;
             }
+            
+            // Ctrl+F (Find) - disable in PIN/disclaimer modals
+            if (e.ctrlKey && (e.key === 'F' || e.key === 'f')) {
+                if (!pinModal.classList.contains('hidden') || !disclaimerModal.classList.contains('hidden')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            // Ctrl+G (Find Next) - disable in PIN/disclaimer modals
+            if (e.ctrlKey && (e.key === 'G' || e.key === 'g')) {
+                if (!pinModal.classList.contains('hidden') || !disclaimerModal.classList.contains('hidden')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
         });
         
         // Disable drag and drop
@@ -1955,9 +1989,39 @@ Export Date: ${new Date().toISOString()}
             return false;
         });
         
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
         // Disable text selection (keeps buttons clickable)
         document.addEventListener('selectstart', (e) => {
             // Allow selection on inputs and textareas
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Disable copy/paste on sensitive elements
+        document.addEventListener('copy', (e) => {
+            // Allow copy on inputs and textareas
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        document.addEventListener('paste', (e) => {
+            // Allow paste only on inputs
+            if (e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Disable cut
+        document.addEventListener('cut', (e) => {
             if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                 e.preventDefault();
                 return false;

@@ -413,6 +413,7 @@
                     addLog(`✓ Found ${result.tracks.length} tracks`, 'success');
                     
                     result.tracks.forEach(track => {
+                        const artwork = track.artwork?.['1500x1500'] || track.artwork?.['480x480'] || track.artwork?.['150x150'] || 'https://via.placeholder.com/60';
                         const trackDiv = document.createElement('div');
                         trackDiv.className = 'track';
                         trackDiv.innerHTML = `
@@ -427,6 +428,9 @@
                 
                 addLog('✓ Audius test completed successfully', 'success');
                 updateStats(true);
+                } else {
+                    throw new Error('No tracks found');
+                }
             } catch (error) {
                 addLog(`✗ Audius test failed: ${error.message}`, 'error');
                 updateStats(false);
@@ -729,7 +733,10 @@
                     });
                     
                     addLog('✓ Jamendo test completed successfully', 'success');
-                updateStats(true);
+                    updateStats(true);
+                } else {
+                    throw new Error('No results found');
+                }
             } catch (error) {
                 addLog(`✗ Jamendo test failed: ${error.message}`, 'error');
                 updateStats(false);

@@ -683,29 +683,42 @@
                 config = fetchedConfig;
                 console.log('Configuration loaded successfully:', config);
                 
-                // Update API keys from config (only if they exist and are not empty)
+                // Update API keys from config (only if they exist and are not empty, and don't override existing localStorage values)
                 if (config.api) {
-                    if (config.api.jamendo?.clientId && config.api.jamendo.clientId.trim() !== '') {
+                    if (config.api.jamendo?.clientId && config.api.jamendo.clientId.trim() !== '' && !localStorage.getItem('jamendoClientId')) {
                         JAMENDO_CLIENT_ID = config.api.jamendo.clientId;
                         localStorage.setItem('jamendoClientId', JAMENDO_CLIENT_ID);
                         console.log('Updated Jamendo client ID from config');
                     }
-                    if (config.api.youtube?.apiKey && config.api.youtube.apiKey.trim() !== '') {
+                    if (config.api.youtube?.apiKey && config.api.youtube.apiKey.trim() !== '' && !localStorage.getItem('youtubeApiKey')) {
                         youtubeApiKey = config.api.youtube.apiKey;
                         localStorage.setItem('youtubeApiKey', youtubeApiKey);
                         console.log('Updated YouTube API key from config');
                     }
-                    if (config.api.spotify?.clientId && config.api.spotify.clientId.trim() !== '') {
+                    if (config.api.spotify?.clientId && config.api.spotify.clientId.trim() !== '' && !localStorage.getItem('spotifyClientId')) {
                         spotifyClientId = config.api.spotify.clientId;
                         localStorage.setItem('spotifyClientId', spotifyClientId);
                         console.log('Updated Spotify client ID from config');
                     }
-                    if (config.api.spotify?.clientSecret && config.api.spotify.clientSecret.trim() !== '') {
+                    if (config.api.spotify?.clientSecret && config.api.spotify.clientSecret.trim() !== '' && !localStorage.getItem('spotifyClientSecret')) {
                         spotifyClientSecret = config.api.spotify.clientSecret;
                         localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
                         console.log('Updated Spotify client secret from config');
                     }
                 }
+                
+                // Reload from localStorage after config fetch
+                youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
+                spotifyClientId = localStorage.getItem('spotifyClientId') || '';
+                spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
+                JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || '';
+                
+                console.log('API keys after config fetch:', {
+                    youtubeApiKey: youtubeApiKey ? 'Present' : 'Missing',
+                    spotifyClientId: spotifyClientId ? 'Present' : 'Missing',
+                    spotifyClientSecret: spotifyClientSecret ? 'Present' : 'Missing',
+                    JAMENDO_CLIENT_ID: JAMENDO_CLIENT_ID ? 'Present' : 'Missing'
+                });
                 
                 return true;
             } catch (error) {
@@ -835,6 +848,23 @@
         
         // Search Jamendo
         async function searchJamendo(query) {
+            // Reload from localStorage to get latest values
+            JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || '';
+            console.log('Jamendo Client ID:', JAMENDO_CLIENT_ID ? 'Present' : 'Missing');
+            
+            if (!JAMENDO_CLIENT_ID || JAMENDO_CLIENT_ID.trim() === '') {
+                trackList.innerHTML = `
+                    <div class="text-center py-8 text-yellow-400">
+                        <i class="fas fa-key text-4xl mb-3"></i>
+                        <p>Jamendo Client ID required. Click settings to add it.</p>
+                        <button onclick="document.getElementById('settingsBtn').click()" class="mt-4 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm">
+                            Open Settings
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
             try {
                 // Add timeout to prevent hanging
                 const timeoutPromise = new Promise((_, reject) => 
@@ -886,7 +916,10 @@
         
         // Search YouTube
         async function searchYouTube(query) {
+            // Reload from localStorage to get latest values
+            youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
             console.log('YouTube API key check:', youtubeApiKey ? 'Present' : 'Missing');
+            console.log('YouTube API key length:', youtubeApiKey ? youtubeApiKey.length : 0);
             
             if (!youtubeApiKey || youtubeApiKey.trim() === '') {
                 trackList.innerHTML = `
@@ -964,16 +997,16 @@
         
         // Search Spotify
         async function searchSpotify(query) {
+            // Reload credentials from localStorage to get latest values
+            spotifyClientId = localStorage.getItem('spotifyClientId') || '';
+            spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
+            
             console.log('Spotify credentials check:', { 
                 clientId: spotifyClientId ? 'Present' : 'Missing', 
                 clientSecret: spotifyClientSecret ? 'Present' : 'Missing',
                 clientIdLength: spotifyClientId?.length,
                 clientSecretLength: spotifyClientSecret?.length
             });
-            
-            // Reload credentials from localStorage in case they were just saved
-            spotifyClientId = localStorage.getItem('spotifyClientId') || '';
-            spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
             
             if (!spotifyClientId || !spotifyClientSecret || spotifyClientId.trim() === '' || spotifyClientSecret.trim() === '') {
                 trackList.innerHTML = `
@@ -1731,11 +1764,24 @@
             
             console.log('Saving credentials:', {
                 youtubeApiKey: youtubeApiKey ? 'Present' : 'Missing',
+                youtubeApiKeyLength: youtubeApiKey.length,
                 spotifyClientId: spotifyClientId ? 'Present' : 'Missing',
+                spotifyClientIdLength: spotifyClientId.length,
                 spotifyClientSecret: spotifyClientSecret ? 'Present' : 'Missing',
+                spotifyClientSecretLength: spotifyClientSecret.length,
                 jamendoClientId: jamendoClientId ? 'Present' : 'Missing',
+                jamendoClientIdLength: jamendoClientId.length,
                 repoUrl: repoUrl || 'Not set'
             });
+            
+            // Save to localStorage immediately
+            localStorage.setItem('youtubeApiKey', youtubeApiKey);
+            localStorage.setItem('spotifyClientId', spotifyClientId);
+            localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
+            localStorage.setItem('jamendoClientId', jamendoClientId);
+            
+            // Update in-memory variables
+            JAMENDO_CLIENT_ID = jamendoClientId;
             
             // Save repository URL
             if (repoUrl) {
@@ -1749,20 +1795,16 @@
                 }
             }
             
-            localStorage.setItem('youtubeApiKey', youtubeApiKey);
-            localStorage.setItem('spotifyClientId', spotifyClientId);
-            localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
-            localStorage.setItem('jamendoClientId', jamendoClientId);
-            
-            // Update in-memory variables
-            JAMENDO_CLIENT_ID = jamendoClientId;
-            
             // Verify they were saved
             console.log('Verified saved credentials:', {
                 youtubeApiKey: localStorage.getItem('youtubeApiKey') ? 'Present' : 'Missing',
+                youtubeApiKeyLength: localStorage.getItem('youtubeApiKey')?.length,
                 spotifyClientId: localStorage.getItem('spotifyClientId') ? 'Present' : 'Missing',
+                spotifyClientIdLength: localStorage.getItem('spotifyClientId')?.length,
                 spotifyClientSecret: localStorage.getItem('spotifyClientSecret') ? 'Present' : 'Missing',
-                jamendoClientId: localStorage.getItem('jamendoClientId') ? 'Present' : 'Missing'
+                spotifyClientSecretLength: localStorage.getItem('spotifyClientSecret')?.length,
+                jamendoClientId: localStorage.getItem('jamendoClientId') ? 'Present' : 'Missing',
+                jamendoClientIdLength: localStorage.getItem('jamendoClientId')?.length
             });
             
             settingsModal.classList.add('hidden');

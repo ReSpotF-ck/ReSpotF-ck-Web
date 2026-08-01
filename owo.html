@@ -830,7 +830,49 @@
     </div>
     
     <audio id="audioPlayer"></audio>
+    <div id="youtubePlayer" style="display: none;"></div>
     
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-title">Settings</div>
+            <div class="modal-desc" style="text-align: left;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">YouTube API Key</label>
+                    <input type="text" id="youtubeApiKey" placeholder="Enter YouTube Data API v3 key" 
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                    <small style="color: #888; display: block; margin-top: 4px;">Get from console.cloud.google.com</small>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Spotify Client ID</label>
+                    <input type="text" id="spotifyClientId" placeholder="Enter Spotify Client ID" 
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                    <small style="color: #888; display: block; margin-top: 4px;">Get from developer.spotify.com</small>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Spotify Client Secret</label>
+                    <input type="password" id="spotifyClientSecret" placeholder="Enter Spotify Client Secret" 
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Jamendo Client ID</label>
+                    <input type="text" id="jamendoClientId" placeholder="Enter Jamendo Client ID (optional)" 
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                    <small style="color: #888; display: block; margin-top: 4px;">Default: c4ce16c7 (free tier)</small>
+                </div>
+                <p style="color: #10b981; font-size: 13px; margin-bottom: 16px;">
+                    <i class="fas fa-info-circle"></i> Audius works for FREE without any API keys!
+                </p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button class="modal-btn" id="saveSettings" style="flex: 1;">Save Settings</button>
+                <button class="modal-btn" id="closeSettings" style="flex: 1; background: rgba(255,255,255,0.1);">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="api-handler.js"></script>
+    <script src="ui-handler.js"></script>
     <script>
         // State
         let currentSource = 'audius';
@@ -943,26 +985,56 @@
             `;
             
             try {
-                // Simulate API call with mock data
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                // Initialize API handler if needed
+                if (typeof window.initAPIHandler === 'function') {
+                    await window.initAPIHandler();
+                }
                 
-                tracks = [
-                    { id: 1, name: query + ' - Track 1', artist: 'Artist Name', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '&background=10b981&color=fff', duration: 180 },
-                    { id: 2, name: query + ' - Track 2', artist: 'Another Artist', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '2&background=10b981&color=fff', duration: 210 },
-                    { id: 3, name: query + ' - Track 3', artist: 'Third Artist', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '3&background=10b981&color=fff', duration: 195 },
-                    { id: 4, name: query + ' - Track 4', artist: 'Fourth Artist', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '4&background=10b981&color=fff', duration: 240 },
-                    { id: 5, name: query + ' - Track 5', artist: 'Fifth Artist', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '5&background=10b981&color=fff', duration: 165 }
-                ];
+                let result;
+                if (currentSource === 'audius') {
+                    result = await window.searchAudius(query);
+                } else if (currentSource === 'jamendo') {
+                    result = await window.searchJamendo(query);
+                } else if (currentSource === 'youtube') {
+                    result = await window.searchYouTube(query);
+                } else if (currentSource === 'spotify') {
+                    result = await window.searchSpotify(query);
+                } else {
+                    result = await window.searchAudius(query);
+                }
                 
-                currentTrackIndex = 0;
-                displayTracks();
+                if (result.success && result.tracks && result.tracks.length > 0) {
+                    tracks = result.tracks.map(track => ({
+                        id: track.id,
+                        name: track.name,
+                        artist: track.artist_name,
+                        artwork: track.image,
+                        duration: track.duration,
+                        audio: track.audio || track.preview_url || track.streamUrl,
+                        source: track.source || currentSource,
+                        videoId: track.videoId
+                    }));
+                    currentTrackIndex = 0;
+                    displayTracks();
+                } else {
+                    trackList.innerHTML = `
+                        <div class="error-state">
+                            <div class="error-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <p>${result.error || 'No tracks found'}</p>
+                            <button class="retry-btn" onclick="searchTracks('${query}')">Retry</button>
+                        </div>
+                    `;
+                }
             } catch (error) {
+                console.error('Search error:', error);
                 trackList.innerHTML = `
                     <div class="error-state">
                         <div class="error-icon">
                             <i class="fas fa-exclamation-circle"></i>
                         </div>
-                        <p>Search failed. Please try again.</p>
+                        <p>Search failed: ${error.message}</p>
                         <button class="retry-btn" onclick="searchTracks('${query}')">Retry</button>
                     </div>
                 `;
@@ -1001,19 +1073,62 @@
             `;
             
             try {
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Initialize API handler if needed
+                if (typeof window.initAPIHandler === 'function') {
+                    await window.initAPIHandler();
+                }
                 
-                tracks = [
-                    { id: 1, name: 'Blinding Lights', artist: 'The Weeknd', artwork: 'https://ui-avatars.com/api/?name=Blinding+Lights&background=10b981&color=fff', duration: 200 },
-                    { id: 2, name: 'Levitating', artist: 'Dua Lipa', artwork: 'https://ui-avatars.com/api/?name=Levitating&background=10b981&color=fff', duration: 203 },
-                    { id: 3, name: 'Stay', artist: 'The Kid LAROI', artist: 'Justin Bieber', artwork: 'https://ui-avatars.com/api/?name=Stay&background=10b981&color=fff', duration: 141 },
-                    { id: 4, name: 'Good 4 U', artist: 'Olivia Rodrigo', artwork: 'https://ui-avatars.com/api/?name=Good+4+U&background=10b981&color=fff', duration: 178 },
-                    { id: 5, name: 'Peaches', artist: 'Justin Bieber', artwork: 'https://ui-avatars.com/api/?name=Peaches&background=10b981&color=fff', duration: 198 }
-                ];
+                // Search for trending music on Audius (FREE, no API key needed)
+                const result = await window.searchAudius('trending');
                 
-                displayTracks();
+                if (result.success && result.tracks && result.tracks.length > 0) {
+                    tracks = result.tracks.map(track => ({
+                        id: track.id,
+                        name: track.name,
+                        artist: track.artist_name,
+                        artwork: track.image,
+                        duration: track.duration,
+                        audio: track.audio,
+                        source: 'audius'
+                    }));
+                    currentTrackIndex = 0;
+                    displayTracks();
+                } else {
+                    // Fallback to search for 'music' if trending fails
+                    const fallbackResult = await window.searchAudius('music');
+                    if (fallbackResult.success && fallbackResult.tracks && fallbackResult.tracks.length > 0) {
+                        tracks = fallbackResult.tracks.map(track => ({
+                            id: track.id,
+                            name: track.name,
+                            artist: track.artist_name,
+                            artwork: track.image,
+                            duration: track.duration,
+                            audio: track.audio,
+                            source: 'audius'
+                        }));
+                        currentTrackIndex = 0;
+                        displayTracks();
+                    } else {
+                        trackList.innerHTML = `
+                            <div class="error-state">
+                                <div class="error-icon">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <p>Unable to load recommendations. Please search for music.</p>
+                            </div>
+                        `;
+                    }
+                }
             } catch (error) {
                 console.error('Error loading recommendations:', error);
+                trackList.innerHTML = `
+                    <div class="error-state">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <p>Unable to load recommendations. Please search for music.</p>
+                    </div>
+                `;
             }
         }
         
@@ -1027,9 +1142,23 @@
             playerArtist.textContent = track.artist;
             bottomPlayer.style.display = 'flex';
             
-            // Simulate audio
-            isPlaying = true;
-            playPauseIcon.className = 'fas fa-pause';
+            // Play audio based on source
+            if (track.source === 'youtube' && track.videoId) {
+                // YouTube playback (requires YouTube IFrame API)
+                playYouTubeTrack(track);
+            } else if (track.audio) {
+                // Direct audio playback (Audius, Jamendo, Spotify preview)
+                audioPlayer.src = track.audio;
+                audioPlayer.play().then(() => {
+                    isPlaying = true;
+                    playPauseIcon.className = 'fas fa-pause';
+                }).catch(error => {
+                    console.error('Playback error:', error);
+                    alert('Failed to play track. Please try another track.');
+                });
+            } else {
+                alert('No audio source available for this track');
+            }
             
             // Add to recently played
             recentlyPlayed = recentlyPlayed.filter(t => t.id !== track.id);
@@ -1039,37 +1168,96 @@
             
             // Update display
             displayTracks();
-            
-            // Simulate progress
-            simulateProgress(track.duration);
         }
         
-        function simulateProgress(duration) {
-            let progress = 0;
-            const interval = setInterval(() => {
-                if (!isPlaying) {
-                    clearInterval(interval);
-                    return;
-                }
-                progress += 1;
-                if (progress >= duration) {
-                    clearInterval(interval);
-                    playNext();
-                    return;
-                }
-                const percent = (progress / duration) * 100;
-                progressFill.style.width = percent + '%';
-                currentTimeEl.textContent = formatTime(progress);
-                durationEl.textContent = formatTime(duration);
-            }, 1000);
+        function playYouTubeTrack(track) {
+            // Load YouTube IFrame API if not loaded
+            if (!window.YT) {
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                
+                window.onYouTubeIframeAPIReady = function() {
+                    createYouTubePlayer(track);
+                };
+            } else {
+                createYouTubePlayer(track);
+            }
         }
+        
+        function createYouTubePlayer(track) {
+            if (window.youtubePlayer) {
+                window.youtubePlayer.loadVideoById(track.videoId);
+            } else {
+                window.youtubePlayer = new YT.Player('youtubePlayer', {
+                    height: '0',
+                    width: '0',
+                    videoId: track.videoId,
+                    playerVars: {
+                        'autoplay': 1,
+                        'controls': 0,
+                        'disablekb': 1
+                    },
+                    events: {
+                        'onStateChange': onYouTubePlayerStateChange
+                    }
+                });
+            }
+            isPlaying = true;
+            playPauseIcon.className = 'fas fa-pause';
+        }
+        
+        function onYouTubePlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                playNext();
+            } else if (event.data === YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                playPauseIcon.className = 'fas fa-pause';
+            } else if (event.data === YT.PlayerState.PAUSED) {
+                isPlaying = false;
+                playPauseIcon.className = 'fas fa-play';
+            }
+        }
+        
+        
+        // Audio player event listeners for progress tracking
+        audioPlayer.addEventListener('timeupdate', () => {
+            if (audioPlayer.duration) {
+                const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progressFill.style.width = percent + '%';
+                currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+                durationEl.textContent = formatTime(audioPlayer.duration);
+            }
+        });
+        
+        audioPlayer.addEventListener('ended', () => {
+            playNext();
+        });
+        
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            durationEl.textContent = formatTime(audioPlayer.duration);
+        });
         
         function togglePlayPause() {
-            isPlaying = !isPlaying;
-            playPauseIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
-            if (isPlaying && tracks[currentTrackIndex]) {
-                simulateProgress(tracks[currentTrackIndex].duration);
+            if (currentSource === 'youtube' && window.youtubePlayer) {
+                if (isPlaying) {
+                    window.youtubePlayer.pauseVideo();
+                    isPlaying = false;
+                } else {
+                    window.youtubePlayer.playVideo();
+                    isPlaying = true;
+                }
+            } else {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                    isPlaying = true;
+                } else {
+                    audioPlayer.pause();
+                    isPlaying = false;
+                }
             }
+            playPauseIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
         }
         
         function playNext() {
@@ -1167,9 +1355,53 @@
             }
         });
         
-        // Settings (placeholder)
+        // Settings Modal
+        const settingsModal = document.getElementById('settingsModal');
+        const youtubeApiKeyInput = document.getElementById('youtubeApiKey');
+        const spotifyClientIdInput = document.getElementById('spotifyClientId');
+        const spotifyClientSecretInput = document.getElementById('spotifyClientSecret');
+        const jamendoClientIdInput = document.getElementById('jamendoClientId');
+        
+        // Load saved settings
+        function loadSettings() {
+            youtubeApiKeyInput.value = localStorage.getItem('youtubeApiKey') || '';
+            spotifyClientIdInput.value = localStorage.getItem('spotifyClientId') || '';
+            spotifyClientSecretInput.value = localStorage.getItem('spotifyClientSecret') || '';
+            jamendoClientIdInput.value = localStorage.getItem('jamendoClientId') || 'c4ce16c7';
+        }
+        
+        // Save settings
+        document.getElementById('saveSettings').addEventListener('click', () => {
+            const credentials = {
+                youtubeApiKey: youtubeApiKeyInput.value.trim(),
+                spotifyClientId: spotifyClientIdInput.value.trim(),
+                spotifyClientSecret: spotifyClientSecretInput.value.trim(),
+                jamendoClientId: jamendoClientIdInput.value.trim() || 'c4ce16c7'
+            };
+            
+            if (typeof window.saveCredentials === 'function') {
+                window.saveCredentials(credentials);
+            } else {
+                // Fallback: save directly to localStorage
+                localStorage.setItem('youtubeApiKey', credentials.youtubeApiKey);
+                localStorage.setItem('spotifyClientId', credentials.spotifyClientId);
+                localStorage.setItem('spotifyClientSecret', credentials.spotifyClientSecret);
+                localStorage.setItem('jamendoClientId', credentials.jamendoClientId);
+            }
+            
+            settingsModal.classList.remove('active');
+            alert('Settings saved successfully!');
+        });
+        
+        // Close settings modal
+        document.getElementById('closeSettings').addEventListener('click', () => {
+            settingsModal.classList.remove('active');
+        });
+        
+        // Open settings modal
         document.getElementById('settingsBtn').addEventListener('click', () => {
-            alert('Settings coming soon!');
+            loadSettings();
+            settingsModal.classList.add('active');
         });
         
         // Keyboard shortcuts

@@ -75,6 +75,26 @@
             }
         }
         
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
         .glass-effect {
             background: var(--glass-bg);
             backdrop-filter: blur(30px);
@@ -99,27 +119,167 @@
         
         .track-item.active {
             background: var(--track-active);
-            border-left: 4px solid var(--primary-color);
-            animation: pulse-active 3s ease-in-out infinite;
+            border-left: 3px solid var(--primary-color);
         }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        
+        .track-item:active {
+            transform: scale(0.98);
         }
-
-        @keyframes pulse-active {
-            0%, 100% {
-                background: var(--track-active);
+        
+        .track-item-playing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .track-item-art {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .track-item-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .track-item-art-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            flex-shrink: 0;
+        }
+        
+        .track-item-info {
+            flex: 1;
+            min-width: 0;
+            padding: 0 12px;
+        }
+        
+        .track-item-name {
+            font-weight: 500;
+            font-size: 15px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        
+        .track-item-artist {
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .track-item-duration {
+            font-size: 12px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        
+        .track-item-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .track-item:hover .track-item-actions {
+            opacity: 1;
+        }
+        
+        .track-item-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .track-item-action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .source-btn.active {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .source-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .library-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .header-section {
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        .source-selector {
+            animation: slideUp 0.5s ease-out 0.1s both;
+        }
+        
+        .search-section {
+            animation: slideUp 0.5s ease-out 0.2s both;
+        }
+        
+        .track-item {
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+            .track-item {
+                padding: 10px 12px;
             }
-            50% {
-                background: rgba(239, 68, 68, 0.25);
+            
+            .track-item-art,
+            .track-item-art-icon {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .track-item-name {
+                font-size: 14px;
+            }
+            
+            .track-item-artist {
+                font-size: 12px;
+            }
+            
+            .bottom-player {
+                padding: 12px 16px;
+            }
+            
+            .bottom-player-art {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .source-btn {
+                padding: 10px 16px;
+                font-size: 14px;
             }
         }
         
@@ -599,8 +759,8 @@
                 <button class="source-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-source="spotify" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
                     <i class="fab fa-spotify mr-2"></i> Spotify <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API</span>
                 </button>
-                <button class="source-btn active px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-source="audius" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); color: #ffffff;">
-                    <i class="fas fa-music mr-2"></i> Audius <span class="text-xs bg-green-500/30 text-green-400 px-2 py-0.5 rounded-full ml-1">FREE</span>
+                <button class="source-btn active px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-source="audius" style="background: linear-gradient(135deg, #10b981, #059669); color: #ffffff;">
+                    <i class="fas fa-music mr-2"></i> Audius <span class="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full ml-1">FREE</span>
                 </button>
                 <button class="library-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-view="library" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
                     <i class="fas fa-heart mr-2"></i> Liked Songs
@@ -670,8 +830,21 @@
                 <div class="text-center py-12" style="color: var(--text-secondary);">
                     <i class="fas fa-music text-5xl mb-4 opacity-50"></i>
                     <p>Search for music to get started</p>
-                    <p class="text-sm mt-2">Auto-loading sample tracks...</p>
+                    <p class="text-sm mt-2">Or explore recommendations below</p>
                 </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden text-center py-12" style="color: var(--text-secondary);">
+                <i class="fas fa-spinner fa-spin text-4xl mb-4" style="color: var(--primary-color);"></i>
+                <p>Loading...</p>
+            </div>
+            
+            <!-- Error State -->
+            <div id="errorState" class="hidden text-center py-12" style="color: var(--text-secondary);">
+                <i class="fas fa-exclamation-circle text-4xl mb-4 text-red-500"></i>
+                <p id="errorMessage">Something went wrong</p>
+                <button onclick="retryLastAction()" class="mt-4 px-4 py-2 rounded-lg text-sm" style="background: var(--primary-color); color: white;">Retry</button>
             </div>
         </div>
 

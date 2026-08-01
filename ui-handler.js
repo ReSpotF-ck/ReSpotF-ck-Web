@@ -128,6 +128,37 @@ function setupEventListeners() {
         if (e.key === 'Enter') handleSearch();
     });
 
+    // Source buttons
+    document.querySelectorAll('.source-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const source = btn.dataset.source;
+            if (source) {
+                // Update active state
+                document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update current source
+                currentSource = source;
+                console.log('Switched to source:', source);
+                
+                // If there's a search query, re-search with new source
+                if (searchInput.value.trim()) {
+                    searchTracks(searchInput.value.trim());
+                }
+            }
+        });
+    });
+
+    // Library buttons
+    document.querySelectorAll('.library-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const view = btn.dataset.view;
+            if (view === 'library') {
+                showLikedSongs();
+            }
+        });
+    });
+
     // Player controls
     playPauseBtn.addEventListener('click', togglePlayPause);
     prevBtn.addEventListener('click', playPrevious);
@@ -227,12 +258,12 @@ async function searchTracks(query) {
     console.log('Starting search for:', query, 'using source:', currentSource);
     
     // Show loading state
-    trackList.innerHTML = `
-        <div class="loading-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px;">
-            <div class="loading-spinner" style="width: 40px; height: 40px; border: 3px solid rgba(239, 68, 68, 0.2); border-top-color: var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-            <p class="loading-text" style="color: var(--text-secondary);">Searching ${currentSource.charAt(0).toUpperCase() + currentSource.slice(1)} for "${query}"...</p>
-        </div>
-    `;
+    showLoading();
+    hideError();
+    
+    // Save for retry
+    lastSearchTerm = query;
+    lastSearchSource = currentSource;
     
     // Add to search history
     addToSearchHistory(query);
@@ -269,6 +300,8 @@ async function searchTracks(query) {
         
         console.log('Search result:', result);
         
+        hideLoading();
+        
         if (result.success && result.tracks && result.tracks.length > 0) {
             tracks = result.tracks;
             currentTrackIndex = 0;
@@ -279,6 +312,7 @@ async function searchTracks(query) {
         }
     } catch (error) {
         console.error('Search error:', error);
+        hideLoading();
         showError(error.message || 'Search failed. Please try again.');
     }
 }
@@ -293,28 +327,82 @@ function displayTracks(tracksToDisplay) {
     }
 
     trackList.innerHTML = tracksToDisplay.map((track, index) => `
-        <div class="track-item" data-index="${index}" onclick="playTrack(${index})">
-            <div class="track-item-content">
+        <div class="track-item ${currentTrackIndex === index ? 'active' : ''}" data-index="${index}" onclick="playTrack(${index})">
+            <div class="flex items-center gap-3">
                 <div class="track-item-art">
-                    <img src="${track.artwork || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(track.name) + '&background=dc2626&color=fff'}" 
+                    <img src="${track.artwork || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(track.name) + '&background=10b981&color=fff'}" 
                          alt="${track.name}" 
-                         onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(track.name)}&background=dc2626&color=fff'">
+                         onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(track.name)}&background=10b981&color=fff'">
                 </div>
                 <div class="track-item-info">
                     <div class="track-item-name">${track.name}</div>
                     <div class="track-item-artist">${track.artist}</div>
                 </div>
+                <div class="track-item-duration">${track.duration ? formatTime(track.duration) : ''}</div>
                 <div class="track-item-actions">
-                    <button class="track-item-action" onclick="event.stopPropagation(); addToQueue(${index})" title="Add to queue">
+                    <button class="track-item-action-btn" onclick="event.stopPropagation(); addToQueue(${index})" title="Add to queue">
                         <i class="fas fa-list"></i>
                     </button>
-                    <button class="track-item-action" onclick="event.stopPropagation(); toggleLikeTrack(${index})" title="Like">
-                        <i class="fas fa-heart ${isTrackLiked(track) ? 'liked' : ''}"></i>
+                    <button class="track-item-action-btn" onclick="event.stopPropagation(); toggleLikeTrack(${index})" title="Like">
+                        <i class="fas fa-heart ${isTrackLiked(track) ? 'text-red-500' : ''}"></i>
                     </button>
                 </div>
             </div>
         </div>
     `).join('');
+}
+
+/**
+ * Show loading state
+ */
+function showLoading() {
+    const loadingState = document.getElementById('loadingState');
+    const errorState = document.getElementById('errorState');
+    if (loadingState) loadingState.classList.remove('hidden');
+    if (errorState) errorState.classList.add('hidden');
+}
+
+/**
+ * Hide loading state
+ */
+function hideLoading() {
+    const loadingState = document.getElementById('loadingState');
+    if (loadingState) loadingState.classList.add('hidden');
+}
+
+/**
+ * Show error state
+ */
+function showError(message) {
+    const errorState = document.getElementById('errorState');
+    const errorMessage = document.getElementById('errorMessage');
+    const loadingState = document.getElementById('loadingState');
+    
+    if (loadingState) loadingState.classList.add('hidden');
+    if (errorState) {
+        errorState.classList.remove('hidden');
+        if (errorMessage) errorMessage.textContent = message;
+    }
+}
+
+/**
+ * Hide error state
+ */
+function hideError() {
+    const errorState = document.getElementById('errorState');
+    if (errorState) errorState.classList.add('hidden');
+}
+
+/**
+ * Retry last action
+ */
+let lastSearchTerm = '';
+let lastSearchSource = '';
+
+function retryLastAction() {
+    if (lastSearchTerm) {
+        searchTracks(lastSearchTerm, lastSearchSource);
+    }
 }
 
 /**

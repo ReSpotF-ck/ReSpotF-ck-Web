@@ -553,36 +553,39 @@
     <button id="miniPlayerToggle" class="mini-player-toggle" title="Toggle Mini Player">
         <i class="fas fa-compress"></i>
     </button>
-    <div class="mobile-container" id="mainContainer">
-        <!-- Mini Player Content -->
-        <div id="miniPlayerContent" class="hidden flex items-center justify-center h-screen">
-            <div class="text-center" style="color: var(--text-secondary);">
-                <i class="fas fa-music text-4xl mb-4 opacity-50"></i>
-                <p>Mini Player Mode</p>
-                <p class="text-sm mt-2">Toggle to return to full view</p>
-            </div>
-        </div>
-        
-        <!-- Header -->
-        <header class="header-section flex items-center justify-between p-4 sticky top-0 z-50" style="background: var(--bg-secondary);">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                    <i class="fas fa-music text-sm"></i>
+    
+    <!-- Main App Content - Hidden until PIN and disclaimer accepted -->
+    <div id="mainAppContent" class="hidden">
+        <div class="mobile-container" id="mainContainer">
+            <!-- Mini Player Content -->
+            <div id="miniPlayerContent" class="hidden flex items-center justify-center h-screen">
+                <div class="text-center" style="color: var(--text-secondary);">
+                    <i class="fas fa-music text-4xl mb-4 opacity-50"></i>
+                    <p>Mini Player Mode</p>
+                    <p class="text-sm mt-2">Toggle to return to full view</p>
                 </div>
-                <h1 class="text-xl font-bold">Spotfuck</h1>
             </div>
-            <div class="flex items-center gap-4">
-                <a href="https://respotfck.netlify.app/signin" target="_blank" class="text-gray-400 hover:text-white transition-colors text-sm font-medium" title="Sign In">
-                    <i class="fas fa-sign-in-alt mr-1"></i> Sign In
-                </a>
-                <button id="themeToggle" class="text-gray-400 hover:text-white transition-colors" title="Toggle theme">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <button id="settingsBtn" class="px-3 py-1.5 rounded-lg font-medium text-sm transition-all" style="background: rgba(239, 68, 68, 0.15); color: var(--primary-color); border: 1px solid rgba(239, 68, 68, 0.3);" title="API Settings">
-                    <i class="fas fa-cog mr-1"></i> Settings
-                </button>
-            </div>
-        </header>
+            
+            <!-- Header -->
+            <header class="header-section flex items-center justify-between p-4 sticky top-0 z-50" style="background: var(--bg-secondary);">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+                        <i class="fas fa-music text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-bold">Spotfuck</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="https://respotfck.netlify.app/signin" target="_blank" class="text-gray-400 hover:text-white transition-colors text-sm font-medium" title="Sign In">
+                        <i class="fas fa-sign-in-alt mr-1"></i> Sign In
+                    </a>
+                    <button id="themeToggle" class="text-gray-400 hover:text-white transition-colors" title="Toggle theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="settingsBtn" class="px-3 py-1.5 rounded-lg font-medium text-sm transition-all" style="background: rgba(239, 68, 68, 0.15); color: var(--primary-color); border: 1px solid rgba(239, 68, 68, 0.3);" title="API Settings">
+                        <i class="fas fa-cog mr-1"></i> Settings
+                    </button>
+                </div>
+            </header>
 
         <!-- Source Selector - Horizontal Scroll -->
         <div class="source-selector px-4 mb-4">
@@ -678,6 +681,7 @@
             <p class="mt-1">Powered by Audius API</p>
         </footer>
     </div>
+    </div>
 
     <!-- Bottom Player -->
     <div id="bottomPlayer" class="bottom-player hidden">
@@ -731,8 +735,10 @@
     <!-- Hidden search button -->
     <button id="searchBtn" class="hidden"></button>
 
-        <!-- Settings Modal -->
-        <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 modal-enter">
+    <!-- Modals (outside mainAppContent so they can be shown before app access) -->
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 modal-enter">
             <div class="glass-effect rounded-2xl p-6 max-w-md w-full mx-4">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold" style="color: var(--text-color);">API Settings</h2>
@@ -916,7 +922,7 @@
             </div>
         </div>
 
-        <!-- Queue Management Modal -->
+    <!-- Queue Management Modal -->
         <div id="queueModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
             <div class="glass-effect rounded-xl p-6 max-w-lg w-full mx-4 border-2 border-red-600 max-h-[80vh] overflow-y-auto">
                 <div class="flex items-center justify-between mb-4">
@@ -1013,7 +1019,7 @@
             </div>
         </div>
 
-        <!-- Track Info Modal -->
+    <!-- Track Info Modal -->
         <div id="trackInfoModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
             <div class="glass-effect rounded-xl p-6 max-w-md w-full mx-4 border-2 border-red-600">
                 <div class="flex items-center justify-between mb-4">
@@ -1060,7 +1066,7 @@
             </div>
         </div>
 
-        <!-- Disclaimer Modal -->
+    <!-- Disclaimer Modal -->
         <div id="disclaimerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
             <div class="glass-effect rounded-xl p-6 max-w-lg w-full mx-4 border-2 border-red-600">
                 <div class="flex items-center gap-3 mb-4">
@@ -1099,9 +1105,8 @@
             </div>
         </div>
 
-        <!-- YouTube Player Container -->
-        <div id="youtubePlayer" class="hidden"></div>
-    </div>
+    <!-- YouTube Player Container -->
+    <div id="youtubePlayer" class="hidden"></div>
 
     <!-- Audio Element -->
     <audio id="audioPlayer"></audio>
@@ -1126,70 +1131,156 @@
             e.preventDefault();
             return false;
         });
-        copyTrackInfo.addEventListener('click', () => {
-            const track = tracks[currentTrackIndex];
-            if (!track) return;
-            
-            const trackInfoText = `🎵 ${track.name}\n🎤 ${track.artist}\n📀 Source: ${track.source || currentSource}\n⏱️ Duration: ${track.duration ? formatTime(track.duration) : 'Unknown'}`;
-            
-            navigator.clipboard.writeText(trackInfoText).then(() => {
-                copyTrackInfo.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
-                setTimeout(() => {
-                    copyTrackInfo.innerHTML = '<i class="fas fa-copy mr-2"></i>Copy Info';
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy:', err);
-                alert('Failed to copy track info');
-            });
-        });
         
-        // Share track
-        shareTrack.addEventListener('click', () => {
-            const track = tracks[currentTrackIndex];
-            if (!track) return;
+        // Disable common dev tools keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // F12
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
             
-            const shareText = `🎵 Listening to "${track.name}" by ${track.artist} on Spotfuck!`;
-            const shareUrl = window.location.href;
+            // Ctrl+Shift+I (Chrome/Edge DevTools)
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+                e.preventDefault();
+                return false;
+            }
             
-            if (navigator.share) {
-                navigator.share({
-                    title: track.name,
-                    text: shareText,
-                    url: shareUrl
-                }).catch(err => {
-                    console.log('Share failed:', err);
-                });
-            } else {
-                // Fallback: copy to clipboard
-                navigator.clipboard.writeText(`${shareText} ${shareUrl}`).then(() => {
-                    shareTrack.innerHTML = '<i class="fas fa-check mr-2"></i>Link Copied!';
-                    setTimeout(() => {
-                        shareTrack.innerHTML = '<i class="fas fa-share mr-2"></i>Share';
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Failed to copy share link:', err);
-                });
+            // Ctrl+Shift+J (Chrome/Edge Console)
+            if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+Shift+C (Chrome/Edge Element Inspector)
+            if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+Shift+K (Firefox Console)
+            if (e.ctrlKey && e.shiftKey && (e.key === 'K' || e.key === 'k')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+U (View Source)
+            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+S (Save)
+            if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+P (Print)
+            if (e.ctrlKey && (e.key === 'P' || e.key === 'p')) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+F (Find) - disable in PIN/disclaimer modals
+            if (e.ctrlKey && (e.key === 'F' || e.key === 'f')) {
+                if (!pinModal.classList.contains('hidden') || !disclaimerModal.classList.contains('hidden')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            // Ctrl+G (Find Next) - disable in PIN/disclaimer modals
+            if (e.ctrlKey && (e.key === 'G' || e.key === 'g')) {
+                if (!pinModal.classList.contains('hidden') || !disclaimerModal.classList.contains('hidden')) {
+                    e.preventDefault();
+                    return false;
+                }
             }
         });
         
-        // Add click handler to show track info when clicking on album art in bottom player
-        const bottomPlayerArt = document.querySelector('.bottom-player-art');
-        if (bottomPlayerArt) {
-            bottomPlayerArt.addEventListener('click', () => {
-                if (tracks[currentTrackIndex]) {
-                    showTrackInfo(tracks[currentTrackIndex]);
-                }
-            });
-            bottomPlayerArt.style.cursor = 'pointer';
-        }
-        
-        // Keyboard Shortcuts Modal
-        closeShortcuts.addEventListener('click', () => {
-            shortcutsModal.classList.add('hidden');
-            shortcutsModal.classList.remove('flex');
+        // Disable drag and drop
+        document.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+            return false;
         });
         
-
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Disable text selection (keeps buttons clickable)
+        document.addEventListener('selectstart', (e) => {
+            // Allow selection on inputs and textareas
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Disable copy
+        document.addEventListener('copy', (e) => {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Disable cut
+        document.addEventListener('cut', (e) => {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Detect dev tools opening
+        let devToolsOpen = false;
+        
+        const detectDevTools = () => {
+            const threshold = 160;
+            const widthDiff = window.outerWidth - window.innerWidth > threshold;
+            const heightDiff = window.outerHeight - window.innerHeight > threshold;
+            
+            if (widthDiff || heightDiff) {
+                if (!devToolsOpen) {
+                    devToolsOpen = true;
+                    alert('Developer tools detected! This action has been logged.');
+                }
+            } else {
+                devToolsOpen = false;
+            }
+        };
+        
+        setInterval(detectDevTools, 1000);
+        
+        // Clear console on load
+        console.clear();
+        console.log('%cSecurity Alert', 'color: red; font-size: 30px; font-weight: bold;');
+        console.log('%cThis is a private secure connection. Unauthorized access is prohibited.', 'color: orange; font-size: 16px;');
+        
+        // Disable inspect element via long press (mobile)
+        let touchTimer;
+        document.addEventListener('touchstart', function(e) {
+            touchTimer = setTimeout(function() {
+                alert('Inspect element is disabled on this secure page.');
+            }, 800);
+        });
+        
+        document.addEventListener('touchend', function() {
+            clearTimeout(touchTimer);
+        });
+        
+        // Warn on page visibility change (potential tab switching to dev tools)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                console.log('Page hidden - potential security concern');
+            }
+        });
+    </script>
+</body>
+</html>
         
         // YouTube API ready callback
         function onYouTubeIframeAPIReady() {

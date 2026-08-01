@@ -119,38 +119,6 @@
       margin-bottom: 24px;
     }
 
-    .enter-btn {
-      display: inline-block;
-      background: linear-gradient(135deg, #8b5cf6, #6366f1);
-      color: #fff;
-      padding: 14px 32px;
-      border-radius: 50px;
-      font-weight: bold;
-      font-size: 16px;
-      text-decoration: none;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-      transition: all 0.3s ease;
-    }
-
-    .enter-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
-    }
-
-    .github-link {
-      display: inline-block;
-      margin-top: 16px;
-      color: #ef4444;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    .github-link:hover {
-      text-decoration: underline;
-    }
-
     .invite-section {
       margin-top: 30px;
       padding-top: 30px;
@@ -187,7 +155,6 @@
     .invite-btn.telegram {
       background: rgba(0, 136, 204, 0.2);
       border-color: rgba(0, 136, 204, 0.4);
-      animation: fadeIn 0.5s ease-out 0.2s both;
     }
 
     .invite-btn.telegram:hover {
@@ -197,22 +164,10 @@
     .invite-btn.discord {
       background: rgba(88, 101, 242, 0.2);
       border-color: rgba(88, 101, 242, 0.4);
-      animation: fadeIn 0.5s ease-out 0.3s both;
     }
 
     .invite-btn.discord:hover {
       background: rgba(88, 101, 242, 0.3);
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     .invite-form {
@@ -252,73 +207,11 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      animation: fadeIn 0.5s ease-out 0.5s both;
     }
 
     .invite-form button:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-    }
-
-    .notification-banner {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(139, 92, 246, 0.15));
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      animation: slideDown 0.6s ease-out;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .notification-icon {
-      color: #ef4444;
-      font-size: 20px;
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-
-    .notification-content {
-      text-align: left;
-      flex: 1;
-    }
-
-    .notification-title {
-      font-weight: 600;
-      font-size: 14px;
-      color: #fff;
-      margin-bottom: 4px;
-    }
-
-    .notification-text {
-      font-size: 13px;
-      color: #a0a0a0;
-      line-height: 1.4;
-    }
-
-    .notification-badge {
-      display: inline-block;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
     }
 
   </style>
@@ -327,29 +220,17 @@
   <div class="container">
     <div class="vinyl-record"></div>
     
-    <!-- Notification Banner -->
-    <div class="notification-banner">
-      <div class="notification-icon">
-        <i class="fas fa-construction"></i>
-      </div>
-      <div class="notification-content">
-        <div class="notification-badge">Coming Soon</div>
-        <div class="notification-title">Private Community</div>
-        <div class="notification-text">Our exclusive private community is launching soon! Some features on this page may not yet be available. Stay tuned for updates.</div>
-      </div>
-    </div>
-    
     <h1>Spotfuck</h1>
     <p>Music streaming with multiple API integrations</p>
     
     <div class="invite-section">
       <p style="color: #a0a0a0; margin-bottom: 15px;">Join our community to request access:</p>
       <div class="invite-buttons">
-        <a href="https://t.me/your_telegram" target="_blank" class="invite-btn telegram">
-          <i class="fab fa-telegram"></i> Join Telegram
-        </a>
-        <a href="https://discord.gg/your_discord" target="_blank" class="invite-btn discord">
+        <a href="https://discord.gg/placeholder" target="_blank" class="invite-btn discord">
           <i class="fab fa-discord"></i> Join Discord
+        </a>
+        <a href="https://t.me/placeholder" target="_blank" class="invite-btn telegram">
+          <i class="fab fa-telegram"></i> Join Telegram
         </a>
       </div>
       

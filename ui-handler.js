@@ -112,12 +112,8 @@ async function initUIHandler() {
     // Initialize event listeners
     setupEventListeners();
     
-    // Load initial state
-    await loadRecommendedTracks();
-    loadSearchHistory();
-    loadRecentlyPlayed();
-    loadTrendingSearches();
-    loadSettings();
+    // Show PIN modal immediately for first visit
+    showPinModal();
     
     console.log('UI Handler initialized');
 }
@@ -1351,6 +1347,99 @@ function toggleLike() {
     if (track) {
         toggleLikeTrack(currentTrackIndex);
     }
+}
+
+/**
+ * PIN Entry System
+ */
+let enteredPin = '';
+const correctPin = '1412';
+
+function showPinModal() {
+    console.log('Showing PIN modal');
+    pinModal.classList.remove('hidden');
+    pinModal.classList.add('flex');
+    enteredPin = '';
+    updatePinDisplay();
+    pinError.classList.add('hidden');
+    
+    // Add PIN button handlers
+    document.querySelectorAll('.pin-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (enteredPin.length < 4) {
+                enteredPin += btn.dataset.num;
+                updatePinDisplay();
+                if (enteredPin.length === 4) {
+                    validatePin();
+                }
+            }
+        });
+    });
+    
+    clearPin.addEventListener('click', () => {
+        enteredPin = '';
+        updatePinDisplay();
+        pinError.classList.add('hidden');
+    });
+    
+    deletePin.addEventListener('click', () => {
+        enteredPin = enteredPin.slice(0, -1);
+        updatePinDisplay();
+        pinError.classList.add('hidden');
+    });
+}
+
+function updatePinDisplay() {
+    const dots = pinDisplay.querySelectorAll('.pin-dot');
+    dots.forEach((dot, index) => {
+        if (index < enteredPin.length) {
+            dot.style.backgroundColor = '#dc2626';
+        } else {
+            dot.style.backgroundColor = 'transparent';
+        }
+    });
+}
+
+function validatePin() {
+    if (enteredPin === correctPin) {
+        pinModal.classList.add('hidden');
+        pinModal.classList.remove('flex');
+        showDisclaimer();
+    } else {
+        pinError.classList.remove('hidden');
+        enteredPin = '';
+        updatePinDisplay();
+        setTimeout(() => {
+            pinError.classList.add('hidden');
+        }, 2000);
+    }
+}
+
+function showDisclaimer() {
+    disclaimerModal.classList.remove('hidden');
+    disclaimerModal.classList.add('flex');
+    
+    acceptDisclaimer.addEventListener('click', () => {
+        disclaimerModal.classList.add('hidden');
+        disclaimerModal.classList.remove('flex');
+        // Load app content after disclaimer accepted
+        loadAppContent();
+    });
+}
+
+function loadAppContent() {
+    // Show main app content
+    const mainAppContent = document.getElementById('mainAppContent');
+    if (mainAppContent) {
+        mainAppContent.classList.remove('hidden');
+    }
+    
+    // Load initial state
+    loadRecommendedTracks();
+    loadSearchHistory();
+    loadRecentlyPlayed();
+    loadTrendingSearches();
+    loadSettings();
 }
 
 function toggleLikeTrack(index) {

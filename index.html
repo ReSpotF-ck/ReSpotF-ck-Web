@@ -231,23 +231,6 @@
       box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
     }
 
-    .countdown {
-      font-size: 1.2rem;
-      color: #ef4444;
-      margin: 1.5rem 0;
-      padding: 1rem 2rem;
-      background: rgba(239, 68, 68, 0.1);
-      border-radius: 50px;
-      display: inline-block;
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .countdown span {
-      font-weight: bold;
-      color: #ffffff;
-      font-size: 1.5rem;
-    }
-
     .equalizer {
       display: flex;
       justify-content: center;
@@ -302,9 +285,6 @@
     <p>
       Open-source music streaming with multiple API integrations
     </p>
-    <div class="countdown">
-      Redirecting in <span id="countdown">3</span> seconds...
-    </div>
     <div class="equalizer">
       <div class="equalizer-bar"></div>
       <div class="equalizer-bar"></div>
@@ -317,6 +297,10 @@
     </div>
     <p class="private-message">Private Access Required</p>
     <p class="private-submessage">This application is private. You need authorized access to use it.</p>
+    <div style="margin-top: 30px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+      <a href="owo.html" class="enter-btn">Get Access</a>
+      <a href="SignIn.html" class="signin-btn" style="padding: 16px 40px; font-size: 18px;">Sign In</a>
+    </div>
   </div>
 
   <script>
@@ -375,20 +359,6 @@
         console.log('Page hidden - potential security concern');
       }
     });
-
-    // Auto-redirect to main app
-    let countdown = 3;
-    const countdownElement = document.getElementById('countdown');
-    const countdownInterval = setInterval(() => {
-      countdown--;
-      if (countdownElement) {
-        countdownElement.textContent = countdown;
-      }
-      if (countdown <= 0) {
-        clearInterval(countdownInterval);
-        window.location.href = 'owo.html';
-      }
-    }, 1000);
   </script>
 </body>
 </html>

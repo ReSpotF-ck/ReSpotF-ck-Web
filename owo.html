@@ -3,1630 +3,1186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotfuck</title>
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-    <meta name="referrer" content="no-referrer">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com/ajax/libs https://www.youtube.com https://api.audius.co https://raw.githubusercontent.com https://*.jamendo.com https://*.spotify.com https://accounts.spotify.com https://api.spotify.com https://www.googleapis.com; img-src 'self' data: https: https://ui-avatars.com https://*.ytimg.com; media-src 'self' https: blob:; connect-src 'self' https:;">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23dc2626'/%3E%3Cpath d='M8 5v14l11-7z' fill='white'/%3E%3C/svg%3E">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Spotfuck - Music Streaming</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
         * {
-            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
         
-        /* AMOLED Dark Mode (Default) */
-        .dark-mode {
-            --bg-color: #000000;
-            --bg-secondary: #0d0d0d;
-            --bg-tertiary: #1a1a1a;
-            --text-color: #ffffff;
-            --text-secondary: #888888;
-            --primary-color: #ef4444;
-            --primary-hover: #dc2626;
-            --glass-bg: rgba(20, 20, 20, 0.98);
-            --glass-border: rgba(239, 68, 68, 0.15);
-            --track-hover: rgba(239, 68, 68, 0.06);
-            --track-active: rgba(239, 68, 68, 0.12);
-            --input-bg: #141414;
-            --input-placeholder: #555555;
-        }
-        
-        /* Light Mode */
-        .light-mode {
-            --bg-color: #ffffff;
-            --bg-secondary: #f8fafc;
-            --bg-tertiary: #f1f5f9;
-            --text-color: #0f172a;
-            --text-secondary: #64748b;
-            --primary-color: #dc2626;
-            --primary-hover: #b91c1c;
-            --glass-bg: rgba(255, 255, 255, 0.98);
-            --glass-border: rgba(220, 38, 38, 0.15);
-            --track-hover: rgba(220, 38, 38, 0.04);
-            --track-active: rgba(220, 38, 38, 0.08);
-            --input-bg: #f1f5f9;
-            --input-placeholder: #94a3b8;
-        }
-        
         body {
-            background: var(--bg-color);
-            color: var(--text-color);
-            transition: background 0.3s ease, color 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
             min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
+            overflow-x: hidden;
         }
         
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Desktop Container */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
         }
         
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-        
-        .glass-effect {
-            background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .track-item {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 12px;
-            padding: 12px 16px;
-            animation: slideIn 0.4s ease-out;
-            cursor: pointer;
-        }
-        
-        .track-item:hover {
-            background: var(--track-hover);
-            transform: translateX(4px) scale(1.01);
-        }
-        
-        .track-item.active {
-            background: var(--track-active);
-            border-left: 3px solid var(--primary-color);
-        }
-        
-        .track-item:active {
-            transform: scale(0.98);
-        }
-        
-        .track-item-playing {
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        .track-item-art {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            overflow: hidden;
-            flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .track-item-art img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .track-item-art-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
+        /* Header */
+        .header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            background: var(--bg-tertiary);
-            flex-shrink: 0;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .track-item-info {
-            flex: 1;
-            min-width: 0;
-            padding: 0 12px;
-        }
-        
-        .track-item-name {
-            font-weight: 500;
-            font-size: 15px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 4px;
-        }
-        
-        .track-item-artist {
-            font-size: 13px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .track-item-duration {
-            font-size: 12px;
-            color: var(--text-secondary);
-            flex-shrink: 0;
-        }
-        
-        .track-item-actions {
-            display: flex;
-            gap: 8px;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        
-        .track-item:hover .track-item-actions {
-            opacity: 1;
-        }
-        
-        .track-item-action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
-            transition: all 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .track-item-action-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: scale(1.1);
-        }
-        
-        .source-btn.active {
-            background: linear-gradient(135deg, #10b981, #059669) !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-        
-        .source-btn:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .library-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .header-section {
-            animation: slideUp 0.5s ease-out;
-        }
-        
-        .source-selector {
-            animation: slideUp 0.5s ease-out 0.1s both;
-        }
-        
-        .search-section {
-            animation: slideUp 0.5s ease-out 0.2s both;
-        }
-        
-        .track-item {
-            animation: slideUp 0.4s ease-out;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 640px) {
-            .track-item {
-                padding: 10px 12px;
-            }
-            
-            .track-item-art,
-            .track-item-art-icon {
-                width: 48px;
-                height: 48px;
-            }
-            
-            .track-item-name {
-                font-size: 14px;
-            }
-            
-            .track-item-artist {
-                font-size: 12px;
-            }
-            
-            .bottom-player {
-                padding: 12px 16px;
-            }
-            
-            .bottom-player-art {
-                width: 48px;
-                height: 48px;
-            }
-            
-            .source-btn {
-                padding: 10px 16px;
-                font-size: 14px;
-            }
-        }
-        
-        /* Spotify Mobile-style bottom player */
-        .bottom-player {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-secondary);
-            border-top: 1px solid var(--glass-border);
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            z-index: 100;
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        
-        .bottom-player-info {
-            flex: 1;
+        .logo {
             display: flex;
             align-items: center;
             gap: 12px;
         }
         
-        .bottom-player-art {
-            width: 56px;
-            height: 56px;
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #10b981, #059669);
             border-radius: 12px;
-            background: var(--bg-tertiary);
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            font-size: 24px;
+        }
+        
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .header-btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .header-btn.primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .header-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header-btn:hover {
+            transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease;
         }
         
-        .bottom-player-art:hover {
-            transform: scale(1.05);
+        /* Source Tabs */
+        .source-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
         }
         
-        .bottom-player-art img {
+        .source-tab {
+            padding: 14px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: #888;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .source-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .source-tab.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .source-tab i {
+            margin-right: 8px;
+        }
+        
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 30px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 18px 24px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #10b981;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+        
+        .search-input::placeholder {
+            color: #666;
+        }
+        
+        /* Content Area */
+        .content-area {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 24px;
+            height: fit-content;
+        }
+        
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+        
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+        
+        .sidebar-item.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        /* Main Content */
+        .main-content {
+            min-height: 400px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title i {
+            color: #10b981;
+        }
+        
+        /* Track List */
+        .track-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .track-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .track-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+        
+        .track-item.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+        }
+        
+        .track-art {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #1a1a1a;
+        }
+        
+        .track-art img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
         
-        .bottom-player-text {
+        .track-info {
             flex: 1;
             min-width: 0;
         }
         
-        .bottom-player-title {
-            font-weight: 500;
+        .track-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .track-artist {
             font-size: 14px;
+            color: #888;
+        }
+        
+        .track-duration {
+            font-size: 14px;
+            color: #666;
+            min-width: 60px;
+        }
+        
+        .track-actions {
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .track-item:hover .track-actions {
+            opacity: 1;
+        }
+        
+        .track-action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .track-action-btn:hover {
+            background: #10b981;
+        }
+        
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        
+        .error-icon {
+            font-size: 48px;
+            color: #ef4444;
+            margin-bottom: 16px;
+        }
+        
+        .retry-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            background: #10b981;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        /* Bottom Player */
+        .bottom-player {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            z-index: 1000;
+        }
+        
+        .player-art {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #1a1a1a;
+            flex-shrink: 0;
+        }
+        
+        .player-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .player-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .player-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         
-        .bottom-player-artist {
-            font-size: 12px;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .player-artist {
+            font-size: 13px;
+            color: #888;
         }
         
-        .bottom-player-controls {
+        .player-controls {
             display: flex;
             align-items: center;
             gap: 16px;
         }
         
-        .bottom-player-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 8px;
-            transition: color 0.2s;
-        }
-        
-        .bottom-player-btn:hover {
-            color: var(--text-color);
-        }
-        
-        .bottom-player-btn.play {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-            color: #ffffff;
+        .player-btn {
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            width: 48px;
-            height: 48px;
+            border: none;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
         }
         
-        .bottom-player-btn.play:hover {
+        .player-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .player-btn.play {
+            width: 52px;
+            height: 52px;
+            background: #10b981;
+            font-size: 20px;
+        }
+        
+        .player-btn.play:hover {
+            background: #059669;
             transform: scale(1.05);
-            animation: pulse-play 0.5s ease-in-out;
-        }
-
-        @keyframes pulse-play {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.15);
-            }
-            100% {
-                transform: scale(1.05);
-            }
         }
         
-        /* Mobile-friendly container */
-        .mobile-container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding-bottom: 100px; /* Space for bottom player */
+        .progress-container {
+            flex: 1;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #10b981;
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+        
+        .time-display {
+            font-size: 12px;
+            color: #888;
+            min-width: 80px;
+        }
+        
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid #10b981;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .modal-desc {
+            color: #888;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .modal-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            background: #10b981;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
         
-        /* Mini player mode */
-        .mini-player-mode .mobile-container {
-            padding-bottom: 80px;
+        .modal-btn:hover {
+            background: #059669;
         }
         
-        .mini-player-mode #searchHistory,
-        .mini-player-mode footer,
-        .mini-player-mode #trackList,
-        .mini-player-mode .header-section,
-        .mini-player-mode .source-selector,
-        .mini-player-mode .search-section {
+        /* PIN Modal Specific */
+        .pin-display {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .pin-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid #10b981;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .pin-dot.filled {
+            background: #10b981;
+        }
+        
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .pin-key {
+            padding: 20px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .pin-key:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .pin-key.clear {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .content-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 16px;
+            }
+            
+            .header {
+                padding: 16px 0;
+            }
+            
+            .logo-text {
+                font-size: 22px;
+            }
+            
+            .source-tabs {
+                gap: 8px;
+            }
+            
+            .source-tab {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+            
+            .bottom-player {
+                padding: 12px 16px;
+                gap: 12px;
+            }
+            
+            .player-art {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .player-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+            
+            .player-btn.play {
+                width: 44px;
+                height: 44px;
+            }
+            
+            .progress-container {
+                display: none;
+            }
+            
+            .modal {
+                padding: 24px;
+            }
+        }
+        
+        /* Hide elements initially */
+        #mainApp {
             display: none;
         }
         
-        .mini-player-mode #miniPlayerContent {
-            display: flex;
-        }
-        
-        .mini-player-mode .bottom-player {
-            padding: 12px 16px;
-        }
-        
-        .mini-player-mode .bottom-player-art {
-            width: 48px;
-            height: 48px;
-        }
-        
-        .mini-player-toggle {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 1000;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: var(--text-secondary);
-        }
-        
-        .mini-player-toggle:hover {
-            background: var(--primary-color);
-            color: #ffffff;
-            transform: scale(1.1);
-        }
-        
-        /* Responsive design for larger screens */
-        @media (min-width: 768px) {
-            .mobile-container {
-                max-width: 768px;
-            }
-            
-            .bottom-player {
-                padding: 16px 24px;
-            }
-            
-            .bottom-player-art {
-                width: 56px;
-                height: 56px;
-            }
-            
-            .bottom-player-title {
-                font-size: 16px;
-            }
-            
-            .bottom-player-artist {
-                font-size: 14px;
-            }
-        }
-        
-        @media (min-width: 1024px) {
-            .mobile-container {
-                max-width: 1024px;
-            }
-            
-            .bottom-player {
-                padding: 16px 32px;
-            }
-        }
-        
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background: rgba(239, 68, 68, 0.2);
-            border-radius: 5px;
-            height: 6px;
-            cursor: pointer;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            background: #ef4444;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
-            transition: transform 0.2s ease;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-        
-        input[type="range"]::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
-            background: #ef4444;
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
-        }
-        
-        .pulse-animation {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Modal animations */
-        .modal-enter {
-            animation: modalIn 0.3s ease-out;
-        }
-
-        @keyframes modalIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        /* Header animation */
-        header {
-            animation: slideDown 0.5s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Source button animations */
-        .source-btn {
-            animation: fadeIn 0.4s ease-out;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .source-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .source-btn.active {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-        }
-
-        .source-btn:nth-child(1) { animation-delay: 0.05s; }
-        .source-btn:nth-child(2) { animation-delay: 0.1s; }
-        .source-btn:nth-child(3) { animation-delay: 0.15s; }
-        .source-btn:nth-child(4) { animation-delay: 0.2s; }
-        .source-btn:nth-child(5) { animation-delay: 0.25s; }
-
-        .library-btn {
-            animation: fadeIn 0.4s ease-out;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .library-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .library-btn:nth-child(5) { animation-delay: 0.3s; }
-        
-        .spin-animation {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Loading state */
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(239, 68, 68, 0.2);
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-        }
-
-        .loading-text {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        /* Error state */
-        .error-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .error-icon {
-            font-size: 48px;
-            color: var(--primary-color);
-            margin-bottom: 16px;
-        }
-
-        .error-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 8px;
-        }
-
-        .error-message {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-bottom: 16px;
-            max-width: 300px;
-        }
-
-        .error-retry-btn {
-            padding: 10px 24px;
-            border-radius: 50px;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-            color: #ffffff;
-            border: none;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-        }
-
-        .error-retry-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
-        }
-
-        .active-speed {
-            background: var(--primary-color) !important;
-            color: #ffffff !important;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(239, 68, 68, 0.4);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(239, 68, 68, 0.6);
+        #mainApp.active {
+            display: block;
         }
     </style>
 </head>
-<body class="dark-mode">
-    <!-- Mini Player Toggle -->
-    <button id="miniPlayerToggle" class="mini-player-toggle" title="Toggle Mini Player">
-        <i class="fas fa-compress"></i>
-    </button>
+<body>
+    <!-- PIN Modal -->
+    <div id="pinModal" class="modal-overlay active">
+        <div class="modal">
+            <div class="modal-title">Enter PIN</div>
+            <div class="modal-desc">Enter the access code to continue</div>
+            <div class="pin-display">
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+                <div class="pin-dot"></div>
+            </div>
+            <div class="pin-keypad">
+                <button class="pin-key" data-num="1">1</button>
+                <button class="pin-key" data-num="2">2</button>
+                <button class="pin-key" data-num="3">3</button>
+                <button class="pin-key" data-num="4">4</button>
+                <button class="pin-key" data-num="5">5</button>
+                <button class="pin-key" data-num="6">6</button>
+                <button class="pin-key" data-num="7">7</button>
+                <button class="pin-key" data-num="8">8</button>
+                <button class="pin-key" data-num="9">9</button>
+                <button class="pin-key clear" id="clearPin">Clear</button>
+                <button class="pin-key" data-num="0">0</button>
+                <button class="pin-key clear" id="deletePin">⌫</button>
+            </div>
+            <div id="pinError" style="color: #ef4444; text-align: center; margin-top: 20px; display: none;">Incorrect PIN</div>
+        </div>
+    </div>
     
-    <!-- Main App Content - Hidden until PIN and disclaimer accepted -->
-    <div id="mainAppContent" class="hidden">
-        <div class="mobile-container" id="mainContainer">
-            <!-- Mini Player Content -->
-            <div id="miniPlayerContent" class="hidden flex items-center justify-center h-screen">
-                <div class="text-center" style="color: var(--text-secondary);">
-                    <i class="fas fa-music text-4xl mb-4 opacity-50"></i>
-                    <p>Mini Player Mode</p>
-                    <p class="text-sm mt-2">Toggle to return to full view</p>
-                </div>
+    <!-- Disclaimer Modal -->
+    <div id="disclaimerModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-title">Disclaimer</div>
+            <div class="modal-desc">
+                <p><strong>DMCA Notice:</strong> This application uses legal APIs to stream music. We do not host any copyrighted content.</p>
+                <br>
+                <p>By using this application, you agree to comply with all applicable laws and the terms of service of the respective music platforms.</p>
             </div>
-            
-            <!-- Header -->
-            <header class="header-section flex items-center justify-between p-4 sticky top-0 z-50" style="background: var(--bg-secondary);">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
-                        <i class="fas fa-music text-sm"></i>
-                    </div>
-                    <h1 class="text-xl font-bold">Spotfuck</h1>
-                </div>
-                <div class="flex items-center gap-4">
-                    <a href="https://respotfck.netlify.app/signin" target="_blank" class="text-gray-400 hover:text-white transition-colors text-sm font-medium" title="Sign In">
-                        <i class="fas fa-sign-in-alt mr-1"></i> Sign In
-                    </a>
-                    <button id="themeToggle" class="text-gray-400 hover:text-white transition-colors" title="Toggle theme">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <button id="settingsBtn" class="px-3 py-1.5 rounded-lg font-medium text-sm transition-all" style="background: rgba(239, 68, 68, 0.15); color: var(--primary-color); border: 1px solid rgba(239, 68, 68, 0.3);" title="API Settings">
-                        <i class="fas fa-cog mr-1"></i> Settings
-                    </button>
-                </div>
-            </header>
-
-        <!-- Source Selector - Horizontal Scroll -->
-        <div class="source-selector px-4 mb-4">
-            <div class="flex gap-2 overflow-x-auto pb-2" style="scrollbar-width: none;">
-                <button class="source-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-source="jamendo" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                    <i class="fas fa-headphones mr-2"></i> Jamendo <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API</span>
-                </button>
-                <button class="source-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-source="youtube" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                    <i class="fab fa-youtube mr-2"></i> YouTube <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API</span>
-                </button>
-                <button class="source-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-source="spotify" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                    <i class="fab fa-spotify mr-2"></i> Spotify <span class="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full ml-1">API</span>
-                </button>
-                <button class="source-btn active px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-source="audius" style="background: linear-gradient(135deg, #10b981, #059669); color: #ffffff;">
-                    <i class="fas fa-music mr-2"></i> Audius <span class="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full ml-1">FREE</span>
-                </button>
-                <button class="library-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-view="library" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                    <i class="fas fa-heart mr-2"></i> Liked Songs
-                </button>
-                <button class="library-btn px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" id="queueBtnMain" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                    <i class="fas fa-list mr-2"></i> Queue <span class="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full queue-count">${queue.length}</span>
-                </button>
-            </div>
+            <button class="modal-btn" id="acceptDisclaimer">I Understand & Accept</button>
         </div>
-
-        <!-- Search Bar -->
-        <div class="search-section px-4 mb-4">
-            <div class="relative">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2" style="color: var(--text-secondary);"></i>
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    placeholder="What do you want to listen to?" 
-                    class="w-full rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none transition-all"
-                    style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--glass-border);"
-                    onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(239, 68, 68, 0.1)'"
-                    onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'"
-                    autocomplete="off"
-                >
-            </div>
-        </div>
-
-        <!-- Search History -->
-        <div id="searchHistory" class="px-4 mb-4 hidden">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-medium" style="color: var(--text-secondary);">Recent Searches</h3>
-                <button id="clearSearchHistory" class="text-xs transition-colors hover:text-red-400" style="color: var(--text-secondary);">
-                    <i class="fas fa-trash mr-1"></i>Clear
-                </button>
-            </div>
-            <div id="historyTags" class="flex flex-wrap gap-2"></div>
-        </div>
-
-        <!-- Recently Played -->
-        <div id="recentlyPlayedSection" class="px-4 mb-4 hidden">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-medium" style="color: var(--text-secondary);">
-                    <i class="fas fa-history mr-2"></i>Recently Played
-                </h3>
-                <button id="clearRecentlyPlayed" class="text-xs transition-colors hover:text-red-400" style="color: var(--text-secondary);">
-                    <i class="fas fa-trash mr-1"></i>Clear
-                </button>
-            </div>
-            <div id="recentlyPlayedTracks" class="space-y-2"></div>
-        </div>
-
-        <!-- Recommended Music -->
-        <div id="recommendedSection" class="px-4 mb-4">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-base font-semibold" style="color: var(--text-color);">
-                    <i class="fas fa-fire mr-2" style="color: var(--primary-color);"></i>Recommended for You
-                </h3>
-            </div>
-            <div id="recommendedContent">
-                <!-- Recommended tracks will be loaded here -->
-            </div>
-        </div>
-
-        <!-- Track List -->
-        <div class="px-4">
-            <div id="trackList" class="space-y-1">
-                <div class="text-center py-12" style="color: var(--text-secondary);">
-                    <i class="fas fa-music text-5xl mb-4 opacity-50"></i>
-                    <p>Search for music to get started</p>
-                    <p class="text-sm mt-2">Or explore recommendations below</p>
-                </div>
-            </div>
-            
-            <!-- Loading State -->
-            <div id="loadingState" class="hidden text-center py-12" style="color: var(--text-secondary);">
-                <i class="fas fa-spinner fa-spin text-4xl mb-4" style="color: var(--primary-color);"></i>
-                <p>Loading...</p>
-            </div>
-            
-            <!-- Error State -->
-            <div id="errorState" class="hidden text-center py-12" style="color: var(--text-secondary);">
-                <i class="fas fa-exclamation-circle text-4xl mb-4 text-red-500"></i>
-                <p id="errorMessage">Something went wrong</p>
-                <button onclick="retryLastAction()" class="mt-4 px-4 py-2 rounded-lg text-sm" style="background: var(--primary-color); color: white;">Retry</button>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="mt-8 px-4 pb-4 text-center text-xs" style="color: var(--text-secondary);">
-            <p id="footerText">Spotfuck - Free Music Streaming</p>
-            <p class="mt-1">Powered by Audius API</p>
-        </footer>
     </div>
-    </div>
-
-    <!-- Bottom Player -->
-    <div id="bottomPlayer" class="bottom-player hidden">
-        <div class="bottom-player-info">
-            <div class="bottom-player-art">
-                <img id="bottomPlayerArtImg" src="" alt="">
-                <i id="bottomPlayerArtIcon" class="fas fa-music text-2xl" style="color: var(--text-secondary);"></i>
+    
+    <!-- Main App -->
+    <div id="mainApp" class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="logo-text">Spotfuck</div>
             </div>
-            <div class="bottom-player-text">
-                <div id="bottomPlayerTitle" class="bottom-player-title">No track selected</div>
-                <div id="bottomPlayerArtist" class="bottom-player-artist">-</div>
+            <div class="header-actions">
+                <button class="header-btn secondary" id="settingsBtn">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+                <a href="SignIn.html" class="header-btn primary">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
             </div>
-            <button id="likeBtn" class="bottom-player-btn" title="Like track">
-                <i class="far fa-heart" id="likeIcon"></i>
+        </header>
+        
+        <!-- Source Tabs -->
+        <div class="source-tabs">
+            <button class="source-tab" data-source="jamendo">
+                <i class="fas fa-headphones"></i> Jamendo
+            </button>
+            <button class="source-tab" data-source="youtube">
+                <i class="fab fa-youtube"></i> YouTube
+            </button>
+            <button class="source-tab" data-source="spotify">
+                <i class="fab fa-spotify"></i> Spotify
+            </button>
+            <button class="source-tab active" data-source="audius">
+                <i class="fas fa-music"></i> Audius
             </button>
         </div>
-        <div class="bottom-player-controls">
-            <button id="shuffleBtn" class="bottom-player-btn" title="Shuffle">
+        
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search for music...">
+        </div>
+        
+        <!-- Content -->
+        <div class="content-area">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Library</div>
+                    <div class="sidebar-item" id="likedSongsBtn">
+                        <i class="fas fa-heart"></i> Liked Songs
+                    </div>
+                    <div class="sidebar-item" id="recentlyPlayedBtn">
+                        <i class="fas fa-history"></i> Recently Played
+                    </div>
+                    <div class="sidebar-item" id="queueBtn">
+                        <i class="fas fa-list"></i> Queue
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Playlists</div>
+                    <div class="sidebar-item">
+                        <i class="fas fa-plus"></i> Create Playlist
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="section-title">
+                    <i class="fas fa-fire"></i> Recommended for You
+                </div>
+                <div id="trackList" class="track-list">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Loading recommendations...</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Bottom Player -->
+    <div class="bottom-player" id="bottomPlayer" style="display: none;">
+        <div class="player-art">
+            <img id="playerArt" src="" alt="">
+        </div>
+        <div class="player-info">
+            <div class="player-title" id="playerTitle">No track selected</div>
+            <div class="player-artist" id="playerArtist">-</div>
+        </div>
+        <div class="player-controls">
+            <button class="player-btn" id="shuffleBtn">
                 <i class="fas fa-random"></i>
             </button>
-            <button id="prevBtn" class="bottom-player-btn">
+            <button class="player-btn" id="prevBtn">
                 <i class="fas fa-step-backward"></i>
             </button>
-            <button id="playPauseBtn" class="bottom-player-btn play">
+            <button class="player-btn play" id="playPauseBtn">
                 <i class="fas fa-play" id="playPauseIcon"></i>
             </button>
-            <button id="nextBtn" class="bottom-player-btn">
+            <button class="player-btn" id="nextBtn">
                 <i class="fas fa-step-forward"></i>
             </button>
-            <button id="repeatBtn" class="bottom-player-btn" title="Repeat">
+            <button class="player-btn" id="repeatBtn">
                 <i class="fas fa-redo"></i>
             </button>
         </div>
-        <div class="flex items-center gap-3">
-            <button id="volumeBtn" class="bottom-player-btn" title="Volume">
-                <i class="fas fa-volume-up" id="volumeIcon"></i>
-            </button>
-            <input type="range" id="volumeBar" class="w-20" value="80" min="0" max="100">
+        <div class="progress-container">
+            <span class="time-display" id="currentTime">0:00</span>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="time-display" id="duration">0:00</span>
         </div>
     </div>
-
-    <!-- Progress Bar Section -->
-    <div id="progressSection" class="fixed bottom-20 left-0 right-0 px-4 hidden" style="background: var(--bg-secondary); padding: 8px 16px;">
-        <div class="flex items-center gap-3 max-w-7xl mx-auto">
-            <span id="currentTime" class="text-xs" style="color: var(--text-secondary); min-width: 40px;">0:00</span>
-            <input type="range" id="progressBar" class="flex-1" value="0" min="0" max="100">
-            <span id="duration" class="text-xs" style="color: var(--text-secondary); min-width: 40px;">0:00</span>
-        </div>
-    </div>
-
-    <!-- Hidden search button -->
-    <button id="searchBtn" class="hidden"></button>
-
-    <!-- Modals (outside mainAppContent so they can be shown before app access) -->
     
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 modal-enter">
-            <div class="glass-effect rounded-2xl p-6 max-w-md w-full mx-4">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold" style="color: var(--text-color);">API Settings</h2>
-                    <button id="closeSettings" class="transition-colors p-2 rounded-lg hover:bg-white/10" style="color: var(--text-secondary);">
-                        <i class="fas fa-times text-lg"></i>
-                    </button>
-                </div>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">Repository URL (for config.json)</label>
-                        <input 
-                            type="text" 
-                            id="repoUrl" 
-                            placeholder="https://github.com/owner/repo"
-                            class="w-full rounded-xl py-3 px-4 focus:outline-none transition-all"
-                            style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--glass-border);"
-                            onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(239, 68, 68, 0.1)'"
-                            onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'"
-                        >
-                        <p class="text-xs mt-1" style="color: var(--text-secondary);">Enter GitHub repo URL to fetch config.json automatically</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">Jamendo Client ID</label>
-                        <input 
-                            type="text" 
-                            id="jamendoClientId" 
-                            placeholder="Enter your Jamendo Client ID"
-                            class="w-full rounded-xl py-3 px-4 focus:outline-none transition-all"
-                            style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--glass-border);"
-                            onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(239, 68, 68, 0.1)'"
-                            onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'"
-                        >
-                        <p class="text-xs mt-1" style="color: var(--text-secondary);">Get it from jamendo.com (optional - Audius is free)</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">YouTube API Key</label>
-                        <input 
-                            type="text" 
-                            id="youtubeApiKey" 
-                            placeholder="Enter your YouTube API key"
-                            class="w-full rounded-xl py-3 px-4 focus:outline-none transition-all"
-                            style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--glass-border);"
-                            onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(239, 68, 68, 0.1)'"
-                            onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'"
-                        >
-                        <p class="text-xs mt-1" style="color: var(--text-secondary);">Get it from console.cloud.google.com</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">Spotify Client ID</label>
-                        <input 
-                            type="text" 
-                            id="spotifyClientId" 
-                            placeholder="Enter your Spotify Client ID"
-                            class="w-full rounded-xl py-3 px-4 focus:outline-none transition-all"
-                            style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--glass-border);"
-                            onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(239, 68, 68, 0.1)'"
-                            onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'"
-                        >
-                        <p class="text-xs mt-1" style="color: var(--text-secondary);">Get it from developer.spotify.com</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2" style="color: var(--text-color);">Spotify Client Secret</label>
-                        <input 
-                            type="password" 
-                            id="spotifyClientSecret" 
-                            placeholder="Enter your Spotify Client Secret"
-                            class="w-full rounded-xl py-3 px-4 focus:outline-none transition-all"
-                            style="background: var(--input-bg); color: var(--text-color); border: 1px solid var(--glass-border);"
-                            onfocus="this.style.borderColor='var(--primary-color)'; this.style.boxShadow='0 0 0 3px rgba(239, 68, 68, 0.1)'"
-                            onblur="this.style.borderColor='var(--glass-border)'; this.style.boxShadow='none'"
-                        >
-                    </div>
-                </div>
-                
-                <!-- Export/Import Actions -->
-                <div class="mt-6 pt-4 border-t" style="border-color: var(--glass-border);">
-                    <p class="text-sm font-medium mb-3" style="color: var(--text-secondary);">Export/Import Settings</p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button id="copySettings" class="py-2.5 px-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                            <i class="fas fa-copy"></i> Copy Settings
-                        </button>
-                        <button id="exportTxt" class="py-2.5 px-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                            <i class="fas fa-file-download"></i> Export TXT
-                        </button>
-                        <button id="exportJson" class="py-2.5 px-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                            <i class="fas fa-code"></i> Export JSON
-                        </button>
-                        <button id="exportScreenshot" class="py-2.5 px-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                            <i class="fas fa-camera"></i> Screenshot
-                        </button>
-                        <button id="importSettings" class="py-2.5 px-3 rounded-xl text-sm transition-all flex items-center justify-center gap-2 col-span-2" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">
-                            <i class="fas fa-file-upload"></i> Import Settings
-                        </button>
-                    </div>
-                    <input type="file" id="importFile" class="hidden" accept=".txt,.json">
-                </div>
-                
-                <!-- Sleep Timer Section -->
-                <div class="mt-6 pt-6 border-t" style="border-color: var(--glass-border);">
-                    <h3 class="text-sm font-medium mb-3" style="color: var(--text-color);">
-                        <i class="fas fa-moon mr-2"></i>Sleep Timer
-                    </h3>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button class="sleep-timer-btn py-2 px-3 rounded-lg text-sm transition-all" data-minutes="15" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">15m</button>
-                        <button class="sleep-timer-btn py-2 px-3 rounded-lg text-sm transition-all" data-minutes="30" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">30m</button>
-                        <button class="sleep-timer-btn py-2 px-3 rounded-lg text-sm transition-all" data-minutes="45" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">45m</button>
-                        <button class="sleep-timer-btn py-2 px-3 rounded-lg text-sm transition-all" data-minutes="60" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">1h</button>
-                    </div>
-                    <div id="sleepTimerStatus" class="text-xs mt-2 hidden" style="color: var(--text-secondary);">
-                        <i class="fas fa-clock mr-1"></i>Timer set for <span id="sleepTimerDisplay">0:00</span>
-                        <button id="cancelSleepTimer" class="ml-2 text-red-400 hover:text-red-300">Cancel</button>
-                    </div>
-                </div>
-                
-                <!-- Playback Speed Section -->
-                <div class="mt-6 pt-6 border-t" style="border-color: var(--glass-border);">
-                    <h3 class="text-sm font-medium mb-3" style="color: var(--text-color);">
-                        <i class="fas fa-tachometer-alt mr-2"></i>Playback Speed
-                    </h3>
-                    <div class="grid grid-cols-5 gap-2">
-                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all" data-speed="0.5" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">0.5x</button>
-                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all" data-speed="0.75" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">0.75x</button>
-                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all active-speed" data-speed="1.0" style="background: var(--primary-color); color: #ffffff;">1x</button>
-                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all" data-speed="1.25" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">1.25x</button>
-                        <button class="speed-btn py-2 px-3 rounded-lg text-sm transition-all" data-speed="1.5" style="background: rgba(255, 255, 255, 0.08); color: var(--text-color);">1.5x</button>
-                    </div>
-                    <div class="text-xs mt-2" style="color: var(--text-secondary);">
-                        Current speed: <span id="currentSpeedDisplay">1.0x</span>
-                    </div>
-                </div>
-                
-                <button id="saveSettings" class="w-full py-3.5 rounded-xl font-medium mt-6 transition-all" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); color: #ffffff; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
-                    Save Settings
-                </button>
-            </div>
-        </div>
-
-        <!-- PIN Entry Modal -->
-        <div id="pinModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-50">
-            <div class="glass-effect rounded-2xl p-8 max-w-sm w-full mx-4 border-2 border-red-600">
-                <div class="text-center mb-6">
-                    <div class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-lock text-3xl"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold mb-2">Enter PIN</h2>
-                    <p class="text-sm" style="color: var(--secondary-text);">Enter passcode to continue</p>
-                </div>
-                
-                <div id="pinDisplay" class="flex justify-center gap-3 mb-6">
-                    <div class="pin-dot w-4 h-4 rounded-full border-2 border-red-600"></div>
-                    <div class="pin-dot w-4 h-4 rounded-full border-2 border-red-600"></div>
-                    <div class="pin-dot w-4 h-4 rounded-full border-2 border-red-600"></div>
-                    <div class="pin-dot w-4 h-4 rounded-full border-2 border-red-600"></div>
-                </div>
-                
-                <div id="pinError" class="text-red-400 text-center text-sm mb-4 hidden">
-                    Incorrect PIN. Try again.
-                </div>
-                
-                <div class="grid grid-cols-3 gap-3 mb-4">
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="1">1</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="2">2</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="3">3</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="4">4</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="5">5</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="6">6</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="7">7</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="8">8</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="9">9</button>
-                    <button id="clearPin" class="bg-red-600/50 hover:bg-red-600 rounded-xl py-4 text-lg font-medium transition-colors">Clear</button>
-                    <button class="pin-btn bg-white/10 hover:bg-white/20 rounded-xl py-4 text-2xl font-medium transition-colors" data-num="0">0</button>
-                    <button id="deletePin" class="bg-red-600/50 hover:bg-red-600 rounded-xl py-4 text-lg font-medium transition-colors">
-                        <i class="fas fa-backspace"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-    <!-- Queue Management Modal -->
-        <div id="queueModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
-            <div class="glass-effect rounded-xl p-6 max-w-lg w-full mx-4 border-2 border-red-600 max-h-[80vh] overflow-y-auto">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold">Queue Management</h2>
-                    <button id="closeQueue" class="transition-colors p-2 rounded-lg hover:bg-white/10" style="color: var(--text-secondary);">
-                        <i class="fas fa-times text-lg"></i>
-                    </button>
-                </div>
-                
-                <div class="flex gap-2 mb-4">
-                    <button id="shuffleQueue" class="flex-1 py-2 px-3 rounded-lg text-sm transition-all" style="background: rgba(255, 255, 255, 0.1); color: var(--text-color);">
-                        <i class="fas fa-random mr-2"></i>Shuffle Queue
-                    </button>
-                    <button id="clearQueue" class="flex-1 py-2 px-3 rounded-lg text-sm transition-all" style="background: rgba(239, 68, 68, 0.2); color: var(--text-color);">
-                        <i class="fas fa-trash mr-2"></i>Clear Queue
-                    </button>
-                </div>
-                
-                <div id="queueList" class="space-y-2">
-                    <div class="text-center py-8" style="color: var(--text-secondary);">
-                        <i class="fas fa-list text-3xl mb-2 opacity-50"></i>
-                        <p>Queue is empty</p>
-                    </div>
-                </div>
-                
-                <div class="mt-4 pt-4 border-t" style="border-color: var(--glass-border);">
-                    <button id="saveQueueAsPlaylist" class="w-full py-2.5 rounded-lg font-medium transition-all" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)); color: #ffffff;">
-                        <i class="fas fa-save mr-2"></i>Save Queue as Playlist
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Keyboard Shortcuts Modal -->
-        <div id="shortcutsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
-            <div class="glass-effect rounded-xl p-6 max-w-lg w-full mx-4 border-2 border-red-600">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold">Keyboard Shortcuts</h2>
-                    <button id="closeShortcuts" class="transition-colors p-2 rounded-lg hover:bg-white/10" style="color: var(--text-secondary);">
-                        <i class="fas fa-times text-lg"></i>
-                    </button>
-                </div>
-                
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Play/Pause</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Space</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Next Track</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Shift + →</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Previous Track</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">Shift + ←</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Forward 10s</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">→</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Rewind 10s</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">←</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Volume Up</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">↑</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Volume Down</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">↓</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Toggle Shuffle</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">S</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Toggle Repeat</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">R</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Like Track</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">L</kbd>
-                    </div>
-                    <div class="flex justify-between items-center p-2 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                        <span style="color: var(--text-color);">Mute/Unmute</span>
-                        <kbd class="px-2 py-1 rounded text-xs" style="background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">M</kbd>
-                    </div>
-                </div>
-                
-                <p class="text-xs mt-4 text-center" style="color: var(--text-secondary);">
-                    Press <kbd class="px-1 py-0.5 rounded" style="background: rgba(255, 255, 255, 0.1);">?</kbd> to open this help
-                </p>
-            </div>
-        </div>
-
-    <!-- Track Info Modal -->
-        <div id="trackInfoModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
-            <div class="glass-effect rounded-xl p-6 max-w-md w-full mx-4 border-2 border-red-600">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold">Track Information</h2>
-                    <button id="closeTrackInfo" class="transition-colors p-2 rounded-lg hover:bg-white/10" style="color: var(--text-secondary);">
-                        <i class="fas fa-times text-lg"></i>
-                    </button>
-                </div>
-                
-                <div id="trackInfoContent" class="space-y-4">
-                    <div class="flex items-center gap-4">
-                        <img id="trackInfoImage" src="" alt="Track Art" class="w-24 h-24 rounded-lg object-cover">
-                        <div class="flex-1">
-                            <h3 id="trackInfoTitle" class="font-bold text-lg"></h3>
-                            <p id="trackInfoArtist" class="text-sm" style="color: var(--text-secondary);"></p>
-                            <p id="trackInfoSource" class="text-xs mt-1" style="color: var(--primary-color);"></p>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                            <p class="text-xs" style="color: var(--text-secondary);">Duration</p>
-                            <p id="trackInfoDuration" class="font-medium"></p>
-                        </div>
-                        <div class="p-3 rounded-lg" style="background: rgba(255, 255, 255, 0.05);">
-                            <p class="text-xs" style="color: var(--text-secondary);">Source</p>
-                            <p id="trackInfoSourceBadge" class="font-medium"></p>
-                        </div>
-                    </div>
-                    
-                    <div id="trackInfoMetadata" class="space-y-2 text-sm">
-                        <!-- Additional metadata will be populated dynamically -->
-                    </div>
-                </div>
-                
-                <div class="flex gap-3 mt-6">
-                    <button id="copyTrackInfo" class="flex-1 py-2.5 rounded-lg font-medium transition-all" style="background: rgba(255, 255, 255, 0.1); color: var(--text-color);">
-                        <i class="fas fa-copy mr-2"></i>Copy Info
-                    </button>
-                    <button id="shareTrack" class="flex-1 py-2.5 rounded-lg font-medium transition-all" style="background: var(--primary-color); color: #ffffff;">
-                        <i class="fas fa-share mr-2"></i>Share
-                    </button>
-                </div>
-            </div>
-        </div>
-
-    <!-- Disclaimer Modal -->
-        <div id="disclaimerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
-            <div class="glass-effect rounded-xl p-6 max-w-lg w-full mx-4 border-2 border-red-600">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-exclamation-triangle text-2xl"></i>
-                    </div>
-                    <h2 class="text-xl font-bold">Disclaimer & DMCA Notice</h2>
-                </div>
-                
-                <div class="space-y-4 text-sm" style="color: var(--secondary-text);">
-                    <p><strong>Please read carefully before using Spotfuck:</strong></p>
-                    
-                    <div class="bg-red-900/20 border border-red-600/30 rounded-lg p-4">
-                        <p class="font-medium text-red-400 mb-2">⚠️ Legal Notice</p>
-                        <p>Spotfuck is an open-source music player that uses legal APIs to stream music. We do not host any copyrighted content on our servers.</p>
-                    </div>
-                    
-                    <ul class="list-disc list-inside space-y-2">
-                        <li><strong>Jamendo:</strong> All music is royalty-free and legally licensed for streaming</li>
-                        <li><strong>YouTube:</strong> Streams content via YouTube's official API (requires your API key)</li>
-                        <li><strong>Spotify:</strong> Only provides 30-second preview clips via Spotify's official API</li>
-                    </ul>
-                    
-                    <p class="text-xs">By using this application, you agree to comply with all applicable laws and the terms of service of the respective music platforms. The developers are not responsible for any misuse of this software.</p>
-                    
-                    <p class="text-xs text-red-400">DMCA: If you believe any content infringes on your copyright, please contact the respective platform (YouTube, Spotify, or Jamendo) directly as we do not host any content.</p>
-                </div>
-                
-                <button id="acceptDisclaimer" class="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-medium mt-6 transition-colors">
-                    I Understand & Accept
-                </button>
-                
-                <p class="text-xs text-center mt-3" style="color: var(--secondary-text);">
-                    This notice will appear every time for legal compliance.
-                </p>
-            </div>
-        </div>
-
-    <!-- YouTube Player Container -->
-    <div id="youtubePlayer" class="hidden"></div>
-
-    <!-- Audio Element -->
     <audio id="audioPlayer"></audio>
     
-    <!-- API Handler - Load from GitHub -->
-    <script src="https://raw.githubusercontent.com/ReSpotF-ck/ReSpotFuck-Web/main/api-handler.js"></script>
-    
-    <!-- UI Handler - Load from GitHub -->
-    <script src="https://raw.githubusercontent.com/ReSpotF-ck/ReSpotFuck-Web/main/ui-handler.js"></script>
-    
-    <!-- YouTube IFrame API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
-
     <script>
-        // Security measures and page-level code only
-        // All UI logic has been moved to ui-handler.js
-        // All API logic has been moved to api-handler.js
+        // State
+        let currentSource = 'audius';
+        let tracks = [];
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        let queue = [];
+        let likedSongs = JSON.parse(localStorage.getItem('likedSongs') || '[]');
+        let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed') || '[]');
         
-        // Security measures enabled
-        // Disable right-click context menu
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
+        // DOM Elements
+        const pinModal = document.getElementById('pinModal');
+        const disclaimerModal = document.getElementById('disclaimerModal');
+        const mainApp = document.getElementById('mainApp');
+        const searchInput = document.getElementById('searchInput');
+        const trackList = document.getElementById('trackList');
+        const bottomPlayer = document.getElementById('bottomPlayer');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const playerArt = document.getElementById('playerArt');
+        const playerTitle = document.getElementById('playerTitle');
+        const playerArtist = document.getElementById('playerArtist');
         
-        // Disable common dev tools keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            // F12
-            if (e.key === 'F12' || e.keyCode === 123) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+I (Chrome/Edge DevTools)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+J (Chrome/Edge Console)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+C (Chrome/Edge Element Inspector)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+K (Firefox Console)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'K' || e.key === 'k')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+U (View Source)
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+S (Save)
-            if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+P (Print)
-            if (e.ctrlKey && (e.key === 'P' || e.key === 'p')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+F (Find) - disable in PIN/disclaimer modals
-            if (e.ctrlKey && (e.key === 'F' || e.key === 'f')) {
-                if (!pinModal.classList.contains('hidden') || !disclaimerModal.classList.contains('hidden')) {
-                    e.preventDefault();
-                    return false;
+        // PIN System
+        let enteredPin = '';
+        const correctPin = '1412';
+        
+        document.querySelectorAll('.pin-key[data-num]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (enteredPin.length < 4) {
+                    enteredPin += btn.dataset.num;
+                    updatePinDisplay();
+                    if (enteredPin.length === 4) {
+                        validatePin();
+                    }
                 }
-            }
-            
-            // Ctrl+G (Find Next) - disable in PIN/disclaimer modals
-            if (e.ctrlKey && (e.key === 'G' || e.key === 'g')) {
-                if (!pinModal.classList.contains('hidden') || !disclaimerModal.classList.contains('hidden')) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
+            });
         });
         
-        // Disable drag and drop
-        document.addEventListener('dragstart', (e) => {
-            e.preventDefault();
-            return false;
+        document.getElementById('clearPin').addEventListener('click', () => {
+            enteredPin = '';
+            updatePinDisplay();
+            document.getElementById('pinError').style.display = 'none';
         });
         
-        document.addEventListener('drop', (e) => {
-            e.preventDefault();
-            return false;
+        document.getElementById('deletePin').addEventListener('click', () => {
+            enteredPin = enteredPin.slice(0, -1);
+            updatePinDisplay();
         });
         
-        // Disable text selection (keeps buttons clickable)
-        document.addEventListener('selectstart', (e) => {
-            // Allow selection on inputs and textareas
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                return false;
-            }
-        });
-        
-        // Disable copy
-        document.addEventListener('copy', (e) => {
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                return false;
-            }
-        });
-        
-        // Disable cut
-        document.addEventListener('cut', (e) => {
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                return false;
-            }
-        });
-        
-        // Detect dev tools opening
-        let devToolsOpen = false;
-        
-        const detectDevTools = () => {
-            const threshold = 160;
-            const widthDiff = window.outerWidth - window.innerWidth > threshold;
-            const heightDiff = window.outerHeight - window.innerHeight > threshold;
-            
-            if (widthDiff || heightDiff) {
-                if (!devToolsOpen) {
-                    devToolsOpen = true;
-                    alert('Developer tools detected! This action has been logged.');
-                }
-            } else {
-                devToolsOpen = false;
-            }
-        };
-        
-        setInterval(detectDevTools, 1000);
-        
-        // Clear console on load
-        console.clear();
-        console.log('%cSecurity Alert', 'color: red; font-size: 30px; font-weight: bold;');
-        console.log('%cThis is a private secure connection. Unauthorized access is prohibited.', 'color: orange; font-size: 16px;');
-        
-        // Disable inspect element via long press (mobile)
-        let touchTimer;
-        document.addEventListener('touchstart', function(e) {
-            touchTimer = setTimeout(function() {
-                alert('Inspect element is disabled on this secure page.');
-            }, 800);
-        });
-        
-        document.addEventListener('touchend', function() {
-            clearTimeout(touchTimer);
-        });
-        
-        // Warn on page visibility change (potential tab switching to dev tools)
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                console.log('Page hidden - potential security concern');
-            }
-        });
-    </script>
-</body>
-</html>
-        
-        // YouTube API ready callback
-        function onYouTubeIframeAPIReady() {
-            console.log('YouTube API ready');
-            window.ytApiReady = true;
+        function updatePinDisplay() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('filled', index < enteredPin.length);
+            });
         }
         
-        // Security measures enabled
-        // Disable right-click context menu
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        // Disable common dev tools keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            // F12
-            if (e.key === 'F12' || e.keyCode === 123) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+I (Chrome/Edge DevTools)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+J (Chrome/Edge Console)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+C (Chrome/Edge Element Inspector)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+K (Firefox Console)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'K' || e.key === 'k')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+Shift+M (Responsive Design Mode)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'M' || e.key === 'm')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+U (View Source)
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+S (Save)
-            if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+P (Print)
-            if (e.ctrlKey && (e.key === 'P' || e.key === 'p')) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Ctrl+F (Find) - disable in PIN/disclaimer modals
-            if (e.ctrlKey && (e.key === 'F' || e.key === 'f')) {
-                if (!pinModal.classList.contains('hidden') || !disclaimerModal.classList.contains('hidden')) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
-            
-            // Ctrl+G (Find Next) - disable in PIN/disclaimer modals
-            if (e.ctrlKey && (e.key === 'G' || e.key === 'g')) {
-                if (!pinModal.classList.contains('hidden') || !disclaimerModal.classList.contains('hidden')) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
-        });
-        
-        // Disable drag and drop
-        document.addEventListener('dragstart', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        document.addEventListener('drop', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        // Disable text selection (keeps buttons clickable)
-        document.addEventListener('selectstart', (e) => {
-            // Allow selection on inputs and textareas
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                return false;
-            }
-        });
-        
-        // Disable copy/paste on sensitive elements
-        document.addEventListener('copy', (e) => {
-            // Allow copy on inputs and textareas
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                return false;
-            }
-        });
-        
-        document.addEventListener('paste', (e) => {
-            // Allow paste only on inputs
-            if (e.target.tagName !== 'INPUT') {
-                e.preventDefault();
-                return false;
-            }
-        });
-        
-        // Disable cut
-        document.addEventListener('cut', (e) => {
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                return false;
-            }
-        });
-        
-        // Detect dev tools opening
-        let devToolsOpen = false;
-        
-        const detectDevTools = () => {
-            const threshold = 160;
-            const widthDiff = window.outerWidth - window.innerWidth > threshold;
-            const heightDiff = window.outerHeight - window.innerHeight > threshold;
-            
-            if (widthDiff || heightDiff) {
-                if (!devToolsOpen) {
-                    devToolsOpen = true;
-                    alert('Developer tools detected! This action has been logged.');
-                }
+        function validatePin() {
+            if (enteredPin === correctPin) {
+                pinModal.classList.remove('active');
+                disclaimerModal.classList.add('active');
             } else {
-                devToolsOpen = false;
+                document.getElementById('pinError').style.display = 'block';
+                enteredPin = '';
+                updatePinDisplay();
+                setTimeout(() => {
+                    document.getElementById('pinError').style.display = 'none';
+                }, 2000);
             }
-        };
+        }
         
-        setInterval(detectDevTools, 1000);
-        
-        // Clear console on load
-        console.clear();
-        console.log('%cSecurity Alert', 'color: red; font-size: 30px; font-weight: bold;');
-        console.log('%cThis is a private secure connection. Unauthorized access is prohibited.', 'color: orange; font-size: 16px;');
-        
-        // Disable inspect element via long press (mobile)
-        let touchTimer;
-        document.addEventListener('touchstart', function(e) {
-            touchTimer = setTimeout(function() {
-                alert('Inspect element is disabled on this secure page.');
-            }, 800);
+        document.getElementById('acceptDisclaimer').addEventListener('click', () => {
+            disclaimerModal.classList.remove('active');
+            mainApp.classList.add('active');
+            loadRecommendations();
         });
         
-        document.addEventListener('touchend', function() {
-            clearTimeout(touchTimer);
+        // Source Tabs
+        document.querySelectorAll('.source-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentSource = tab.dataset.source;
+                if (searchInput.value.trim()) {
+                    searchTracks(searchInput.value.trim());
+                }
+            });
         });
         
-        // Warn on page visibility change (potential tab switching to dev tools)
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                console.log('Page hidden - potential security concern');
+        // Search
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchTracks(searchInput.value.trim());
+            }
+        });
+        
+        async function searchTracks(query) {
+            if (!query.trim()) return;
+            
+            trackList.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Searching ${currentSource}...</p>
+                </div>
+            `;
+            
+            try {
+                // Simulate API call with mock data
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                tracks = [
+                    { id: 1, name: query + ' - Track 1', artist: 'Artist Name', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '&background=10b981&color=fff', duration: 180 },
+                    { id: 2, name: query + ' - Track 2', artist: 'Another Artist', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '2&background=10b981&color=fff', duration: 210 },
+                    { id: 3, name: query + ' - Track 3', artist: 'Third Artist', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '3&background=10b981&color=fff', duration: 195 },
+                    { id: 4, name: query + ' - Track 4', artist: 'Fourth Artist', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '4&background=10b981&color=fff', duration: 240 },
+                    { id: 5, name: query + ' - Track 5', artist: 'Fifth Artist', artwork: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(query) + '5&background=10b981&color=fff', duration: 165 }
+                ];
+                
+                currentTrackIndex = 0;
+                displayTracks();
+            } catch (error) {
+                trackList.innerHTML = `
+                    <div class="error-state">
+                        <div class="error-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <p>Search failed. Please try again.</p>
+                        <button class="retry-btn" onclick="searchTracks('${query}')">Retry</button>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayTracks() {
+            trackList.innerHTML = tracks.map((track, index) => `
+                <div class="track-item ${currentTrackIndex === index ? 'active' : ''}" onclick="playTrack(${index})">
+                    <div class="track-art">
+                        <img src="${track.artwork}" alt="${track.name}">
+                    </div>
+                    <div class="track-info">
+                        <div class="track-name">${track.name}</div>
+                        <div class="track-artist">${track.artist}</div>
+                    </div>
+                    <div class="track-duration">${formatTime(track.duration)}</div>
+                    <div class="track-actions">
+                        <button class="track-action-btn" onclick="event.stopPropagation(); addToQueue(${index})">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button class="track-action-btn" onclick="event.stopPropagation(); toggleLike(${index})">
+                            <i class="fas fa-heart" style="color: ${isLiked(track) ? '#ef4444' : 'inherit'}"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function loadRecommendations() {
+            trackList.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Loading recommendations...</p>
+                </div>
+            `;
+            
+            try {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                tracks = [
+                    { id: 1, name: 'Blinding Lights', artist: 'The Weeknd', artwork: 'https://ui-avatars.com/api/?name=Blinding+Lights&background=10b981&color=fff', duration: 200 },
+                    { id: 2, name: 'Levitating', artist: 'Dua Lipa', artwork: 'https://ui-avatars.com/api/?name=Levitating&background=10b981&color=fff', duration: 203 },
+                    { id: 3, name: 'Stay', artist: 'The Kid LAROI', artist: 'Justin Bieber', artwork: 'https://ui-avatars.com/api/?name=Stay&background=10b981&color=fff', duration: 141 },
+                    { id: 4, name: 'Good 4 U', artist: 'Olivia Rodrigo', artwork: 'https://ui-avatars.com/api/?name=Good+4+U&background=10b981&color=fff', duration: 178 },
+                    { id: 5, name: 'Peaches', artist: 'Justin Bieber', artwork: 'https://ui-avatars.com/api/?name=Peaches&background=10b981&color=fff', duration: 198 }
+                ];
+                
+                displayTracks();
+            } catch (error) {
+                console.error('Error loading recommendations:', error);
+            }
+        }
+        
+        function playTrack(index) {
+            currentTrackIndex = index;
+            const track = tracks[index];
+            
+            // Update player
+            playerArt.src = track.artwork;
+            playerTitle.textContent = track.name;
+            playerArtist.textContent = track.artist;
+            bottomPlayer.style.display = 'flex';
+            
+            // Simulate audio
+            isPlaying = true;
+            playPauseIcon.className = 'fas fa-pause';
+            
+            // Add to recently played
+            recentlyPlayed = recentlyPlayed.filter(t => t.id !== track.id);
+            recentlyPlayed.unshift(track);
+            recentlyPlayed = recentlyPlayed.slice(0, 20);
+            localStorage.setItem('recentlyPlayed', JSON.stringify(recentlyPlayed));
+            
+            // Update display
+            displayTracks();
+            
+            // Simulate progress
+            simulateProgress(track.duration);
+        }
+        
+        function simulateProgress(duration) {
+            let progress = 0;
+            const interval = setInterval(() => {
+                if (!isPlaying) {
+                    clearInterval(interval);
+                    return;
+                }
+                progress += 1;
+                if (progress >= duration) {
+                    clearInterval(interval);
+                    playNext();
+                    return;
+                }
+                const percent = (progress / duration) * 100;
+                progressFill.style.width = percent + '%';
+                currentTimeEl.textContent = formatTime(progress);
+                durationEl.textContent = formatTime(duration);
+            }, 1000);
+        }
+        
+        function togglePlayPause() {
+            isPlaying = !isPlaying;
+            playPauseIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+            if (isPlaying && tracks[currentTrackIndex]) {
+                simulateProgress(tracks[currentTrackIndex].duration);
+            }
+        }
+        
+        function playNext() {
+            if (currentTrackIndex < tracks.length - 1) {
+                playTrack(currentTrackIndex + 1);
+            } else {
+                playTrack(0);
+            }
+        }
+        
+        function playPrevious() {
+            if (currentTrackIndex > 0) {
+                playTrack(currentTrackIndex - 1);
+            } else {
+                playTrack(tracks.length - 1);
+            }
+        }
+        
+        // Player Controls
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        document.getElementById('nextBtn').addEventListener('click', playNext);
+        document.getElementById('prevBtn').addEventListener('click', playPrevious);
+        
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            if (tracks[currentTrackIndex]) {
+                const newTime = Math.floor(percent * tracks[currentTrackIndex].duration);
+                // Would seek audio here
+            }
+        });
+        
+        // Queue
+        function addToQueue(index) {
+            const track = tracks[index];
+            if (!queue.some(t => t.id === track.id)) {
+                queue.push(track);
+                alert('Added to queue');
+            } else {
+                alert('Already in queue');
+            }
+        }
+        
+        // Like
+        function isLiked(track) {
+            return likedSongs.some(t => t.id === track.id);
+        }
+        
+        function toggleLike(index) {
+            const track = tracks[index];
+            if (isLiked(track)) {
+                likedSongs = likedSongs.filter(t => t.id !== track.id);
+            } else {
+                likedSongs.push(track);
+            }
+            localStorage.setItem('likedSongs', JSON.stringify(likedSongs));
+            displayTracks();
+        }
+        
+        // Utility
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Sidebar
+        document.getElementById('likedSongsBtn').addEventListener('click', () => {
+            if (likedSongs.length > 0) {
+                tracks = likedSongs;
+                currentTrackIndex = 0;
+                displayTracks();
+            } else {
+                alert('No liked songs yet');
+            }
+        });
+        
+        document.getElementById('recentlyPlayedBtn').addEventListener('click', () => {
+            if (recentlyPlayed.length > 0) {
+                tracks = recentlyPlayed;
+                currentTrackIndex = 0;
+                displayTracks();
+            } else {
+                alert('No recently played tracks');
+            }
+        });
+        
+        document.getElementById('queueBtn').addEventListener('click', () => {
+            if (queue.length > 0) {
+                tracks = queue;
+                currentTrackIndex = 0;
+                displayTracks();
+            } else {
+                alert('Queue is empty');
+            }
+        });
+        
+        // Settings (placeholder)
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            alert('Settings coming soon!');
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (tracks.length > 0) togglePlayPause();
+            } else if (e.code === 'ArrowRight' && e.shiftKey) {
+                playNext();
+            } else if (e.code === 'ArrowLeft' && e.shiftKey) {
+                playPrevious();
             }
         });
     </script>

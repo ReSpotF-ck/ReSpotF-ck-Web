@@ -927,6 +927,44 @@
             enteredPin = enteredPin.slice(0, -1);
             updatePinDisplay();
         });
+
+        // Keyboard support for PIN entry
+        document.addEventListener('keydown', (e) => {
+            // Only handle keyboard input when PIN modal is active
+            if (!pinModal.classList.contains('active')) return;
+
+            // Handle number keys (0-9)
+            if (e.key >= '0' && e.key <= '9') {
+                if (enteredPin.length < 4) {
+                    enteredPin += e.key;
+                    updatePinDisplay();
+                    if (enteredPin.length === 4) {
+                        validatePin();
+                    }
+                }
+                e.preventDefault();
+            }
+            // Handle Backspace
+            else if (e.key === 'Backspace') {
+                enteredPin = enteredPin.slice(0, -1);
+                updatePinDisplay();
+                e.preventDefault();
+            }
+            // Handle Enter to submit
+            else if (e.key === 'Enter') {
+                if (enteredPin.length === 4) {
+                    validatePin();
+                }
+                e.preventDefault();
+            }
+            // Handle Escape to clear
+            else if (e.key === 'Escape') {
+                enteredPin = '';
+                updatePinDisplay();
+                document.getElementById('pinError').style.display = 'none';
+                e.preventDefault();
+            }
+        });
         
         function updatePinDisplay() {
             const dots = document.querySelectorAll('.pin-dot');

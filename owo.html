@@ -1143,6 +1143,27 @@
             } else {
                 console.error('API Handler not available');
             }
+            
+            // Initialize PIN system
+            initPinSystem();
+            
+            // Initialize settings modal
+            initSettingsModal();
+            
+            // Initialize source tabs
+            initSourceTabs();
+            
+            // Initialize search
+            initSearch();
+            
+            // Initialize player controls
+            initPlayerControls();
+            
+            // Initialize sidebar navigation
+            initSidebarNavigation();
+            
+            // Initialize keyboard shortcuts
+            initKeyboardShortcuts();
         });
         
         // Security: Disable right-click, text selection, and drag-drop
@@ -1189,61 +1210,63 @@
         let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed') || '[]');
         let youtubePlayer = null;
         
-        // DOM Elements
-        const pinModal = document.getElementById('pinModal');
-        const disclaimerModal = document.getElementById('disclaimerModal');
-        const mainApp = document.getElementById('mainApp');
-        const searchInput = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const trackList = document.getElementById('trackList');
-        const bottomPlayer = document.getElementById('bottomPlayer');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const playPauseIcon = document.getElementById('playPauseIcon');
-        const progressBar = document.getElementById('progressBar');
-        const progressFill = document.getElementById('progressFill');
-        const currentTimeEl = document.getElementById('currentTime');
-        const durationEl = document.getElementById('duration');
-        const playerArt = document.getElementById('playerArt');
-        const playerTitle = document.getElementById('playerTitle');
-        const playerArtist = document.getElementById('playerArtist');
-        const shuffleBtn = document.getElementById('shuffleBtn');
-        const repeatBtn = document.getElementById('repeatBtn');
-        const volumeBtn = document.getElementById('volumeBtn');
-        const volumeIcon = document.getElementById('volumeIcon');
-        const volumeSlider = document.getElementById('volumeSlider');
+        // DOM Elements (will be initialized after DOM load)
+        let pinModal, disclaimerModal, mainApp, searchInput, searchBtn, trackList;
+        let bottomPlayer, audioPlayer, playPauseBtn, playPauseIcon;
+        let progressBar, progressFill, currentTimeEl, durationEl;
+        let playerArt, playerTitle, playerArtist;
+        let shuffleBtn, repeatBtn, volumeBtn, volumeIcon, volumeSlider;
+        let settingsModal, youtubeApiKeyInput, spotifyClientIdInput, spotifyClientSecretInput, jamendoClientIdInput;
         
         // PIN System
         let enteredPin = '';
         const correctPin = '1412';
         
-        document.querySelectorAll('.pin-key[data-num]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (enteredPin.length < 4) {
-                    enteredPin += btn.dataset.num;
-                    updatePinDisplay();
-                    if (enteredPin.length === 4) {
-                        validatePin();
+        function initPinSystem() {
+            pinModal = document.getElementById('pinModal');
+            disclaimerModal = document.getElementById('disclaimerModal');
+            mainApp = document.getElementById('mainApp');
+            
+            console.log('Initializing PIN system...');
+            
+            // PIN keypad buttons
+            document.querySelectorAll('.pin-key[data-num]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (enteredPin.length < 4) {
+                        enteredPin += btn.dataset.num;
+                        updatePinDisplay();
+                        if (enteredPin.length === 4) {
+                            validatePin();
+                        }
                     }
-                }
+                });
             });
-        });
-        
-        document.getElementById('clearPin').addEventListener('click', () => {
-            enteredPin = '';
-            updatePinDisplay();
-            document.getElementById('pinError').style.display = 'none';
-        });
-        
-        document.getElementById('deletePin').addEventListener('click', () => {
-            enteredPin = enteredPin.slice(0, -1);
-            updatePinDisplay();
-        });
+            
+            document.getElementById('clearPin').addEventListener('click', () => {
+                enteredPin = '';
+                updatePinDisplay();
+                document.getElementById('pinError').style.display = 'none';
+            });
+            
+            document.getElementById('deletePin').addEventListener('click', () => {
+                enteredPin = enteredPin.slice(0, -1);
+                updatePinDisplay();
+            });
+            
+            // Accept disclaimer
+            document.getElementById('acceptDisclaimer').addEventListener('click', () => {
+                disclaimerModal.classList.remove('active');
+                mainApp.classList.add('active');
+                loadRecommendations();
+            });
+            
+            console.log('PIN system initialized');
+        }
 
         // Keyboard support for PIN entry
         document.addEventListener('keydown', (e) => {
             // Only handle keyboard input when PIN modal is active
-            if (!pinModal.classList.contains('active')) return;
+            if (!pinModal || !pinModal.classList.contains('active')) return;
 
             // Handle number keys (0-9)
             if (e.key >= '0' && e.key <= '9') {
@@ -1299,34 +1322,260 @@
             }
         }
         
-        document.getElementById('acceptDisclaimer').addEventListener('click', () => {
-            disclaimerModal.classList.remove('active');
-            mainApp.classList.add('active');
-            loadRecommendations();
-        });
+        function initSettingsModal() {
+            settingsModal = document.getElementById('settingsModal');
+            youtubeApiKeyInput = document.getElementById('youtubeApiKey');
+            spotifyClientIdInput = document.getElementById('spotifyClientId');
+            spotifyClientSecretInput = document.getElementById('spotifyClientSecret');
+            jamendoClientIdInput = document.getElementById('jamendoClientId');
+            
+            console.log('Initializing settings modal...');
+            
+            // Save settings
+            document.getElementById('saveSettings').addEventListener('click', () => {
+                const credentials = {
+                    youtubeApiKey: youtubeApiKeyInput.value.trim(),
+                    spotifyClientId: spotifyClientIdInput.value.trim(),
+                    spotifyClientSecret: spotifyClientSecretInput.value.trim(),
+                    jamendoClientId: jamendoClientIdInput.value.trim() || 'c4ce16c7'
+                };
+                
+                if (typeof window.saveCredentials === 'function') {
+                    window.saveCredentials(credentials);
+                } else {
+                    // Fallback: save directly to localStorage
+                    localStorage.setItem('youtubeApiKey', credentials.youtubeApiKey);
+                    localStorage.setItem('spotifyClientId', credentials.spotifyClientId);
+                    localStorage.setItem('spotifyClientSecret', credentials.spotifyClientSecret);
+                    localStorage.setItem('jamendoClientId', credentials.jamendoClientId);
+                }
+                
+                settingsModal.classList.remove('active');
+                alert('Settings saved successfully!');
+            });
+            
+            // Close settings modal
+            document.getElementById('closeSettings').addEventListener('click', () => {
+                settingsModal.classList.remove('active');
+            });
+            
+            // Open settings modal
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                loadSettings();
+                settingsModal.classList.add('active');
+            });
+            
+            console.log('Settings modal initialized');
+        }
         
-        // Source Tabs
-        document.querySelectorAll('.source-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                currentSource = tab.dataset.source;
-                if (searchInput.value.trim()) {
+        function loadSettings() {
+            youtubeApiKeyInput.value = localStorage.getItem('youtubeApiKey') || '';
+            spotifyClientIdInput.value = localStorage.getItem('spotifyClientId') || '';
+            spotifyClientSecretInput.value = localStorage.getItem('spotifyClientSecret') || '';
+            jamendoClientIdInput.value = localStorage.getItem('jamendoClientId') || 'c4ce16c7';
+        }
+        
+        function initSourceTabs() {
+            console.log('Initializing source tabs...');
+            
+            document.querySelectorAll('.source-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentSource = tab.dataset.source;
+                    if (searchInput && searchInput.value.trim()) {
+                        searchTracks(searchInput.value.trim());
+                    }
+                });
+            });
+            
+            console.log('Source tabs initialized');
+        }
+        
+        function initSearch() {
+            searchInput = document.getElementById('searchInput');
+            searchBtn = document.getElementById('searchBtn');
+            trackList = document.getElementById('trackList');
+            
+            console.log('Initializing search...');
+            
+            searchBtn.addEventListener('click', () => {
+                searchTracks(searchInput.value.trim());
+            });
+            
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
                     searchTracks(searchInput.value.trim());
                 }
             });
-        });
+            
+            console.log('Search initialized');
+        }
         
-        // Search
-        searchBtn.addEventListener('click', () => {
-            searchTracks(searchInput.value.trim());
-        });
+        function initPlayerControls() {
+            bottomPlayer = document.getElementById('bottomPlayer');
+            audioPlayer = document.getElementById('audioPlayer');
+            playPauseBtn = document.getElementById('playPauseBtn');
+            playPauseIcon = document.getElementById('playPauseIcon');
+            progressBar = document.getElementById('progressBar');
+            progressFill = document.getElementById('progressFill');
+            currentTimeEl = document.getElementById('currentTime');
+            durationEl = document.getElementById('duration');
+            playerArt = document.getElementById('playerArt');
+            playerTitle = document.getElementById('playerTitle');
+            playerArtist = document.getElementById('playerArtist');
+            shuffleBtn = document.getElementById('shuffleBtn');
+            repeatBtn = document.getElementById('repeatBtn');
+            volumeBtn = document.getElementById('volumeBtn');
+            volumeIcon = document.getElementById('volumeIcon');
+            volumeSlider = document.getElementById('volumeSlider');
+            
+            console.log('Initializing player controls...');
+            
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            document.getElementById('nextBtn').addEventListener('click', playNext);
+            document.getElementById('prevBtn').addEventListener('click', playPrevious);
+            shuffleBtn.addEventListener('click', toggleShuffle);
+            repeatBtn.addEventListener('click', toggleRepeat);
+            
+            progressBar.addEventListener('click', (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                if (audioPlayer.duration) {
+                    audioPlayer.currentTime = percent * audioPlayer.duration;
+                }
+            });
+            
+            volumeSlider.addEventListener('input', (e) => {
+                const volume = e.target.value / 100;
+                audioPlayer.volume = volume;
+                if (window.youtubePlayer) {
+                    window.youtubePlayer.setVolume(volume * 100);
+                }
+                updateVolumeIcon(volume);
+            });
+            
+            volumeBtn.addEventListener('click', () => {
+                if (audioPlayer.volume > 0) {
+                    audioPlayer.dataset.previousVolume = audioPlayer.volume;
+                    audioPlayer.volume = 0;
+                    volumeSlider.value = 0;
+                    if (window.youtubePlayer) {
+                        window.youtubePlayer.setVolume(0);
+                    }
+                } else {
+                    const previousVolume = audioPlayer.dataset.previousVolume || 1;
+                    audioPlayer.volume = previousVolume;
+                    volumeSlider.value = previousVolume * 100;
+                    if (window.youtubePlayer) {
+                        window.youtubePlayer.setVolume(previousVolume * 100);
+                    }
+                }
+                updateVolumeIcon(audioPlayer.volume);
+            });
+            
+            // Audio player event listeners
+            audioPlayer.addEventListener('timeupdate', () => {
+                if (audioPlayer.duration && !isNaN(audioPlayer.duration)) {
+                    const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                    progressFill.style.width = percent + '%';
+                    currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+                    durationEl.textContent = formatTime(audioPlayer.duration);
+                }
+            });
+            
+            audioPlayer.addEventListener('ended', () => {
+                console.log('Track ended, playing next');
+                playNext();
+            });
+            
+            audioPlayer.addEventListener('loadedmetadata', () => {
+                console.log('Audio metadata loaded, duration:', audioPlayer.duration);
+                durationEl.textContent = formatTime(audioPlayer.duration);
+            });
+            
+            audioPlayer.addEventListener('error', (error) => {
+                console.error('Audio player error:', error);
+                alert('Error playing audio. Please try another track.');
+            });
+            
+            audioPlayer.addEventListener('canplay', () => {
+                console.log('Audio can play');
+            });
+            
+            console.log('Player controls initialized');
+        }
         
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                searchTracks(searchInput.value.trim());
-            }
-        });
+        function initSidebarNavigation() {
+            console.log('Initializing sidebar navigation...');
+            
+            document.getElementById('homeBtn').addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+                document.getElementById('homeBtn').classList.add('active');
+                loadRecommendations();
+            });
+            
+            document.getElementById('likedSongsBtn').addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+                document.getElementById('likedSongsBtn').classList.add('active');
+                if (likedSongs.length > 0) {
+                    tracks = likedSongs;
+                    currentTrackIndex = 0;
+                    displayTracks();
+                } else {
+                    showEmptyState();
+                }
+            });
+            
+            document.getElementById('recentlyPlayedBtn').addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+                document.getElementById('recentlyPlayedBtn').classList.add('active');
+                if (recentlyPlayed.length > 0) {
+                    tracks = recentlyPlayed;
+                    currentTrackIndex = 0;
+                    displayTracks();
+                } else {
+                    showEmptyState();
+                }
+            });
+            
+            document.getElementById('queueBtn').addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+                document.getElementById('queueBtn').classList.add('active');
+                if (queue.length > 0) {
+                    tracks = queue;
+                    currentTrackIndex = 0;
+                    displayTracks();
+                } else {
+                    showEmptyState();
+                }
+            });
+            
+            console.log('Sidebar navigation initialized');
+        }
+        
+        function initKeyboardShortcuts() {
+            console.log('Initializing keyboard shortcuts...');
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (tracks.length > 0) togglePlayPause();
+                } else if (e.code === 'ArrowRight' && e.shiftKey) {
+                    playNext();
+                } else if (e.code === 'ArrowLeft' && e.shiftKey) {
+                    playPrevious();
+                } else if (e.code === 'KeyS' && e.shiftKey) {
+                    toggleShuffle();
+                } else if (e.code === 'KeyR' && e.shiftKey) {
+                    toggleRepeat();
+                }
+            });
+            
+            console.log('Keyboard shortcuts initialized');
+        }
         
         async function searchTracks(query) {
             if (!query.trim()) return;
@@ -1840,55 +2089,6 @@
                 </div>
             `;
         }
-        
-        // Settings Modal
-        const settingsModal = document.getElementById('settingsModal');
-        const youtubeApiKeyInput = document.getElementById('youtubeApiKey');
-        const spotifyClientIdInput = document.getElementById('spotifyClientId');
-        const spotifyClientSecretInput = document.getElementById('spotifyClientSecret');
-        const jamendoClientIdInput = document.getElementById('jamendoClientId');
-        
-        // Load saved settings
-        function loadSettings() {
-            youtubeApiKeyInput.value = localStorage.getItem('youtubeApiKey') || '';
-            spotifyClientIdInput.value = localStorage.getItem('spotifyClientId') || '';
-            spotifyClientSecretInput.value = localStorage.getItem('spotifyClientSecret') || '';
-            jamendoClientIdInput.value = localStorage.getItem('jamendoClientId') || 'c4ce16c7';
-        }
-        
-        // Save settings
-        document.getElementById('saveSettings').addEventListener('click', () => {
-            const credentials = {
-                youtubeApiKey: youtubeApiKeyInput.value.trim(),
-                spotifyClientId: spotifyClientIdInput.value.trim(),
-                spotifyClientSecret: spotifyClientSecretInput.value.trim(),
-                jamendoClientId: jamendoClientIdInput.value.trim() || 'c4ce16c7'
-            };
-            
-            if (typeof window.saveCredentials === 'function') {
-                window.saveCredentials(credentials);
-            } else {
-                // Fallback: save directly to localStorage
-                localStorage.setItem('youtubeApiKey', credentials.youtubeApiKey);
-                localStorage.setItem('spotifyClientId', credentials.spotifyClientId);
-                localStorage.setItem('spotifyClientSecret', credentials.spotifyClientSecret);
-                localStorage.setItem('jamendoClientId', credentials.jamendoClientId);
-            }
-            
-            settingsModal.classList.remove('active');
-            alert('Settings saved successfully!');
-        });
-        
-        // Close settings modal
-        document.getElementById('closeSettings').addEventListener('click', () => {
-            settingsModal.classList.remove('active');
-        });
-        
-        // Open settings modal
-        document.getElementById('settingsBtn').addEventListener('click', () => {
-            loadSettings();
-            settingsModal.classList.add('active');
-        });
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {

@@ -1222,6 +1222,165 @@
     <script src="api-handler.js"></script>
     <script src="ui-handler.js"></script>
     <script>
+        // PIN System - Simplified and working
+        let enteredPin = '';
+        const correctPin = 'N3K0';
+        
+        // Initialize immediately without waiting
+        (function() {
+            console.log('PIN System initializing...');
+            
+            const pinModal = document.getElementById('pinModal');
+            const disclaimerModal = document.getElementById('disclaimerModal');
+            const mainApp = document.getElementById('mainApp');
+            
+            if (!pinModal) {
+                console.error('PIN modal not found!');
+                return;
+            }
+            
+            // PIN keypad buttons
+            const pinKeys = document.querySelectorAll('.pin-key[data-num]');
+            console.log('Found', pinKeys.length, 'PIN keys');
+            
+            pinKeys.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Key pressed:', btn.dataset.num);
+                    enteredPin += btn.dataset.num;
+                    updatePinDisplay();
+                    console.log('Current PIN:', enteredPin);
+                    if (enteredPin.length >= 4) {
+                        validatePin();
+                    }
+                });
+            });
+            
+            // Clear button
+            const clearBtn = document.getElementById('clearPin');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    enteredPin = '';
+                    updatePinDisplay();
+                    document.getElementById('pinError').style.display = 'none';
+                });
+            }
+            
+            // Delete button
+            const deleteBtn = document.getElementById('deletePin');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    enteredPin = enteredPin.slice(0, -1);
+                    updatePinDisplay();
+                });
+            }
+            
+            // Submit button
+            const submitBtn = document.getElementById('submitPin');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    validatePin();
+                });
+            }
+            
+            // Bypass button
+            const bypassBtn = document.getElementById('bypassPin');
+            if (bypassBtn) {
+                bypassBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    enteredPin = correctPin;
+                    updatePinDisplay();
+                    validatePin();
+                });
+            }
+            
+            // Accept disclaimer
+            const acceptBtn = document.getElementById('acceptDisclaimer');
+            if (acceptBtn) {
+                acceptBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    disclaimerModal.classList.remove('active');
+                    mainApp.classList.add('active');
+                    loadRecommendations();
+                });
+            }
+            
+            console.log('PIN System initialized');
+        })();
+        
+        function updatePinDisplay() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('filled', index < enteredPin.length);
+            });
+        }
+        
+        function validatePin() {
+            console.log('Validating PIN:', enteredPin, 'against:', correctPin);
+            if (enteredPin === correctPin) {
+                console.log('PIN correct!');
+                document.getElementById('pinModal').classList.remove('active');
+                document.getElementById('disclaimerModal').classList.add('active');
+            } else {
+                console.log('PIN incorrect');
+                document.getElementById('pinError').style.display = 'block';
+                enteredPin = '';
+                updatePinDisplay();
+                setTimeout(() => {
+                    document.getElementById('pinError').style.display = 'none';
+                }, 2000);
+            }
+        }
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            const pinModal = document.getElementById('pinModal');
+            if (!pinModal || !pinModal.classList.contains('active')) return;
+            
+            // Bypass: Ctrl+Shift+P
+            if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                enteredPin = correctPin;
+                updatePinDisplay();
+                validatePin();
+                e.preventDefault();
+                return;
+            }
+            
+            // Handle letters and numbers
+            if ((e.key >= '0' && e.key <= '9') || (e.key >= 'A' && e.key <= 'Z') || (e.key >= 'a' && e.key <= 'z')) {
+                enteredPin += e.key.toUpperCase();
+                updatePinDisplay();
+                if (enteredPin.length >= 4) {
+                    validatePin();
+                }
+                e.preventDefault();
+            }
+            
+            // Backspace
+            if (e.key === 'Backspace') {
+                enteredPin = enteredPin.slice(0, -1);
+                updatePinDisplay();
+                e.preventDefault();
+            }
+            
+            // Enter
+            if (e.key === 'Enter') {
+                validatePin();
+                e.preventDefault();
+            }
+            
+            // Escape
+            if (e.key === 'Escape') {
+                enteredPin = '';
+                updatePinDisplay();
+                document.getElementById('pinError').style.display = 'none';
+                e.preventDefault();
+            }
+        });
+        
         // Wait for API handler to load
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialize API handler
@@ -1236,25 +1395,12 @@
                 console.error('API Handler not available');
             }
             
-            // Initialize PIN system
-            initPinSystem();
-            
-            // Initialize settings modal
+            // Initialize other systems
             initSettingsModal();
-            
-            // Initialize source tabs
             initSourceTabs();
-            
-            // Initialize search
             initSearch();
-            
-            // Initialize player controls
             initPlayerControls();
-            
-            // Initialize sidebar navigation
             initSidebarNavigation();
-            
-            // Initialize keyboard shortcuts
             initKeyboardShortcuts();
         });
         
@@ -1310,151 +1456,6 @@
         let shuffleBtn, repeatBtn, volumeBtn, volumeIcon, volumeSlider;
         let settingsModal, youtubeApiKeyInput, spotifyClientIdInput, spotifyClientSecretInput, jamendoClientIdInput;
         
-        // PIN System
-        let enteredPin = '';
-        const correctPin = 'N3K0';
-        
-        function initPinSystem() {
-            pinModal = document.getElementById('pinModal');
-            disclaimerModal = document.getElementById('disclaimerModal');
-            mainApp = document.getElementById('mainApp');
-            
-            console.log('Initializing PIN system...');
-            console.log('PIN modal found:', !!pinModal);
-            console.log('Disclaimer modal found:', !!disclaimerModal);
-            console.log('Main app found:', !!mainApp);
-            
-            // PIN keypad buttons
-            const pinKeys = document.querySelectorAll('.pin-key[data-num]');
-            console.log('PIN keys found:', pinKeys.length);
-            
-            pinKeys.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log('PIN key clicked:', btn.dataset.num);
-                    if (enteredPin.length < 4) {
-                        enteredPin += btn.dataset.num;
-                        updatePinDisplay();
-                        if (enteredPin.length === 4) {
-                            validatePin();
-                        }
-                    }
-                });
-            });
-            
-            const clearBtn = document.getElementById('clearPin');
-            if (clearBtn) {
-                clearBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log('Clear PIN clicked');
-                    enteredPin = '';
-                    updatePinDisplay();
-                    document.getElementById('pinError').style.display = 'none';
-                });
-            }
-            
-            const deleteBtn = document.getElementById('deletePin');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log('Delete PIN clicked');
-                    enteredPin = enteredPin.slice(0, -1);
-                    updatePinDisplay();
-                });
-            }
-            
-            // Accept disclaimer
-            const acceptBtn = document.getElementById('acceptDisclaimer');
-            if (acceptBtn) {
-                acceptBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log('Disclaimer accepted');
-                    disclaimerModal.classList.remove('active');
-                    mainApp.classList.add('active');
-                    loadRecommendations();
-                });
-            }
-            
-            // Bypass PIN button (for development)
-            const bypassBtn = document.getElementById('bypassPin');
-            if (bypassBtn) {
-                bypassBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log('PIN bypass button clicked');
-                    enteredPin = correctPin;
-                    updatePinDisplay();
-                    validatePin();
-                });
-            }
-            
-            // Submit PIN button
-            const submitBtn = document.getElementById('submitPin');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log('Submit PIN clicked');
-                    if (enteredPin.length > 0) {
-                        validatePin();
-                    }
-                });
-            }
-            
-            console.log('PIN system initialized');
-        }
-
-        // Keyboard support for PIN entry and bypass
-        document.addEventListener('keydown', (e) => {
-            // PIN bypass shortcut: Ctrl+Shift+P
-            if (e.ctrlKey && e.shiftKey && e.key === 'P') {
-                console.log('PIN bypass shortcut triggered');
-                enteredPin = correctPin;
-                updatePinDisplay();
-                validatePin();
-                e.preventDefault();
-                return;
-            }
-            
-            // Only handle keyboard input when PIN modal is active
-            if (!pinModal || !pinModal.classList.contains('active')) return;
-
-            // Handle number keys (0-9) and letter keys (A-Z, a-z)
-            if ((e.key >= '0' && e.key <= '9') || (e.key >= 'A' && e.key <= 'Z') || (e.key >= 'a' && e.key <= 'z')) {
-                if (enteredPin.length < 4) {
-                    enteredPin += e.key.toUpperCase();
-                    updatePinDisplay();
-                    if (enteredPin.length === 4) {
-                        validatePin();
-                    }
-                }
-                e.preventDefault();
-            }
-            // Handle Backspace
-            else if (e.key === 'Backspace') {
-                enteredPin = enteredPin.slice(0, -1);
-                updatePinDisplay();
-                e.preventDefault();
-            }
-            // Handle Enter to submit
-            else if (e.key === 'Enter') {
-                if (enteredPin.length === 4) {
-                    validatePin();
-                } else {
-                    // Auto-submit if PIN is correct even if not 4 chars
-                    if (enteredPin === correctPin) {
-                        validatePin();
-                    }
-                }
-                e.preventDefault();
-            }
-            // Handle Escape to clear
-            else if (e.key === 'Escape') {
-                enteredPin = '';
-                updatePinDisplay();
-                document.getElementById('pinError').style.display = 'none';
-                e.preventDefault();
-            }
-        });
-        
         function updatePinDisplay() {
             const dots = document.querySelectorAll('.pin-dot');
             dots.forEach((dot, index) => {
@@ -1463,10 +1464,17 @@
         }
         
         function validatePin() {
+            const pinModalEl = document.getElementById('pinModal');
+            const disclaimerModalEl = document.getElementById('disclaimerModal');
+            const mainAppEl = document.getElementById('mainApp');
+            
+            console.log('Validating PIN:', enteredPin, 'against:', correctPin);
             if (enteredPin === correctPin) {
-                pinModal.classList.remove('active');
-                disclaimerModal.classList.add('active');
+                console.log('PIN correct!');
+                pinModalEl.classList.remove('active');
+                disclaimerModalEl.classList.add('active');
             } else {
+                console.log('PIN incorrect');
                 document.getElementById('pinError').style.display = 'block';
                 enteredPin = '';
                 updatePinDisplay();
@@ -1474,6 +1482,11 @@
                     document.getElementById('pinError').style.display = 'none';
                 }, 2000);
             }
+        }
+        
+        function loadRecommendations() {
+            console.log('Loading recommendations...');
+            // This will be defined later
         }
         
         function initSettingsModal() {

@@ -182,20 +182,44 @@ body {
     padding: 12px 16px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--text-secondary);
     margin-bottom: 4px;
     font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: var(--primary);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.sidebar-item:hover::before {
+    transform: scaleY(1);
 }
 
 .sidebar-item:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
+    transform: translateX(4px);
 }
 
 .sidebar-item.active {
     background: var(--primary);
     color: white;
+    transform: translateX(4px);
+}
+
+.sidebar-item.active::before {
+    transform: scaleY(1);
 }
 
 .sidebar-item i {
@@ -321,18 +345,49 @@ body {
     border-radius: 12px;
     border: 1px solid var(--border);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+.track-item:nth-child(1) { animation-delay: 0.05s; }
+.track-item:nth-child(2) { animation-delay: 0.1s; }
+.track-item:nth-child(3) { animation-delay: 0.15s; }
+.track-item:nth-child(4) { animation-delay: 0.2s; }
+.track-item:nth-child(5) { animation-delay: 0.25s; }
+.track-item:nth-child(n+6) { animation-delay: 0.3s; }
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .track-item:hover {
     background: var(--bg-hover);
     border-color: var(--primary);
-    transform: translateY(-2px);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
 }
 
 .track-item.playing {
     border-color: var(--primary);
     background: rgba(239, 68, 68, 0.1);
+    animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    }
 }
 
 .track-art {
@@ -594,12 +649,18 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .play-btn:hover {
     background: var(--primary-dark);
-    transform: scale(1.05);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.play-btn:active {
+    transform: scale(0.95);
 }
 
 .player-progress {
@@ -774,5 +835,199 @@ body {
     
     .header-btn#dmcaBtn {
         display: none;
+    }
+}
+
+/* Loading State */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.loading-animation {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.loading-circle {
+    width: 16px;
+    height: 16px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-circle:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loading-circle:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}
+
+.loading-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.loading-text {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.loading-progress {
+    width: 200px;
+    height: 4px;
+    background: var(--bg-hover);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.loading-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    border-radius: 2px;
+    animation: loadingProgress 2s infinite;
+}
+
+@keyframes loadingProgress {
+    0% {
+        width: 0%;
+        margin-left: 0;
+    }
+    50% {
+        width: 100%;
+        margin-left: 0;
+    }
+    100% {
+        width: 0%;
+        margin-left: 100%;
+    }
+}
+
+/* Error State */
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+    animation: slideIn 0.5s ease;
+}
+
+.error-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    font-size: 32px;
+    color: var(--primary);
+    animation: pulse 2s infinite;
+}
+
+.error-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.error-message {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    max-width: 400px;
+}
+
+.error-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.error-suggestion i {
+    color: var(--primary);
+}
+
+.error-details {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 24px;
+    font-size: 12px;
+    color: var(--text-muted);
+    max-width: 400px;
+    word-break: break-word;
+}
+
+.error-retry-btn {
+    padding: 12px 24px;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.error-retry-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

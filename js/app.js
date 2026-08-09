@@ -190,72 +190,131 @@ async function handleSearch() {
     
     try {
         const results = await searchAllSources(query);
+        
+        if (results.length === 0) {
+            showErrorState('no_results');
+            return;
+        }
+        
         tracks = results;
         currentTrackIndex = 0;
         displayTracks();
     } catch (error) {
         console.error('Search error:', error);
-        showErrorState('Search failed. Please try again.');
+        
+        // Determine error type
+        let errorType = 'api_error';
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorType = 'network_error';
+        } else if (error.message.includes('rate limit') || error.message.includes('429')) {
+            errorType = 'rate_limit';
+        } else if (error.message.includes('auth') || error.message.includes('401') || error.message.includes('403')) {
+            errorType = 'auth_error';
+        }
+        
+        showErrorState(errorType, error.message);
     }
 }
 
 async function searchAllSources(query) {
     const searchPromises = [];
+    const sources = [];
     
-    // Only search sources that have API keys configured
+    // Search sources that have API keys configured
     if (API_CONFIG.audius.apiKey) {
         searchPromises.push(searchAudius(query));
+        sources.push('Audius');
     }
     if (API_CONFIG.youtube.apiKey) {
         searchPromises.push(searchYouTube(query));
+        sources.push('YouTube');
     }
     if (API_CONFIG.jamendo.clientId) {
         searchPromises.push(searchJamendo(query));
+        sources.push('Jamendo');
     }
     if (API_CONFIG.spotify.clientId && API_CONFIG.spotify.clientSecret) {
         searchPromises.push(searchSpotify(query));
+        sources.push('Spotify');
     }
 
     // If no sources configured, return mock data for demo
     if (searchPromises.length === 0) {
+        console.log('No API keys configured, using demo data');
         return getMockSearchResults(query);
     }
 
-    const results = await Promise.allSettled(searchPromises);
-    const allTracks = [];
-    
-    results.forEach((result, index) => {
-        if (result.status === 'fulfilled' && result.value) {
-            allTracks.push(...result.value);
-        }
-    });
+    try {
+        const results = await Promise.allSettled(searchPromises);
+        const allTracks = [];
+        let successCount = 0;
+        
+        results.forEach((result, index) => {
+            if (result.status === 'fulfilled' && result.value && result.value.length > 0) {
+                allTracks.push(...result.value);
+                successCount++;
+                console.log(`${sources[index]}: Found ${result.value.length} tracks`);
+            } else if (result.status === 'rejected') {
+                console.error(`${sources[index]} search failed:`, result.reason.message);
+            } else {
+                console.log(`${sources[index]}: No results found`);
+            }
+        });
 
-    return allTracks;
+        // If no results from APIs, fall back to demo data
+        if (allTracks.length === 0) {
+            console.log('No results from APIs, using demo data');
+            return getMockSearchResults(query);
+        }
+
+        console.log(`Total tracks found: ${allTracks.length} from ${successCount} sources`);
+        return allTracks;
+    } catch (error) {
+        console.error('Search all sources error:', error);
+        throw new Error('Failed to search music sources');
+    }
 }
 
 // API Search Functions
 async function searchAudius(query) {
     try {
-        const response = await fetch(`${API_CONFIG.audius.baseUrl}/tracks/search?query=${encodeURIComponent(query)}`, {
+        // Audius API requires specific format
+        const response = await fetch(`https://audius.co/search?query=${encodeURIComponent(query)}&type=tracks`, {
             headers: {
                 'Authorization': `Bearer ${API_CONFIG.audius.apiKey}`
             }
         });
+        
+        if (!response.ok) {
+            if (response.status === 401) throw new Error('Audius authentication failed');
+            if (response.status === 429) throw new Error('Audius rate limit exceeded');
+            if (response.status === 404) throw new Error('Audius service unavailable');
+            throw new Error(`Audius API error: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        if (!data.data || !Array.isArray(data.data)) {
+            console.warn('Audius returned unexpected data format');
+            return [];
+        }
         
         return data.data.map(track => ({
             id: track.id,
             title: track.title,
-            artist: track.user.name,
+            artist: track.user?.name || 'Unknown Artist',
             album: track.album || 'Unknown',
-            duration: track.duration,
-            artwork: track.artwork ? track.artwork['150x150'] : null,
+            duration: track.duration || 0,
+            artwork: track.artwork?.['150x150'] || track.artwork?.['480x480'] || null,
             source: 'audius',
-            audioUrl: track.stream_url
-        }));
+            audioUrl: track.stream_url || track.mp3 || null
+        })).filter(track => track.audioUrl); // Only return tracks with playable URLs
     } catch (error) {
         console.error('Audius search error:', error);
-        return [];
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+            throw new Error('Network error connecting to Audius');
+        }
+        throw error;
     }
 }
 
@@ -264,15 +323,25 @@ async function searchYouTube(query) {
         const response = await fetch(
             `${API_CONFIG.youtube.baseUrl}/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${API_CONFIG.youtube.apiKey}`
         );
+        
+        if (!response.ok) {
+            throw new Error(`YouTube API error: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        if (!data.items || !Array.isArray(data.items)) {
+            console.warn('YouTube returned unexpected data format');
+            return [];
+        }
         
         return data.items.map(item => ({
             id: item.id.videoId,
-            title: item.snippet.title,
+            title: item.snippet.title.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&"),
             artist: item.snippet.channelTitle,
             album: 'YouTube',
-            duration: '0', // YouTube duration needs additional API call
-            artwork: item.snippet.thumbnails.medium?.url,
+            duration: 0, // YouTube duration needs additional API call
+            artwork: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
             source: 'youtube',
             videoId: item.id.videoId
         }));
@@ -285,20 +354,30 @@ async function searchYouTube(query) {
 async function searchJamendo(query) {
     try {
         const response = await fetch(
-            `${API_CONFIG.jamendo.baseUrl}/tracks/search?name=${encodeURIComponent(query)}&client_id=${API_CONFIG.jamendo.clientId}&limit=10&format=jsonpretty`
+            `${API_CONFIG.jamendo.baseUrl}/tracks/search?name=${encodeURIComponent(query)}&client_id=${API_CONFIG.jamendo.clientId}&limit=10&format=jsonpretty&include=musicinfo`
         );
+        
+        if (!response.ok) {
+            throw new Error(`Jamendo API error: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        if (!data.results || !Array.isArray(data.results)) {
+            console.warn('Jamendo returned unexpected data format');
+            return [];
+        }
         
         return data.results.map(track => ({
             id: track.id,
             title: track.name,
-            artist: track.artist_name,
+            artist: track.artist_name || 'Unknown Artist',
             album: track.album_name || 'Unknown',
-            duration: track.duration,
-            artwork: track.image || null,
+            duration: track.duration || 0,
+            artwork: track.image || `https://img.jamendo.com/?track=${track.id}&width=300&height=300`,
             source: 'jamendo',
-            audioUrl: track.audio
-        }));
+            audioUrl: track.audio || `https://mp3l.jamendo.com/?track=${track.id}&format=mp31`
+        })).filter(track => track.audioUrl); // Only return tracks with playable URLs
     } catch (error) {
         console.error('Jamendo search error:', error);
         return [];
@@ -316,7 +395,16 @@ async function searchSpotify(query) {
             },
             body: 'grant_type=client_credentials'
         });
+        
+        if (!tokenResponse.ok) {
+            throw new Error(`Spotify token error: ${tokenResponse.status}`);
+        }
+        
         const tokenData = await tokenResponse.json();
+        
+        if (!tokenData.access_token) {
+            throw new Error('No access token received from Spotify');
+        }
         
         const response = await fetch(
             `${API_CONFIG.spotify.baseUrl}/search?q=${encodeURIComponent(query)}&type=track&limit=10`,
@@ -326,58 +414,132 @@ async function searchSpotify(query) {
                 }
             }
         );
+        
+        if (!response.ok) {
+            throw new Error(`Spotify search error: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        if (!data.tracks || !data.tracks.items || !Array.isArray(data.tracks.items)) {
+            console.warn('Spotify returned unexpected data format');
+            return [];
+        }
         
         return data.tracks.items.map(track => ({
             id: track.id,
             title: track.name,
-            artist: track.artists[0].name,
-            album: track.album.name,
+            artist: track.artists[0]?.name || 'Unknown Artist',
+            album: track.album?.name || 'Unknown',
             duration: track.duration_ms / 1000,
-            artwork: track.album.images[0]?.url,
+            artwork: track.album?.images?.[0]?.url || null,
             source: 'spotify',
             previewUrl: track.preview_url
-        }));
+        })).filter(track => track.previewUrl); // Only return tracks with preview URLs
     } catch (error) {
         console.error('Spotify search error:', error);
         return [];
     }
 }
 
-// Mock Data for Demo
+// Mock Data for Demo - Using reliable free audio sources
 function getMockSearchResults(query) {
-    return [
+    // Using free, reliable audio sources for demo
+    const demoTracks = [
         {
-            id: '1',
-            title: `${query} - Track 1`,
+            id: 'demo1',
+            title: 'Electronic Vibes',
             artist: 'Demo Artist',
-            album: 'Demo Album',
-            duration: 180,
-            artwork: null,
+            album: 'Demo Collection',
+            duration: 184,
+            artwork: 'https://picsum.photos/seed/music1/300/300',
             source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav'
         },
         {
-            id: '2',
-            title: `${query} - Track 2`,
+            id: 'demo2', 
+            title: 'Chill Beats',
             artist: 'Demo Artist',
-            album: 'Demo Album',
-            duration: 210,
-            artwork: null,
-            source: 'youtube',
-            videoId: 'dQw4w9WgXcQ'
-        },
-        {
-            id: '3',
-            title: `${query} - Track 3`,
-            artist: 'Demo Artist',
-            album: 'Demo Album',
-            duration: 195,
-            artwork: null,
+            album: 'Demo Collection',
+            duration: 212,
+            artwork: 'https://picsum.photos/seed/music2/300/300',
             source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
+            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav'
+        },
+        {
+            id: 'demo3',
+            title: 'Up Tempo',
+            artist: 'Demo Artist', 
+            album: 'Demo Collection',
+            duration: 195,
+            artwork: 'https://picsum.photos/seed/music3/300/300',
+            source: 'audius',
+            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/ImperialMarch60.wav'
+        },
+        {
+            id: 'demo4',
+            title: 'Ambient Sounds',
+            artist: 'Demo Artist',
+            album: 'Demo Collection', 
+            duration: 240,
+            artwork: 'https://picsum.photos/seed/music4/300/300',
+            source: 'jamendo',
+            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand60.wav'
+        },
+        {
+            id: 'demo5',
+            title: 'Rock Energy',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 178,
+            artwork: 'https://picsum.photos/seed/music5/300/300', 
+            source: 'audius',
+            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav'
+        },
+        {
+            id: 'demo6',
+            title: 'Jazz Cafe',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 267,
+            artwork: 'https://picsum.photos/seed/music6/300/300',
+            source: 'jamendo', 
+            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/preamble10.wav'
+        },
+        {
+            id: 'demo7',
+            title: 'Pop Hit',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 198,
+            artwork: 'https://picsum.photos/seed/music7/300/300',
+            source: 'audius',
+            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/antarctica10.wav'
+        },
+        {
+            id: 'demo8',
+            title: 'Classical Moment',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 312,
+            artwork: 'https://picsum.photos/seed/music8/300/300',
+            source: 'jamendo',
+            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/hawaii10.wav'
         }
     ];
+    
+    // If query is provided, filter tracks (otherwise return all)
+    if (query && query.trim() !== '') {
+        const lowerQuery = query.toLowerCase();
+        const filtered = demoTracks.filter(track => 
+            track.title.toLowerCase().includes(lowerQuery) ||
+            track.artist.toLowerCase().includes(lowerQuery) ||
+            track.album.toLowerCase().includes(lowerQuery)
+        );
+        return filtered.length > 0 ? filtered : demoTracks.slice(0, 3); // Return some matches or first 3
+    }
+    
+    return demoTracks;
 }
 
 // Display Functions
@@ -441,33 +603,97 @@ function showEmptyState() {
 
 function showLoadingState() {
     trackList.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="fas fa-spinner fa-spin"></i>
+        <div class="loading-state">
+            <div class="loading-animation">
+                <div class="loading-circle"></div>
+                <div class="loading-circle"></div>
+                <div class="loading-circle"></div>
             </div>
-            <h3 class="empty-state-title">Searching...</h3>
-            <p class="empty-state-text">Finding the best tracks for you</p>
+            <h3 class="loading-title">Searching Music Sources</h3>
+            <p class="loading-text">Scanning Audius, YouTube, Jamendo, and Spotify...</p>
+            <div class="loading-progress">
+                <div class="loading-bar"></div>
+            </div>
         </div>
     `;
 }
 
-function showErrorState(message) {
+function showErrorState(errorType, details = '') {
+    let icon, title, message, suggestion;
+    
+    switch(errorType) {
+        case 'no_results':
+            icon = 'fa-search';
+            title = 'No Results Found';
+            message = 'We couldn\'t find any tracks matching your search.';
+            suggestion = 'Try different keywords or check your spelling';
+            break;
+        case 'api_error':
+            icon = 'fa-server';
+            title = 'API Connection Error';
+            message = 'Unable to connect to music services.';
+            suggestion = 'Using demo tracks instead. Check your API keys in Settings.';
+            break;
+        case 'network_error':
+            icon = 'fa-wifi';
+            title = 'Network Error';
+            message = 'Connection to music services failed.';
+            suggestion = 'Check your internet connection and try again.';
+            break;
+        case 'rate_limit':
+            icon = 'fa-clock';
+            title = 'Rate Limit Exceeded';
+            message = 'Too many requests to music services.';
+            suggestion = 'Please wait a moment and try again.';
+            break;
+        case 'auth_error':
+            icon = 'fa-key';
+            title = 'Authentication Error';
+            message = 'Invalid API credentials.';
+            suggestion = 'Update your API keys in Settings.';
+            break;
+        default:
+            icon = 'fa-exclamation-triangle';
+            title = 'Search Failed';
+            message = details || 'An unexpected error occurred.';
+            suggestion = 'Please try again or contact support.';
+    }
+    
     trackList.innerHTML = `
-        <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="fas fa-exclamation-circle"></i>
+        <div class="error-state">
+            <div class="error-icon">
+                <i class="fas ${icon}"></i>
             </div>
-            <h3 class="empty-state-title">Error</h3>
-            <p class="empty-state-text">${message}</p>
+            <h3 class="error-title">${title}</h3>
+            <p class="error-message">${message}</p>
+            <div class="error-suggestion">
+                <i class="fas fa-lightbulb"></i>
+                <span>${suggestion}</span>
+            </div>
+            ${details ? `<div class="error-details"><small>${details}</small></div>` : ''}
+            <button class="error-retry-btn" id="errorRetryBtn">
+                <i class="fas fa-redo"></i> Try Again
+            </button>
+    `;
+    
+    // Add event listener to retry button
+    setTimeout(() => {
+        const retryBtn = document.getElementById('errorRetryBtn');
+        if (retryBtn) {
+            retryBtn.addEventListener('click', handleSearch);
+        }
+    }, 0);
         </div>
     `;
 }
 
 function loadRecommendations() {
-    // Load some demo recommendations
-    tracks = getMockSearchResults('popular');
+    // Load demo recommendations (all tracks since no query)
+    console.log('Loading demo recommendations...');
+    tracks = getMockSearchResults('');
     currentTrackIndex = 0;
     displayTracks();
+    console.log('Loaded', tracks.length, 'demo tracks');
 }
 
 // Player Functions
@@ -524,7 +750,15 @@ function playTrack(index) {
 }
 
 function playAudioTrack(track) {
-    audioPlayer.src = track.audioUrl || track.previewUrl;
+    const audioUrl = track.audioUrl || track.previewUrl;
+    
+    if (!audioUrl) {
+        console.error('No audio URL available for track:', track);
+        alert('No playable audio available for this track.');
+        return;
+    }
+    
+    audioPlayer.src = audioUrl;
     audioPlayer.play().then(() => {
         isPlaying = true;
         playPauseIcon.className = 'fas fa-pause';
@@ -532,10 +766,17 @@ function playAudioTrack(track) {
         console.error('Play error:', error);
         isPlaying = false;
         playPauseIcon.className = 'fas fa-play';
+        alert('Error playing audio. The source may be unavailable.');
     });
 }
 
 function playYouTubeTrack(track) {
+    if (!track.videoId) {
+        console.error('No video ID available for YouTube track:', track);
+        alert('No playable video available for this track.');
+        return;
+    }
+    
     // Load YouTube IFrame API if not loaded
     if (!window.YT) {
         const tag = document.createElement('script');
@@ -562,15 +803,42 @@ function createYouTubePlayer(track) {
             playerVars: {
                 'autoplay': 1,
                 'controls': 0,
-                'disablekb': 1
+                'disablekb': 1,
+                'origin': window.location.origin
             },
             events: {
-                'onStateChange': onYouTubePlayerStateChange
+                'onStateChange': onYouTubePlayerStateChange,
+                'onError': onYouTubePlayerError
             }
         });
     }
     isPlaying = true;
     playPauseIcon.className = 'fas fa-pause';
+}
+
+function onYouTubePlayerError(event) {
+    console.error('YouTube player error:', event.data);
+    let errorMessage = 'Error playing YouTube video.';
+    
+    switch (event.data) {
+        case 2:
+            errorMessage = 'Invalid YouTube video ID.';
+            break;
+        case 5:
+            errorMessage = 'HTML5 player error.';
+            break;
+        case 100:
+            errorMessage = 'Video not found.';
+            break;
+        case 101:
+        case 150:
+            errorMessage = 'Video not embeddable.';
+            break;
+    }
+    
+    alert(errorMessage);
+    isPlaying = false;
+    playPauseIcon.className = 'fas fa-play';
 }
 
 function onYouTubePlayerStateChange(event) {

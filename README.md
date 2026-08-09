@@ -144,29 +144,35 @@ window.closeSettings();
 
 ## API Configuration
 
-To use the full functionality with real music sources, you can optionally configure API keys:
+The application works out of the box with demo audio tracks. To use real music from the various platforms, configure API keys in the Settings panel:
 
-### Audius
-1. Get an API key from [Audius Developers](https://developers.audius.co/)
-2. Open the browser console (F12)
-3. Run: `saveCredentials('audius', { apiKey: 'YOUR_API_KEY' })`
+### Demo Mode (Default)
+- **8 Demo Tracks**: Pre-loaded with playable audio from reliable sources
+- **No API Keys Required**: Works immediately upon opening
+- **Full Functionality**: All player features work with demo content
+- **Search Filtering**: Demo tracks can be filtered by search terms
 
-### YouTube
-1. Get an API key from [Google Cloud Console](https://console.cloud.google.com/)
-2. Open the browser console (F12)
-3. Run: `saveCredentials('youtube', { apiKey: 'YOUR_API_KEY' })`
+### Real API Integration (Optional)
+To access real music from the platforms, configure API keys via the Settings panel:
 
-### Jamendo
-1. Get a client ID from [Jamendo Developers](https://developer.jamendo.com/v3.0/)
-2. Open the browser console (F12)
-3. Run: `saveCredentials('jamendo', { clientId: 'YOUR_CLIENT_ID' })`
+1. Click the **Settings** button (gear icon) in the header
+2. Enter your API keys for the desired services
+3. Click **Save Settings**
+4. Search will now use real APIs in addition to demo content
 
-### Spotify
-1. Get client ID and secret from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
-2. Open the browser console (F12)
-3. Run: `saveCredentials('spotify', { clientId: 'YOUR_CLIENT_ID', clientSecret: 'YOUR_CLIENT_SECRET' })`
+**Services Available:**
+- **Audius**: Free, decentralized music streaming
+- **YouTube**: Largest video music library  
+- **Jamendo**: Free music from independent artists
+- **Spotify**: Premium music streaming (preview clips only)
 
-**Note**: The app works with mock data without any API keys configured, so you can test it immediately.
+**Getting API Keys:**
+- [Audius Developers](https://developers.audius.co/)
+- [Google Cloud Console](https://console.cloud.google.com/) (YouTube)
+- [Jamendo Developers](https://developer.jamendo.com/v3.0/)
+- [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
+
+**Note**: The app works perfectly with demo audio without any API keys. API keys are optional for accessing real content from the platforms.
 
 ## Keyboard Shortcuts
 

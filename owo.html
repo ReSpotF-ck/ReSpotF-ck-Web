@@ -918,7 +918,7 @@
             <div class="modal-title">🔐 Enter PIN</div>
             <div class="modal-desc">Enter the access code to continue to Spotfuck</div>
             <div class="modal-desc" style="font-size: 12px; color: #666; margin-top: -10px;">
-                PIN: 1412 | Type on keyboard or click buttons | Bypass: Ctrl+Shift+P
+                Hint: Think like a hacker... N3K0 | Type on keyboard or click buttons | Press Enter to submit
             </div>
             <div class="pin-display">
                 <div class="pin-dot"></div>
@@ -939,6 +939,12 @@
                 <button class="pin-key clear" id="clearPin">Clear</button>
                 <button class="pin-key" data-num="0">0</button>
                 <button class="pin-key clear" id="deletePin">⌫</button>
+            </div>
+            <div class="pin-keypad" style="margin-top: 10px;">
+                <button class="pin-key" data-num="N">N</button>
+                <button class="pin-key" data-num="E">E</button>
+                <button class="pin-key" data-num="K">K</button>
+                <button class="pin-key" data-num="O">O</button>
             </div>
             <div id="pinError" style="color: #ef4444; text-align: center; margin-top: 20px; display: none;">Incorrect PIN</div>
             <button id="bypassPin" style="margin-top: 15px; padding: 8px 16px; background: #333; color: #666; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bypass PIN (Dev)</button>
@@ -1224,7 +1230,7 @@
         
         // PIN System
         let enteredPin = '';
-        const correctPin = '1412';
+        const correctPin = 'N3K0';
         
         function initPinSystem() {
             pinModal = document.getElementById('pinModal');
@@ -1317,10 +1323,10 @@
             // Only handle keyboard input when PIN modal is active
             if (!pinModal || !pinModal.classList.contains('active')) return;
 
-            // Handle number keys (0-9)
-            if (e.key >= '0' && e.key <= '9') {
+            // Handle number keys (0-9) and letter keys (A-Z, a-z)
+            if ((e.key >= '0' && e.key <= '9') || (e.key >= 'A' && e.key <= 'Z') || (e.key >= 'a' && e.key <= 'z')) {
                 if (enteredPin.length < 4) {
-                    enteredPin += e.key;
+                    enteredPin += e.key.toUpperCase();
                     updatePinDisplay();
                     if (enteredPin.length === 4) {
                         validatePin();
@@ -1338,6 +1344,11 @@
             else if (e.key === 'Enter') {
                 if (enteredPin.length === 4) {
                     validatePin();
+                } else {
+                    // Auto-submit if PIN is correct even if not 4 chars
+                    if (enteredPin === correctPin) {
+                        validatePin();
+                    }
                 }
                 e.preventDefault();
             }

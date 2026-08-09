@@ -748,26 +748,37 @@
         
         .pin-keypad {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            max-width: 500px;
+            margin: 0 auto;
         }
         
         .pin-key {
-            padding: 20px;
-            border-radius: 12px;
+            padding: 15px 8px;
+            border-radius: 8px;
             border: none;
             background: var(--bg-hover);
             color: var(--text-primary);
-            font-size: 24px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
             border: 1px solid var(--border);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .pin-key:hover {
             background: var(--primary);
             border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .pin-key:active {
+            transform: translateY(0);
         }
         
         .pin-key.clear {
@@ -779,6 +790,21 @@
         .pin-key.clear:hover {
             background: var(--primary);
             color: white;
+        }
+        
+        .pin-key.enter {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            grid-column: span 2;
+        }
+        
+        .pin-key.enter:hover {
+            background: var(--primary-dark);
+        }
+        
+        .pin-key.space {
+            grid-column: span 6;
         }
         
         /* Mobile Responsive */
@@ -865,13 +891,48 @@
             }
             
             .modal {
-                padding: 24px;
-                margin: 16px;
+                padding: 20px;
+                margin: 12px;
+                max-width: calc(100% - 24px);
+            }
+            
+            .pin-keypad {
+                grid-template-columns: repeat(10, 1fr);
+                gap: 4px;
+                max-width: 100%;
             }
             
             .pin-key {
+                padding: 10px 4px;
+                font-size: 12px;
+                min-height: 40px;
+                border-radius: 4px;
+            }
+            
+            .pin-key.enter {
+                font-size: 11px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .pin-keypad {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 6px;
+            }
+            
+            .pin-key {
+                padding: 12px 6px;
+                font-size: 14px;
+                min-height: 45px;
+            }
+            
+            .pin-key.enter {
+                grid-column: span 1;
+            }
+            
+            .modal {
                 padding: 16px;
-                font-size: 20px;
+                margin: 8px;
             }
         }
         
@@ -918,7 +979,7 @@
             <div class="modal-title">🔐 Enter PIN</div>
             <div class="modal-desc">Enter the access code to continue to Spotfuck</div>
             <div class="modal-desc" style="font-size: 12px; color: #666; margin-top: -10px;">
-                Hint: Think like a hacker... N3K0 | Type on keyboard or click buttons | Press Enter to submit
+                Hint: Think like a hacker... N3K0 | Type on keyboard or click buttons
             </div>
             <div class="pin-display">
                 <div class="pin-dot"></div>
@@ -936,15 +997,36 @@
                 <button class="pin-key" data-num="7">7</button>
                 <button class="pin-key" data-num="8">8</button>
                 <button class="pin-key" data-num="9">9</button>
-                <button class="pin-key clear" id="clearPin">Clear</button>
                 <button class="pin-key" data-num="0">0</button>
-                <button class="pin-key clear" id="deletePin">⌫</button>
-            </div>
-            <div class="pin-keypad" style="margin-top: 10px;">
-                <button class="pin-key" data-num="N">N</button>
+                <button class="pin-key" data-num="Q">Q</button>
+                <button class="pin-key" data-num="W">W</button>
                 <button class="pin-key" data-num="E">E</button>
-                <button class="pin-key" data-num="K">K</button>
+                <button class="pin-key" data-num="R">R</button>
+                <button class="pin-key" data-num="T">T</button>
+                <button class="pin-key" data-num="Y">Y</button>
+                <button class="pin-key" data-num="U">U</button>
+                <button class="pin-key" data-num="I">I</button>
                 <button class="pin-key" data-num="O">O</button>
+                <button class="pin-key" data-num="P">P</button>
+                <button class="pin-key" data-num="A">A</button>
+                <button class="pin-key" data-num="S">S</button>
+                <button class="pin-key" data-num="D">D</button>
+                <button class="pin-key" data-num="F">F</button>
+                <button class="pin-key" data-num="G">G</button>
+                <button class="pin-key" data-num="H">H</button>
+                <button class="pin-key" data-num="J">J</button>
+                <button class="pin-key" data-num="K">K</button>
+                <button class="pin-key" data-num="L">L</button>
+                <button class="pin-key" data-num="Z">Z</button>
+                <button class="pin-key" data-num="X">X</button>
+                <button class="pin-key" data-num="C">C</button>
+                <button class="pin-key" data-num="V">V</button>
+                <button class="pin-key" data-num="B">B</button>
+                <button class="pin-key" data-num="N">N</button>
+                <button class="pin-key" data-num="M">M</button>
+                <button class="pin-key clear" id="deletePin">⌫</button>
+                <button class="pin-key enter" id="submitPin">Enter</button>
+                <button class="pin-key clear" id="clearPin">Clear</button>
             </div>
             <div id="pinError" style="color: #ef4444; text-align: center; margin-top: 20px; display: none;">Incorrect PIN</div>
             <button id="bypassPin" style="margin-top: 15px; padding: 8px 16px; background: #333; color: #666; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bypass PIN (Dev)</button>
@@ -1302,6 +1384,18 @@
                     enteredPin = correctPin;
                     updatePinDisplay();
                     validatePin();
+                });
+            }
+            
+            // Submit PIN button
+            const submitBtn = document.getElementById('submitPin');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Submit PIN clicked');
+                    if (enteredPin.length > 0) {
+                        validatePin();
+                    }
                 });
             }
             

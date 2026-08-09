@@ -2,6 +2,12 @@
 
 A modern, completely redesigned music streaming application that aggregates music from multiple free and legal APIs including Audius, YouTube, Spotify, and Jamendo.
 
+## 🌐 Live Demo
+
+- **Netlify**: https://respotfck.netlify.app
+- **StaticHost**: https://respotfck.statichost.page
+- **GitHub Pages**: https://respotf-ck.github.io/ReSpotFuck-Web/
+
 ## ✨ Features
 
 - **🎵 Multi-Source Streaming**: Access music from Audius (completely FREE), YouTube, Spotify, and Jamendo

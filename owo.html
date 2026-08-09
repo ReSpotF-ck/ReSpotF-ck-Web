@@ -666,13 +666,10 @@
             justify-content: center;
             z-index: 2000;
             backdrop-filter: blur(10px);
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
         
         .modal-overlay.active {
-            display: flex;
-            opacity: 1;
+            display: flex !important;
         }
         
         .modal {
@@ -683,12 +680,6 @@
             width: 90%;
             border: 1px solid var(--border);
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            transform: scale(0.9) translateY(20px);
-            transition: transform 0.3s ease;
-        }
-        
-        .modal-overlay.active .modal {
-            transform: scale(1) translateY(0);
         }
         
         .modal-title {
@@ -1147,8 +1138,8 @@
     </style>
 </head>
 <body>
-    <!-- PIN Modal -->
-    <div id="pinModal" class="modal-overlay active">
+    <!-- PIN Modal - Temporarily disabled for testing -->
+    <div id="pinModal" class="modal-overlay" style="display: none;">
         <div class="modal">
             <div class="modal-title">🔐 Enter PIN</div>
             <div class="modal-desc">Enter the access code to continue to Spotfuck</div>
@@ -1208,7 +1199,7 @@
     </div>
     
     <!-- Disclaimer Modal -->
-    <div id="disclaimerModal" class="modal-overlay">
+    <div id="disclaimerModal" class="modal-overlay active">
         <div class="modal">
             <div class="modal-title">⚠️ Disclaimer</div>
             <div class="modal-desc">
@@ -1605,37 +1596,37 @@
             initKeyboardShortcuts();
         });
         
-        // Security: Disable right-click, text selection, and drag-drop
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('selectstart', e => e.preventDefault());
-        document.addEventListener('dragstart', e => e.preventDefault());
+        // Security features temporarily disabled for PIN testing
+        // document.addEventListener('contextmenu', e => e.preventDefault());
+        // document.addEventListener('selectstart', e => e.preventDefault());
+        // document.addEventListener('dragstart', e => e.preventDefault());
         
-        // Security: Dev tools detection
-        let devtoolsOpen = false;
-        const threshold = 160;
+        // Security: Dev tools detection - temporarily disabled
+        // let devtoolsOpen = false;
+        // const threshold = 160;
         
-        const checkDevTools = () => {
-            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
-            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
-            
-            if (widthThreshold || heightThreshold) {
-                if (!devtoolsOpen) {
-                    devtoolsOpen = true;
-                    console.clear();
-                    console.log('%c⚠️ Developer tools detected!', 'color: #ef4444; font-size: 20px; font-weight: bold;');
-                    console.log('%cThis action has been logged.', 'color: #666;');
-                }
-            } else {
-                devtoolsOpen = false;
-            }
-        };
+        // const checkDevTools = () => {
+        //     const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+        //     const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+        //     
+        //     if (widthThreshold || heightThreshold) {
+        //         if (!devtoolsOpen) {
+        //             devtoolsOpen = true;
+        //             console.clear();
+        //             console.log('%c⚠️ Developer tools detected!', 'color: #ef4444; font-size: 20px; font-weight: bold;');
+        //             console.log('%cThis action has been logged.', 'color: #666;');
+        //         }
+        //     } else {
+        //         devtoolsOpen = false;
+        //     }
+        // };
         
-        setInterval(checkDevTools, 1000);
+        // setInterval(checkDevTools, 1000);
         
-        // Security: Clear console periodically
-        setInterval(() => {
-            console.clear();
-        }, 30000);
+        // Security: Clear console periodically - temporarily disabled
+        // setInterval(() => {
+        //     console.clear();
+        // }, 30000);
         
         // State
         let currentSource = 'audius';

@@ -47,6 +47,18 @@
             border-radius: 16px;
             border: 1px solid var(--border);
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .vinyl {
@@ -138,6 +150,22 @@
             outline: none;
             border-color: var(--primary);
             background: var(--bg-card);
+            transform: scale(1.01);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+        
+        .form-group:nth-child(1) input { animation-delay: 0.1s; }
+        .form-group:nth-child(2) input { animation-delay: 0.2s; }
+        .form-group:nth-child(3) textarea { animation-delay: 0.3s; }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
         }
         
         .form-group textarea {
@@ -157,11 +185,18 @@
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            animation: fadeIn 0.5s ease 0.4s forwards;
+            opacity: 0;
         }
         
         .btn:hover {
             background: var(--primary-dark);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
         }
         
         .divider {

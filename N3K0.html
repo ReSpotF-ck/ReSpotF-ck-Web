@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotfuck - Free Music Streaming</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- PIN Entry Overlay -->
+    <div class="pin-overlay" id="pinOverlay">
+        <div class="pin-container">
+            <div class="pin-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h1 class="pin-title">Restricted Access</h1>
+            <p class="pin-subtitle">Enter PIN to access Spotfuck</p>
+            
+            <div class="pin-input-container">
+                <input type="password" class="pin-input" id="pinInput" placeholder="Enter PIN" maxlength="8">
+                <button class="pin-toggle-btn" id="pinToggleBtn">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            
+            <button class="pin-submit-btn" id="pinSubmitBtn">
+                <i class="fas fa-unlock"></i> Access
+            </button>
+            
+            <div class="pin-error" id="pinError">
+                <i class="fas fa-times-circle"></i>
+                <span>Incorrect PIN. Access denied.</span>
+            </div>
+            
+            <div class="pin-hint">
+                <p>Hint: The PIN is the filename without the extension</p>
+            </div>
+            
+            <div class="pin-bypass">
+                <button class="bypass-btn" id="bypassBtn">
+                    <i class="fas fa-key"></i> Bypass (Admin)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="logo-text">Spotfuck</div>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" id="dmcaBtn">
+                    <i class="fas fa-exclamation-triangle"></i> DMCA
+                </button>
+                <button class="header-btn" id="settingsBtn">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+                <a href="signin.html" class="header-btn primary" id="loginBtn">
+                    <i class="fas fa-user"></i> Sign In
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Library</div>
+                    <div class="sidebar-item active" id="homeBtn">
+                        <i class="fas fa-home"></i> Home
+                    </div>
+                    <div class="sidebar-item" id="likedSongsBtn">
+                        <i class="fas fa-heart"></i> Liked Songs
+                    </div>
+                    <div class="sidebar-item" id="recentlyPlayedBtn">
+                        <i class="fas fa-clock"></i> Recently Played
+                    </div>
+                    <div class="sidebar-item" id="queueBtn">
+                        <i class="fas fa-list"></i> Queue
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Music Sources</div>
+                    <div class="sidebar-item" id="audiusBtn">
+                        <i class="fas fa-audio-description"></i> Audius
+                    </div>
+                    <div class="sidebar-item" id="youtubeBtn">
+                        <i class="fab fa-youtube"></i> YouTube
+                    </div>
+                    <div class="sidebar-item" id="jamendoBtn">
+                        <i class="fas fa-music"></i> Jamendo
+                    </div>
+                    <div class="sidebar-item" id="spotifyBtn">
+                        <i class="fab fa-spotify"></i> Spotify
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content-area">
+                <!-- Source Tabs -->
+                <div class="source-tabs">
+                    <button class="source-tab active" data-source="all">
+                        <i class="fas fa-globe"></i> All Sources
+                    </button>
+                    <button class="source-tab" data-source="audius">
+                        <i class="fas fa-audio-description"></i> Audius
+                    </button>
+                    <button class="source-tab" data-source="youtube">
+                        <i class="fab fa-youtube"></i> YouTube
+                    </button>
+                    <button class="source-tab" data-source="jamendo">
+                        <i class="fas fa-music"></i> Jamendo
+                    </button>
+                    <button class="source-tab" data-source="spotify">
+                        <i class="fab fa-spotify"></i> Spotify
+                    </button>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search for tracks, artists, albums...">
+                        <button class="search-btn" id="searchBtn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Track List -->
+                <div class="track-list" id="trackList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <h3 class="empty-state-title">Start Listening</h3>
+                        <p class="empty-state-text">Search for your favorite music or explore recommendations</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Player -->
+        <div class="player">
+            <div class="player-info">
+                <div class="track-art" id="trackArt">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="track-details">
+                    <div class="track-title" id="trackTitle">No track selected</div>
+                    <div class="track-artist" id="trackArtist">-</div>
+                </div>
+                <button class="like-btn" id="likeBtn">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+
+            <div class="player-controls">
+                <button class="control-btn" id="shuffleBtn">
+                    <i class="fas fa-random"></i>
+                </button>
+                <button class="control-btn" id="prevBtn">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button class="play-btn" id="playPauseBtn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="control-btn" id="nextBtn">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+                <button class="control-btn" id="repeatBtn">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+
+            <div class="player-progress">
+                <div class="time-display" id="currentTime">0:00</div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="time-display" id="duration">0:00</div>
+            </div>
+
+            <div class="player-volume">
+                <button class="volume-btn" id="volumeBtn">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN Overlay Styles -->
+    <style>
+        .pin-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(13, 13, 13, 0.98));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .pin-overlay.hidden {
+            display: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .pin-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .pin-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 32px;
+            color: white;
+            box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 10px 40px rgba(239, 68, 68, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 15px 50px rgba(239, 68, 68, 0.4);
+            }
+        }
+        
+        .pin-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .pin-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        
+        .pin-input-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        
+        .pin-input {
+            width: 100%;
+            padding: 16px 50px 16px 20px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .pin-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .pin-input::placeholder {
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+        
+        .pin-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .pin-toggle-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+        
+        .pin-submit-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--primary);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+        
+        .pin-submit-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+        }
+        
+        .pin-submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .pin-error {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            color: var(--primary);
+            font-size: 14px;
+            align-items: center;
+            gap: 8px;
+            animation: shake 0.5s ease;
+        }
+        
+        .pin-error.active {
+            display: flex;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .pin-hint {
+            margin-bottom: 20px;
+        }
+        
+        .pin-hint p {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        
+        .pin-bypass {
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        
+        .bypass-btn {
+            width: 100%;
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .bypass-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+        }
+    </style>
+
+    <!-- Hidden YouTube Player -->
+    <div id="youtubePlayer" style="display: none;"></div>
+    
+    <!-- Audio Player -->
+    <audio id="audioPlayer"></audio>
+
+    <!-- DMCA Modal -->
+    <div class="dmca-modal" id="dmcaModal">
+        <div class="dmca-modal-content">
+            <div class="dmca-modal-header">
+                <div class="dmca-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h2>DMCA & Copyright Notice</h2>
+                <button class="dmca-close-btn" id="dmcaCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="dmca-modal-body">
+                <div class="dmca-section">
+                    <h3><i class="fas fa-info-circle"></i> Important Notice</h3>
+                    <p>This application aggregates music from various public sources including Audius, YouTube, Jamendo, and Spotify APIs. We do not host any copyrighted content on our servers.</p>
+                </div>
+                
+                <div class="dmca-section">
+                    <h3><i class="fas fa-shield-alt"></i> Content Sources</h3>
+                    <ul>
+                        <li><strong>Audius:</strong> Decentralized music platform with artist-uploaded content</li>
+                        <li><strong>YouTube:</strong> User-generated content platform</li>
+                        <li><strong>Jamendo:</strong> Free music from independent artists</li>
+                        <li><strong>Spotify:</strong> Preview clips only (requires API access)</li>
+                    </ul>
+                </div>
+                
+                <div class="dmca-section">
+                    <h3><i class="fas fa-balance-scale"></i> Copyright Policy</h3>
+                    <p>We respect copyright laws and intellectual property rights. If you believe any content infringes on your copyright, please contact the respective content provider directly to file a DMCA takedown request.</p>
+                </div>
+                
+                <div class="dmca-section">
+                    <h3><i class="fas fa-user-shield"></i> User Responsibility</h3>
+                    <p>Users are responsible for ensuring they have the right to access and stream content. This application is for educational and personal use only. Always comply with the terms of service of the respective platforms.</p>
+                </div>
+                
+                <div class="dmca-disclaimer">
+                    <strong>Disclaimer:</strong> This application is not affiliated with, endorsed by, or connected to any of the music platforms mentioned. All trademarks and copyrights belong to their respective owners.
+                </div>
+            </div>
+            <div class="dmca-modal-footer">
+                <button class="dmca-acknowledge-btn" id="dmcaAcknowledgeBtn">
+                    <i class="fas fa-check"></i> I Understand
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <div class="settings-icon">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <h2>API Settings</h2>
+                <button class="settings-close-btn" id="settingsCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="settings-modal-body">
+                <div class="settings-section">
+                    <h3><i class="fas fa-audio-description"></i> Audius API</h3>
+                    <div class="settings-input-group">
+                        <label>API Key</label>
+                        <input type="text" class="settings-input" id="audiusApiKey" placeholder="Enter your Audius API key">
+                    </div>
+                    <p class="settings-help">Get your API key from <a href="https://developers.audius.co/" target="_blank">Audius Developers</a></p>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fab fa-youtube"></i> YouTube API</h3>
+                    <div class="settings-input-group">
+                        <label>API Key</label>
+                        <input type="text" class="settings-input" id="youtubeApiKey" placeholder="Enter your YouTube API key">
+                    </div>
+                    <p class="settings-help">Get your API key from <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></p>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-music"></i> Jamendo API</h3>
+                    <div class="settings-input-group">
+                        <label>Client ID</label>
+                        <input type="text" class="settings-input" id="jamendoClientId" placeholder="Enter your Jamendo Client ID">
+                    </div>
+                    <p class="settings-help">Get your Client ID from <a href="https://developer.jamendo.com/v3.0/" target="_blank">Jamendo Developers</a></p>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fab fa-spotify"></i> Spotify API</h3>
+                    <div class="settings-input-group">
+                        <label>Client ID</label>
+                        <input type="text" class="settings-input" id="spotifyClientId" placeholder="Enter your Spotify Client ID">
+                    </div>
+                    <div class="settings-input-group">
+                        <label>Client Secret</label>
+                        <input type="password" class="settings-input" id="spotifyClientSecret" placeholder="Enter your Spotify Client Secret">
+                    </div>
+                    <p class="settings-help">Get your credentials from <a href="https://developer.spotify.com/dashboard/" target="_blank">Spotify Developer Dashboard</a></p>
+                </div>
+                
+                <div class="settings-section">
+                    <h3><i class="fas fa-sliders-h"></i> Playback Settings</h3>
+                    <div class="settings-input-group">
+                        <label>Default Volume</label>
+                        <input type="range" class="settings-range" id="defaultVolume" min="0" max="100" value="100">
+                        <span class="range-value" id="volumeValue">100%</span>
+                    </div>
+                    <div class="settings-checkbox-group">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" id="autoPlayNext">
+                            <span>Auto-play next track</span>
+                        </label>
+                    </div>
+                    <div class="settings-checkbox-group">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" id="showNotifications">
+                            <span>Show playback notifications</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-modal-footer">
+                <button class="settings-reset-btn" id="settingsResetBtn">
+                    <i class="fas fa-undo"></i> Reset to Defaults
+                </button>
+                <button class="settings-save-btn" id="settingsSaveBtn">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .dmca-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .dmca-modal.active {
+            display: flex;
+        }
+        
+        .dmca-modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+            margin: 20px;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dmca-modal-header {
+            display: flex;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            z-index: 10;
+        }
+        
+        .dmca-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .dmca-modal-header h2 {
+            flex: 1;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .dmca-close-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .dmca-close-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .dmca-modal-body {
+            padding: 24px;
+        }
+        
+        .dmca-section {
+            margin-bottom: 24px;
+        }
+        
+        .dmca-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .dmca-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .dmca-section h3 i {
+            color: #f59e0b;
+        }
+        
+        .dmca-section p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .dmca-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .dmca-section li {
+            font-size: 14px;
+            color: var(--text-secondary);
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+        }
+        
+        .dmca-section li::before {
+            content: '•';
+            position: absolute;
+            left: 8px;
+            color: var(--primary);
+        }
+        
+        .dmca-disclaimer {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 13px;
+            color: #f59e0b;
+            line-height: 1.5;
+        }
+        
+        .dmca-modal-footer {
+            padding: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            position: sticky;
+            bottom: 0;
+            background: var(--bg-card);
+        }
+        
+        .dmca-acknowledge-btn {
+            padding: 12px 24px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .dmca-acknowledge-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        /* Add scrollbar styling for modal */
+        .dmca-modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .dmca-modal-content::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        
+        .dmca-modal-content::-webkit-scrollbar-thumb {
+            background: var(--bg-hover);
+            border-radius: 3px;
+        }
+        
+        .dmca-modal-content::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        /* Settings Modal Styles */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .settings-modal.active {
+            display: flex;
+        }
+        
+        .settings-modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+            margin: 20px;
+        }
+        
+        .settings-modal-header {
+            display: flex;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            z-index: 10;
+        }
+        
+        .settings-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .settings-modal-header h2 {
+            flex: 1;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .settings-close-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .settings-close-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .settings-modal-body {
+            padding: 24px;
+        }
+        
+        .settings-section {
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .settings-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .settings-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .settings-section h3 i {
+            color: var(--primary);
+        }
+        
+        .settings-input-group {
+            margin-bottom: 16px;
+        }
+        
+        .settings-input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .settings-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .settings-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .settings-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .settings-help {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+        
+        .settings-help a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .settings-help a:hover {
+            text-decoration: underline;
+        }
+        
+        .settings-range {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-hover);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .settings-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .settings-range::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .range-value {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+        
+        .settings-checkbox-group {
+            margin-bottom: 12px;
+        }
+        
+        .settings-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .settings-checkbox input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+        
+        .settings-modal-footer {
+            padding: 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            position: sticky;
+            bottom: 0;
+            background: var(--bg-card);
+        }
+        
+        .settings-reset-btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .settings-reset-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .settings-save-btn {
+            padding: 12px 24px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .settings-save-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .settings-modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .settings-modal-content::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        
+        .settings-modal-content::-webkit-scrollbar-thumb {
+            background: var(--bg-hover);
+            border-radius: 3px;
+        }
+        
+        .settings-modal-content::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+    </style>
+
+    <script>
+        // PIN Entry System
+        document.addEventListener('DOMContentLoaded', function() {
+            const pinOverlay = document.getElementById('pinOverlay');
+            const pinInput = document.getElementById('pinInput');
+            const pinSubmitBtn = document.getElementById('pinSubmitBtn');
+            const pinToggleBtn = document.getElementById('pinToggleBtn');
+            const pinError = document.getElementById('pinError');
+            const bypassBtn = document.getElementById('bypassBtn');
+            const appContainer = document.getElementById('appContainer');
+            
+            const CORRECT_PIN = 'N3K0';
+            const BYPASS_CODE = 'ADMIN';
+            
+            // Check if already authenticated
+            if (localStorage.getItem('pinAuthenticated') === 'true') {
+                showApp();
+            }
+            
+            // PIN Toggle (show/hide)
+            pinToggleBtn.addEventListener('click', () => {
+                const type = pinInput.type === 'password' ? 'text' : 'password';
+                pinInput.type = type;
+                pinToggleBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+            });
+            
+            // PIN Submission
+            pinSubmitBtn.addEventListener('click', validatePIN);
+            pinInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') validatePIN();
+            });
+            
+            function validatePIN() {
+                const enteredPin = pinInput.value.trim().toUpperCase();
+                
+                if (enteredPin === CORRECT_PIN) {
+                    // Correct PIN
+                    localStorage.setItem('pinAuthenticated', 'true');
+                    showApp();
+                } else if (enteredPin === BYPASS_CODE) {
+                    // Admin bypass
+                    localStorage.setItem('pinAuthenticated', 'true');
+                    localStorage.setItem('adminBypass', 'true');
+                    showApp();
+                } else {
+                    // Incorrect PIN
+                    showError();
+                    pinInput.value = '';
+                    pinInput.focus();
+                }
+            }
+            
+            function showError() {
+                pinError.classList.add('active');
+                setTimeout(() => {
+                    pinError.classList.remove('active');
+                }, 3000);
+            }
+            
+            function showApp() {
+                pinOverlay.classList.add('hidden');
+                appContainer.style.display = 'flex';
+                
+                // Trigger DMCA modal if not acknowledged
+                setTimeout(() => {
+                    const dmcaModal = document.getElementById('dmcaModal');
+                    if (dmcaModal && !localStorage.getItem('dmcaAcknowledged')) {
+                        dmcaModal.classList.add('active');
+                    }
+                }, 500);
+            }
+            
+            // Bypass button
+            bypassBtn.addEventListener('click', () => {
+                const confirmBypass = confirm('Admin bypass: Are you sure you want to skip PIN verification?');
+                if (confirmBypass) {
+                    localStorage.setItem('pinAuthenticated', 'true');
+                    localStorage.setItem('adminBypass', 'true');
+                    showApp();
+                }
+            });
+            
+            // Keyboard shortcut for bypass (Ctrl+Shift+B)
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey && e.key === 'B') {
+                    e.preventDefault();
+                    localStorage.setItem('pinAuthenticated', 'true');
+                    localStorage.setItem('adminBypass', 'true');
+                    showApp();
+                }
+            });
+            
+            // Focus PIN input on load
+            if (!localStorage.getItem('pinAuthenticated')) {
+                pinInput.focus();
+            }
+            
+            // DMCA Modal functionality
+            const dmcaBtn = document.getElementById('dmcaBtn');
+            const dmcaModal = document.getElementById('dmcaModal');
+            const dmcaCloseBtn = document.getElementById('dmcaCloseBtn');
+            const dmcaAcknowledgeBtn = document.getElementById('dmcaAcknowledgeBtn');
+            
+            if (dmcaBtn) {
+                dmcaBtn.addEventListener('click', () => {
+                    dmcaModal.classList.add('active');
+                });
+            }
+            
+            if (dmcaCloseBtn) {
+                dmcaCloseBtn.addEventListener('click', () => {
+                    dmcaModal.classList.remove('active');
+                });
+            }
+            
+            if (dmcaAcknowledgeBtn) {
+                dmcaAcknowledgeBtn.addEventListener('click', () => {
+                    localStorage.setItem('dmcaAcknowledged', 'true');
+                    dmcaModal.classList.remove('active');
+                });
+            }
+            
+            // Close modal when clicking outside
+            if (dmcaModal) {
+                dmcaModal.addEventListener('click', (e) => {
+                    if (e.target === dmcaModal) {
+                        dmcaModal.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Settings Modal functionality
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsModal = document.getElementById('settingsModal');
+            const settingsCloseBtn = document.getElementById('settingsCloseBtn');
+            const settingsSaveBtn = document.getElementById('settingsSaveBtn');
+            const settingsResetBtn = document.getElementById('settingsResetBtn');
+            
+            // Settings inputs
+            const audiusApiKey = document.getElementById('audiusApiKey');
+            const youtubeApiKey = document.getElementById('youtubeApiKey');
+            const jamendoClientId = document.getElementById('jamendoClientId');
+            const spotifyClientId = document.getElementById('spotifyClientId');
+            const spotifyClientSecret = document.getElementById('spotifyClientSecret');
+            const defaultVolume = document.getElementById('defaultVolume');
+            const volumeValue = document.getElementById('volumeValue');
+            const autoPlayNext = document.getElementById('autoPlayNext');
+            const showNotifications = document.getElementById('showNotifications');
+            
+            // Load saved settings
+            function loadSettings() {
+                const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+                
+                if (settings.audiusApiKey) audiusApiKey.value = settings.audiusApiKey;
+                if (settings.youtubeApiKey) youtubeApiKey.value = settings.youtubeApiKey;
+                if (settings.jamendoClientId) jamendoClientId.value = settings.jamendoClientId;
+                if (settings.spotifyClientId) spotifyClientId.value = settings.spotifyClientId;
+                if (settings.spotifyClientSecret) spotifyClientSecret.value = settings.spotifyClientSecret;
+                if (settings.defaultVolume) {
+                    defaultVolume.value = settings.defaultVolume;
+                    volumeValue.textContent = settings.defaultVolume + '%';
+                }
+                if (settings.autoPlayNext !== undefined) autoPlayNext.checked = settings.autoPlayNext;
+                if (settings.showNotifications !== undefined) showNotifications.checked = settings.showNotifications;
+            }
+            
+            // Save settings
+            function saveSettings() {
+                const settings = {
+                    audiusApiKey: audiusApiKey.value.trim(),
+                    youtubeApiKey: youtubeApiKey.value.trim(),
+                    jamendoClientId: jamendoClientId.value.trim(),
+                    spotifyClientId: spotifyClientId.value.trim(),
+                    spotifyClientSecret: spotifyClientSecret.value.trim(),
+                    defaultVolume: defaultVolume.value,
+                    autoPlayNext: autoPlayNext.checked,
+                    showNotifications: showNotifications.checked
+                };
+                
+                localStorage.setItem('spotfuckSettings', JSON.stringify(settings));
+                
+                // Update app.js API config if it exists
+                if (typeof window.updateAPIConfig === 'function') {
+                    window.updateAPIConfig(settings);
+                }
+                
+                // Show success feedback
+                const originalText = settingsSaveBtn.innerHTML;
+                settingsSaveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                settingsSaveBtn.style.background = 'var(--success)';
+                
+                setTimeout(() => {
+                    settingsSaveBtn.innerHTML = originalText;
+                    settingsSaveBtn.style.background = '';
+                }, 2000);
+            }
+            
+            // Reset settings
+            function resetSettings() {
+                if (confirm('Are you sure you want to reset all settings to defaults?')) {
+                    localStorage.removeItem('spotfuckSettings');
+                    loadSettings();
+                    
+                    // Show feedback
+                    const originalText = settingsResetBtn.innerHTML;
+                    settingsResetBtn.innerHTML = '<i class="fas fa-check"></i> Reset!';
+                    
+                    setTimeout(() => {
+                        settingsResetBtn.innerHTML = originalText;
+                    }, 2000);
+                }
+            }
+            
+            // Settings button click
+            if (settingsBtn) {
+                settingsBtn.addEventListener('click', () => {
+                    loadSettings();
+                    settingsModal.classList.add('active');
+                });
+            }
+            
+            // Close settings modal
+            if (settingsCloseBtn) {
+                settingsCloseBtn.addEventListener('click', () => {
+                    settingsModal.classList.remove('active');
+                });
+            }
+            
+            // Save settings
+            if (settingsSaveBtn) {
+                settingsSaveBtn.addEventListener('click', saveSettings);
+            }
+            
+            // Reset settings
+            if (settingsResetBtn) {
+                settingsResetBtn.addEventListener('click', resetSettings);
+            }
+            
+            // Volume slider display
+            if (defaultVolume && volumeValue) {
+                defaultVolume.addEventListener('input', () => {
+                    volumeValue.textContent = defaultVolume.value + '%';
+                });
+            }
+            
+            // Close modal when clicking outside
+            if (settingsModal) {
+                settingsModal.addEventListener('click', (e) => {
+                    if (e.target === settingsModal) {
+                        settingsModal.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Make settings available globally for app.js
+            window.getSettings = function() {
+                return JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+            };
+            
+            // Expose settings modal functions globally
+            window.openSettings = function() {
+                loadSettings();
+                settingsModal.classList.add('active');
+            };
+            
+            window.closeSettings = function() {
+                settingsModal.classList.remove('active');
+            };
+        });
+    </script>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

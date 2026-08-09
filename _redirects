@@ -1,9 +1,0 @@
-# Netlify redirects file
-# Format: from_path to_path status_code
-
-# Main redirect - root to index
-/ /index.html 200
-
-# Handle common paths
-/signin /SignIn.html 200
-/404 /404.html 200

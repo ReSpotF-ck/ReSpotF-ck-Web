@@ -1,97 +1,75 @@
-# Spotfuck
+# Spotfuck - Free Music Streaming Platform
 
-Spotfuck is an open-source music streaming web application with a Spotify mobile-inspired design and AMOLED red theme. It integrates with multiple music APIs to provide a unified listening experience. The app fetches configuration from a GitHub repository, making it easy to manage API keys and settings across instances.
+A modern, completely redesigned music streaming application that aggregates music from multiple free and legal APIs including Audius, YouTube, Spotify, and Jamendo.
 
-**Live Demo:** https://respotfuck.netlify.app/
+## ✨ Features
 
-## Features
+- **🎵 Multi-Source Streaming**: Access music from Audius (completely FREE), YouTube, Spotify, and Jamendo
+- **🎨 Modern AMOLED Red Theme**: Beautiful dark interface optimized for OLED displays
+- **🎧 Full-Featured Player**: Play/pause, next/previous, shuffle, repeat, volume control with mute toggle
+- **❤️ Liked Songs Library**: Save your favorite tracks with persistent storage
+- **📋 Queue Management**: Add tracks to queue for later playback
+- **🕐 Recently Played**: Quick access to your listening history
+- **⌨️ Keyboard Shortcuts**: Space to play/pause, Shift+Arrow for navigation, Shift+S for shuffle, Shift+R for repeat
+- **📱 Mobile Responsive**: Optimized for all screen sizes
+- **🔐 PIN Protection**: Secure access with customizable PIN (default: 1412)
+- **🛡️ Security Features**: Dev tools detection, console clearing, right-click protection
+- **🔧 Dynamic Configuration**: Edit API keys directly in the app settings
+- **🆓 Free Music Option**: Audius works completely free without any API keys
+- **🎯 Smart Artwork Fallback**: Auto-generated avatars when artwork is unavailable
 
-- **Spotify Mobile-Style UI**: Clean, modern interface inspired by Spotify's mobile app
-- **AMOLED Red Theme**: Pure black background with red accents for true AMOLED displays
-- **Responsive Design**: Optimized for mobile, tablet, and desktop screens
-- **Full-Featured Player**: Progress bar with seek, volume control, shuffle/repeat, and time display
-- **Liked Songs Library**: Save your favorite tracks with persistent storage
-- **Queue Management**: Add tracks to queue for later playback
-- **Keyboard Shortcuts**: Full keyboard control for power users (Space, arrows, S/R/L/M keys)
-- **Bottom Player Bar**: Fixed bottom player with album art, controls, and track info
-- **Multi-Platform Integration**: Stream music from YouTube, Spotify, Jamendo, and Audius
-- **Enhanced Album Art**: High-resolution artwork fetching with multiple fallbacks
-- **GitHub-Based Configuration**: Automatically fetch API keys and settings from a `config.json` file in your GitHub repository
-- **Dynamic Configuration**: Change API keys and settings without redeploying the app
-- **Fallback Support**: Manual API key entry if repository fetch fails
-- **Free Music Option**: Audius works without API keys - no setup required
-- **Download/Save Tracks**: Download Audius and Jamendo tracks locally (with cache warning)
-- **Privacy Protection**: PIN required on every page load (PIN: 1412)
-- **Legal Compliance**: DMCA disclaimer shown on every visit
-- **Settings Export/Import**: Export settings as TXT, JSON, or screenshot; import from TXT or JSON files
-- **Comprehensive API Testing**: Built-in test suite for validating all API integrations
+## 🚀 Getting Started
 
-## Supported Music Services
+### Prerequisites
 
-- **Audius** (FREE): Decentralized music streaming platform - works without API keys
-- **YouTube**: Full YouTube Music library access via YouTube Data API v3 (requires API key)
-- **Spotify**: Spotify integration with OAuth authentication (requires Client ID & Secret)
-- **Jamendo**: Free tier access to Jamendo's music catalog (requires Client ID)
+- A modern web browser (Chrome, Firefox, Safari, Edge)
+- Optional: API keys for YouTube, Spotify, and Jamendo (Audius works for FREE without keys)
 
-## Requirements
+### Installation
 
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- GitHub account (for hosting config.json)
-- API keys for desired music services (except Audius - it's free!)
-- See [Setup Guide](SETUP_GUIDE.md) for detailed instructions
+1. Clone the repository:
+```bash
+git clone https://github.com/ReSpotF-ck/ReSpotFuck-Web.git
+cd ReSpotFuck-Web
+```
 
-## Quick Start
+2. Open `index.html` in your web browser
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/ReSpotF-ck/ReSpotFuck-Web.git
-   cd ReSpotFuck-Web
-   ```
+3. Enter the PIN code (default: `1412`) to access the application
 
-2. **Open the application**
-   - Simply open `owo.html` in your web browser
-   - Or deploy to Netlify/Vercel for hosting
+### 🔑 API Keys Setup
 
-3. **Start listening**
-   - The app defaults to Audius (FREE) - no setup required!
-   - Enter PIN: `1412` to unlock
-   - Accept the disclaimer
-   - Search and play music immediately
+#### Audius (FREE - No API Key Required)
+Audius works completely free without any API keys. No setup required!
 
-4. **Configure additional sources (optional)**
-   - Click the Settings button (gear icon)
-   - The app is pre-configured to fetch from: `https://github.com/ReSpotF-ck/ReSpotFuck-Web`
-   - Add your API keys to `config.json` in your GitHub repository
-   - Or enter API keys directly in Settings
+#### YouTube Data API v3
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the YouTube Data API v3
+4. Go to Credentials → Create Credentials → API Key
+5. Copy the API key and add it to the app settings
 
-For detailed setup instructions, see the [Setup Guide](SETUP_GUIDE.md).
+#### Spotify Web API
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
+2. Create a new app
+3. Copy the Client ID and Client Secret
+4. Add them to the app settings
 
-## Documentation
+#### Jamendo API
+1. Go to [Jamendo Developer](https://developer.jamendo.com/)
+2. Create an account and get a Client ID
+3. The default free tier Client ID is: `c4ce16c7`
+4. Add it to the app settings (or use the default)
 
-- **[README.md](README.md)** - This file (overview and quick start)
-- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Detailed setup and troubleshooting
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
-- **[NOTES.md](NOTES.md)** - Development notes and architecture
-- **[LICENSE](LICENSE)** - MIT License
+### ⚙️ Configuration
 
-## Getting API Keys
+The application supports multiple configuration methods:
 
-### YouTube API Key
-1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. Create a project and enable YouTube Data API v3
-3. Create credentials (API Key)
+1. **In-App Settings**: Use the Settings modal (gear icon) to add API keys (saved to localStorage)
+2. **Local Configuration**: Edit `config.json` directly in the repository
+3. **GitHub Configuration**: Store your config in a GitHub repository and fetch it dynamically
 
-### Spotify Credentials
-1. Go to [developer.spotify.com](https://developer.spotify.com)
-2. Create an app to get Client ID and Client Secret
-
-### Jamendo Client ID
-- Use the default free tier ID or get your own from [jamendo.com](https://jamendo.com)
-
-## Configuration
-
-Create a `config.json` file in your GitHub repository:
+#### config.json Structure
 
 ```json
 {
@@ -100,11 +78,11 @@ Create a `config.json` file in your GitHub repository:
       "clientId": "c4ce16c7"
     },
     "youtube": {
-      "apiKey": "YOUR_YOUTUBE_API_KEY"
+      "apiKey": "your-youtube-api-key"
     },
     "spotify": {
-      "clientId": "YOUR_SPOTIFY_CLIENT_ID",
-      "clientSecret": "YOUR_SPOTIFY_CLIENT_SECRET"
+      "clientId": "your-spotify-client-id",
+      "clientSecret": "your-spotify-client-secret"
     },
     "audius": {
       "enabled": true
@@ -112,109 +90,164 @@ Create a `config.json` file in your GitHub repository:
   },
   "app": {
     "name": "Spotfuck",
-    "version": "1.2.0",
+    "version": "3.0.0",
     "defaultSource": "audius",
     "pin": "1412"
   },
   "features": {
-    "downloads": {
-      "enabled": true,
-      "supportedSources": ["audius", "jamendo"]
-    },
+    "downloads": true,
     "library": {
       "likedSongs": true,
       "queue": true
     },
     "player": {
-      "keyboardShortcuts": true,
-      "bottomPlayer": true,
-      "progressBar": true
+      "shuffle": true,
+      "repeat": true,
+      "volumeControl": true
     }
   }
 }
 ```
 
-## Security Notes
-
-⚠️ **Important**: If using a public GitHub repository, your API keys will be visible to anyone. Consider:
-- Using a private repository (may require additional setup)
-- Using environment variables for production deployments
-- Rotating keys regularly if exposed
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 ReSpotFuck-Web/
-├── owo.html                # Main application
-├── api-handler.js          # API handler - separates API logic from UI
-├── index.html              # Landing page (auto-redirects to app)
-├── SignIn.html             # Sign in / access page
-├── 404.html                # 404 error page (auto-redirects to app)
-├── config.json             # Configuration file for API keys
-├── config.json.template    # Configuration template for custom setup
-├── test.html               # API test suite
-├── README.md               # This file
-├── SETUP_GUIDE.md          # Detailed setup instructions
-├── CHANGELOG.md            # Version history and changes
-├── CONTRIBUTING.md         # Contribution guidelines
-├── NOTES.md                # Development notes and architecture
-├── LICENSE                 # MIT License
-└── .gitignore              # Git ignore rules
+├── index.html              # Landing page with modern design
+├── owo.html                # Main application page (redesigned)
+├── SignIn.html             # Sign-in/access request page (redesigned)
+├── api-handler.js          # API integration logic (updated)
+├── ui-handler.js           # UI and player controls
+├── config.json             # Configuration file (not in git)
+├── config.json.template    # Configuration template
+├── test.html               # API testing suite
+└── README.md               # This file
 ```
 
-## Recent Updates (v1.2.0)
+## 📖 Usage
 
-- **Fixed Index Page**: Removed "Access Denied" screen, now redirects to main app
-- **Updated Sign In Page**: Added direct app access and GitHub repository links
-- **Enhanced API Handler**: Improved credential management and config loading
-- **Updated Configuration**: Added comprehensive feature flags and app settings
-- **Improved Test Suite**: Integrated with API handler for comprehensive testing
-- **Fixed 404 Page**: Now redirects to main app instead of external URL
-- **Better Error Handling**: More descriptive error messages and user feedback
-- **Streamlined Navigation**: All pages now properly integrate with main application
-- **Added Documentation**: Comprehensive CHANGELOG, CONTRIBUTING, and NOTES files
-- **Enhanced Project Structure**: Added config template and proper gitignore
+### Basic Usage
 
-## Testing APIs
+1. **Search Music**: Use the search bar to find tracks across all platforms
+2. **Switch Sources**: Click on source tabs (Audius, YouTube, Spotify, Jamendo) to search specific platforms
+3. **Play Tracks**: Click on any track to start playback
+4. **Player Controls**: Use the bottom player bar to control playback
+5. **Like Songs**: Click the heart icon to add tracks to your liked songs
+6. **Add to Queue**: Click the list icon to add tracks to your queue
+7. **Navigate Library**: Use the sidebar to access Home, Liked Songs, Recently Played, and Queue
 
-Use the built-in test suite (`test.html`) to verify your API integrations:
+### Keyboard Shortcuts
 
-1. Open `test.html` in your browser
-2. Enter your API credentials in the respective fields
-3. Click individual test buttons or "Run All API Tests"
-4. View detailed results and track listings
+- `Space`: Play/Pause
+- `Shift + →`: Next track
+- `Shift + ←`: Previous track
+- `Shift + S`: Toggle shuffle
+- `Shift + R`: Toggle repeat
 
-## License
+### 🔒 Security Features
 
-MIT License - See [LICENSE](LICENSE) file for details
+- **PIN Protection**: Default PIN is `1412` (configurable in config.json)
+- **Dev Tools Detection**: Detects when developer tools are opened
+- **Console Clearing**: Periodically clears the browser console
+- **Right-Click Disable**: Prevents context menu access
+- **Text Selection Disable**: Prevents text selection
+- **Drag-Drop Disable**: Prevents drag and drop operations
 
-## Contributors
+## 🎵 API Details
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+### Audius (FREE)
+- **Cost**: Completely FREE
+- **API Key**: Not required
+- **Features**: Full streaming, search, artist profiles
+- **Limitations**: None
+- **Status**: Always available as fallback
 
-- **ReSpotF-ck** - Project maintainer
-- **Devin** - Code generation and assistance
+### YouTube Data API v3
+- **Cost**: Free tier available (10,000 units/day)
+- **API Key**: Required
+- **Features**: Video streaming, search, playlists
+- **Limitations**: Quota limits, preview-only for some tracks
+- **Setup**: Requires Google Cloud project
 
-## Acknowledgments
+### Spotify Web API
+- **Cost**: Free for non-commercial use
+- **API Key**: Client ID and Secret required
+- **Features**: 30-second previews, search, artist info
+- **Limitations**: Preview-only (no full tracks)
+- **Setup**: Requires Spotify Developer account
 
-- **Audius** - Free decentralized music streaming platform
-- **Jamendo** - Free music platform with API access
-- **YouTube** - Music streaming via YouTube Data API
-- **Spotify** - Music discovery via Spotify Web API
-- **Font Awesome** - Icon library
-- **Tailwind CSS** - CSS framework (via CDN)
-- **html2canvas** - Screenshot functionality
+### Jamendo API
+- **Cost**: Free tier available
+- **API Key**: Client ID required (default: c4ce16c7)
+- **Features**: Full streaming, search, artist profiles
+- **Limitations**: Limited catalog compared to major platforms
+- **Setup**: Requires Jamendo Developer account
 
-## Contributing
+## 🎉 What's New in v3.0.0
 
-Pull requests are welcome! Please feel free to submit issues or enhancement requests. See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+### Complete Redesign
+- **Modern AMOLED Red Theme**: Beautiful dark interface with CSS custom properties
+- **Improved Layout**: Sidebar navigation with Home, Liked Songs, Recently Played, Queue
+- **Enhanced Player**: Volume control with mute toggle, better progress bar
+- **Responsive Design**: Optimized for mobile devices with collapsible sidebar
+- **Better Typography**: Inter font with improved readability
 
-## Support
+### Enhanced Features
+- **Smart Artwork Fallback**: Auto-generated avatars when artwork is unavailable
+- **Improved Search**: Better search UI with dedicated search button
+- **Source Badges**: Visual indicators for free sources (Audius)
+- **Better Modals**: Improved PIN modal, disclaimer, and settings modals
+- **Enhanced Security**: Improved dev tools detection and console clearing
+- **Persistent Queue**: Queue now saves to localStorage
 
-For issues or questions:
-- Check the [Setup Guide](SETUP_GUIDE.md) for troubleshooting
-- Review [NOTES.md](NOTES.md) for technical details
-- Verify your API keys are valid and have proper permissions
+### API Improvements
+- **Better Error Handling**: Improved error messages and retry functionality
+- **Default Jamendo Key**: Pre-configured with free tier client ID
+- **Improved Audius Integration**: Better track formatting and artwork handling
+- **Timeout Protection**: 15-second timeout for all API requests
+
+## 🛠️ Troubleshooting
+
+### Music Not Playing
+- Check if API keys are configured in Settings
+- Try switching to Audius (works without API keys)
+- Check your internet connection
+- Clear browser cache and localStorage
+
+### API Errors
+- Verify API keys are correct
+- Check API quota limits (especially YouTube)
+- Try the built-in test suite (test.html)
 - Check browser console for error messages
-- Use the test suite to validate API connectivity
-- See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
+
+### PIN Not Working
+- Default PIN is `1412`
+- Check config.json for custom PIN
+- Clear localStorage and try again
+
+## ⚖️ Legal Notice
+
+This application uses legal APIs to stream music. We do not host any copyrighted content. All music is streamed directly from the respective platforms' APIs. Users are responsible for complying with the terms of service of the respective music platforms.
+
+## 📜 DMCA Notice
+
+This application is for educational and personal use only. It does not host any copyrighted content. All music is provided through legal APIs from third-party services. By using this application, you agree to comply with all applicable laws and the terms of service of the respective music platforms.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+## 💬 Support
+
+For support, please open an issue on GitHub or join our community Discord/Telegram.
+
+## 🙏 Acknowledgments
+
+- [Audius](https://audius.co/) - Free, decentralized music streaming
+- [YouTube](https://youtube.com/) - Video and music platform
+- [Spotify](https://spotify.com/) - Music streaming service
+- [Jamendo](https://jamendo.com/) - Free music platform

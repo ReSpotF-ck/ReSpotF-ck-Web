@@ -3,10 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotfuck - Music Streaming</title>
+    <title>Spotfuck - Free Music Streaming</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #ef4444;
+            --primary-dark: #dc2626;
+            --primary-light: #f87171;
+            --bg-dark: #000000;
+            --bg-card: #0d0d0d;
+            --bg-hover: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border: rgba(255,255,255,0.08);
+            --success: #10b981;
+        }
         
         * {
             margin: 0;
@@ -16,17 +30,34 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
+            background: var(--bg-dark);
+            color: var(--text-primary);
             min-height: 100vh;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
         
-        /* Desktop Container */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-hover);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
         .app-container {
-            max-width: 1400px;
+            max-width: 1800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
         
         /* Header */
@@ -34,9 +65,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         
         .logo {
@@ -46,145 +81,88 @@
         }
         
         .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
         }
         
         .logo-text {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #10b981, #059669);
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .header-actions {
             display: flex;
             gap: 12px;
+            align-items: center;
         }
         
         .header-btn {
-            padding: 12px 20px;
-            border-radius: 10px;
+            padding: 10px 18px;
+            border-radius: 8px;
             border: none;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        
-        .header-btn.primary {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-        
-        .header-btn.secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
         }
         
         .header-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-1px);
         }
         
-        /* Source Tabs */
-        .source-tabs {
+        .header-btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .header-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        /* Main Layout */
+        .main-layout {
             display: flex;
-            gap: 12px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        
-        .source-tab {
-            padding: 14px 24px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            color: #888;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .source-tab:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-        
-        .source-tab.active {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-        
-        .source-tab i {
-            margin-right: 8px;
-        }
-        
-        /* Search Bar */
-        .search-container {
-            margin-bottom: 30px;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 18px 24px;
-            border-radius: 16px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #10b981;
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-        }
-        
-        .search-input::placeholder {
-            color: #666;
-        }
-        
-        /* Content Area */
-        .content-area {
-            display: grid;
-            grid-template-columns: 280px 1fr;
-            gap: 30px;
+            flex: 1;
+            overflow: hidden;
         }
         
         /* Sidebar */
         .sidebar {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 24px;
-            height: fit-content;
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
         }
         
         .sidebar-section {
-            margin-bottom: 30px;
+            margin-bottom: 32px;
         }
         
         .sidebar-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #888;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 16px;
@@ -195,77 +173,175 @@
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            color: #888;
-            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 500;
         }
         
         .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
+            background: var(--bg-hover);
+            color: var(--text-primary);
         }
         
         .sidebar-item.active {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
+            background: var(--primary);
+            color: white;
         }
         
-        /* Main Content */
-        .main-content {
-            min-height: 400px;
+        .sidebar-item i {
+            width: 20px;
+            text-align: center;
         }
         
-        .section-title {
-            font-size: 24px;
-            font-weight: 700;
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: var(--bg-dark);
+        }
+        
+        /* Source Tabs */
+        .source-tabs {
+            display: flex;
+            gap: 8px;
             margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        
+        .source-tab {
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        
+        .source-tab:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .source-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .source-tab i {
+            margin-right: 8px;
+        }
+        
+        .source-tab .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 6px;
+        }
+        
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 32px;
+            position: relative;
+        }
+        
+        .search-input-wrapper {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 12px;
         }
         
-        .section-title i {
-            color: #10b981;
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--bg-hover);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+        
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            padding: 8px 16px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .search-btn:hover {
+            background: var(--primary-dark);
         }
         
         /* Track List */
         .track-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
         
         .track-item {
             display: flex;
             align-items: center;
             gap: 16px;
-            padding: 16px 20px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         
         .track-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(4px);
+            background: var(--bg-hover);
+            border-color: var(--primary);
         }
         
         .track-item.active {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: #10b981;
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--primary);
         }
         
         .track-art {
-            width: 64px;
-            height: 64px;
-            border-radius: 12px;
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
             overflow: hidden;
             flex-shrink: 0;
-            background: #1a1a1a;
+            background: var(--bg-hover);
         }
         
         .track-art img {
@@ -280,30 +356,32 @@
         }
         
         .track-name {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--text-primary);
         }
         
         .track-artist {
-            font-size: 14px;
-            color: #888;
+            font-size: 13px;
+            color: var(--text-secondary);
         }
         
         .track-duration {
-            font-size: 14px;
-            color: #666;
-            min-width: 60px;
+            font-size: 13px;
+            color: var(--text-muted);
+            min-width: 50px;
+            text-align: right;
         }
         
         .track-actions {
             display: flex;
             gap: 8px;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s ease;
         }
         
         .track-item:hover .track-actions {
@@ -311,35 +389,40 @@
         }
         
         .track-action-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+            background: var(--bg-hover);
+            color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
         .track-action-btn:hover {
-            background: #10b981;
+            background: var(--primary);
+            color: white;
+        }
+        
+        .track-action-btn.liked {
+            color: var(--primary);
         }
         
         /* Loading State */
         .loading-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #888;
+            padding: 80px 20px;
+            color: var(--text-secondary);
         }
         
         .loading-spinner {
             width: 48px;
             height: 48px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #10b981;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -352,26 +435,57 @@
         /* Error State */
         .error-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #888;
+            padding: 80px 20px;
+            color: var(--text-secondary);
         }
         
         .error-icon {
             font-size: 48px;
-            color: #ef4444;
+            color: var(--primary);
             margin-bottom: 16px;
         }
         
         .retry-btn {
             margin-top: 20px;
             padding: 12px 24px;
-            border-radius: 10px;
+            border-radius: 8px;
             border: none;
-            background: #10b981;
+            background: var(--primary);
             color: white;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .retry-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+        
+        .empty-state-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+        
+        .empty-state-text {
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.6;
         }
         
         /* Bottom Player */
@@ -380,23 +494,29 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(10, 10, 10, 0.98);
+            background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 16px 40px;
+            border-top: 1px solid var(--border);
+            padding: 12px 24px;
             display: flex;
             align-items: center;
-            gap: 24px;
+            gap: 20px;
             z-index: 1000;
         }
         
         .player-art {
-            width: 56px;
-            height: 56px;
-            border-radius: 10px;
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
             overflow: hidden;
-            background: #1a1a1a;
+            background: var(--bg-card);
             flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .player-art:hover {
+            transform: scale(1.05);
         }
         
         .player-art img {
@@ -408,62 +528,73 @@
         .player-info {
             flex: 1;
             min-width: 0;
+            max-width: 300px;
         }
         
         .player-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: var(--text-primary);
         }
         
         .player-artist {
-            font-size: 13px;
-            color: #888;
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .player-controls {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
         
         .player-btn {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: none;
             background: transparent;
-            color: white;
+            color: var(--text-secondary);
             cursor: pointer;
-            font-size: 18px;
-            transition: all 0.3s ease;
+            font-size: 16px;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
         .player-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .player-btn.active {
+            color: var(--primary);
         }
         
         .player-btn.play {
-            width: 52px;
-            height: 52px;
-            background: #10b981;
-            font-size: 20px;
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            color: white;
+            font-size: 18px;
         }
         
         .player-btn.play:hover {
-            background: #059669;
+            background: var(--primary-dark);
             transform: scale(1.05);
         }
         
         .progress-container {
             flex: 1;
-            max-width: 400px;
+            max-width: 500px;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -473,22 +604,53 @@
             flex: 1;
             height: 4px;
             border-radius: 2px;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--bg-hover);
             cursor: pointer;
             position: relative;
         }
         
+        .progress-bar:hover {
+            height: 6px;
+        }
+        
         .progress-fill {
             height: 100%;
-            background: #10b981;
+            background: var(--primary);
             border-radius: 2px;
             transition: width 0.1s linear;
         }
         
         .time-display {
-            font-size: 12px;
-            color: #888;
+            font-size: 11px;
+            color: var(--text-muted);
             min-width: 80px;
+            text-align: center;
+        }
+        
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .volume-slider {
+            width: 80px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--bg-hover);
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            cursor: pointer;
         }
         
         /* Modals */
@@ -503,6 +665,7 @@
             align-items: center;
             justify-content: center;
             z-index: 2000;
+            backdrop-filter: blur(10px);
         }
         
         .modal-overlay.active {
@@ -510,43 +673,55 @@
         }
         
         .modal {
-            background: #1a1a1a;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 500px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 480px;
             width: 90%;
-            border: 2px solid #10b981;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
         
         .modal-title {
             font-size: 24px;
             font-weight: 700;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             text-align: center;
+            color: var(--text-primary);
         }
         
         .modal-desc {
-            color: #888;
+            color: var(--text-secondary);
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             line-height: 1.6;
+            font-size: 14px;
         }
         
         .modal-btn {
             width: 100%;
-            padding: 16px;
-            border-radius: 12px;
+            padding: 14px;
+            border-radius: 8px;
             border: none;
-            background: #10b981;
+            background: var(--primary);
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         
         .modal-btn:hover {
-            background: #059669;
+            background: var(--primary-dark);
+        }
+        
+        .modal-btn.secondary {
+            background: var(--bg-hover);
+            margin-top: 12px;
+        }
+        
+        .modal-btn.secondary:hover {
+            background: var(--border);
         }
         
         /* PIN Modal Specific */
@@ -554,20 +729,21 @@
             display: flex;
             justify-content: center;
             gap: 16px;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
         }
         
         .pin-dot {
             width: 16px;
             height: 16px;
             border-radius: 50%;
-            border: 3px solid #10b981;
+            border: 3px solid var(--primary);
             background: transparent;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         
         .pin-dot.filled {
-            background: #10b981;
+            background: var(--primary);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
         }
         
         .pin-keypad {
@@ -580,64 +756,93 @@
             padding: 20px;
             border-radius: 12px;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+            background: var(--bg-hover);
+            color: var(--text-primary);
             font-size: 24px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
         }
         
         .pin-key:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--primary);
+            border-color: var(--primary);
         }
         
         .pin-key.clear {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .pin-key.clear:hover {
+            background: var(--primary);
+            color: white;
         }
         
         /* Mobile Responsive */
         @media (max-width: 1024px) {
-            .content-area {
-                grid-template-columns: 1fr;
-            }
-            
             .sidebar {
                 display: none;
+            }
+            
+            .content-area {
+                padding: 16px;
             }
         }
         
         @media (max-width: 768px) {
-            .app-container {
-                padding: 16px;
-            }
-            
             .header {
-                padding: 16px 0;
+                padding: 12px 16px;
             }
             
             .logo-text {
-                font-size: 22px;
+                font-size: 20px;
             }
             
-            .source-tabs {
-                gap: 8px;
-            }
-            
-            .source-tab {
-                padding: 10px 16px;
+            .header-btn {
+                padding: 8px 12px;
                 font-size: 13px;
             }
             
+            .header-btn span {
+                display: none;
+            }
+            
+            .source-tabs {
+                gap: 6px;
+            }
+            
+            .source-tab {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+            
+            .source-tab i {
+                margin-right: 4px;
+            }
+            
             .bottom-player {
-                padding: 12px 16px;
+                padding: 10px 16px;
                 gap: 12px;
             }
             
             .player-art {
-                width: 48px;
-                height: 48px;
+                width: 44px;
+                height: 44px;
+            }
+            
+            .player-info {
+                max-width: 150px;
+            }
+            
+            .player-title {
+                font-size: 12px;
+            }
+            
+            .player-artist {
+                font-size: 11px;
             }
             
             .player-btn {
@@ -647,16 +852,26 @@
             }
             
             .player-btn.play {
-                width: 44px;
-                height: 44px;
+                width: 40px;
+                height: 40px;
             }
             
             .progress-container {
                 display: none;
             }
             
+            .volume-control {
+                display: none;
+            }
+            
             .modal {
                 padding: 24px;
+                margin: 16px;
+            }
+            
+            .pin-key {
+                padding: 16px;
+                font-size: 20px;
             }
         }
         
@@ -666,7 +881,33 @@
         }
         
         #mainApp.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+        
+        .text-primary {
+            color: var(--text-primary);
+        }
+        
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+        
+        .text-muted {
+            color: var(--text-muted);
+        }
+        
+        .text-success {
+            color: var(--success);
+        }
+        
+        .text-danger {
+            color: var(--primary);
         }
     </style>
 </head>
@@ -674,8 +915,8 @@
     <!-- PIN Modal -->
     <div id="pinModal" class="modal-overlay active">
         <div class="modal">
-            <div class="modal-title">Enter PIN</div>
-            <div class="modal-desc">Enter the access code to continue</div>
+            <div class="modal-title">🔐 Enter PIN</div>
+            <div class="modal-desc">Enter the access code to continue to Spotfuck</div>
             <div class="pin-display">
                 <div class="pin-dot"></div>
                 <div class="pin-dot"></div>
@@ -703,11 +944,13 @@
     <!-- Disclaimer Modal -->
     <div id="disclaimerModal" class="modal-overlay">
         <div class="modal">
-            <div class="modal-title">Disclaimer</div>
+            <div class="modal-title">⚠️ Disclaimer</div>
             <div class="modal-desc">
                 <p><strong>DMCA Notice:</strong> This application uses legal APIs to stream music. We do not host any copyrighted content.</p>
                 <br>
                 <p>By using this application, you agree to comply with all applicable laws and the terms of service of the respective music platforms.</p>
+                <br>
+                <p style="color: var(--primary);">Audius is completely FREE and requires no API keys!</p>
             </div>
             <button class="modal-btn" id="acceptDisclaimer">I Understand & Accept</button>
         </div>
@@ -724,42 +967,24 @@
                 <div class="logo-text">Spotfuck</div>
             </div>
             <div class="header-actions">
-                <button class="header-btn secondary" id="settingsBtn">
-                    <i class="fas fa-cog"></i> Settings
+                <button class="header-btn" id="settingsBtn">
+                    <i class="fas fa-cog"></i> <span>Settings</span>
                 </button>
                 <a href="SignIn.html" class="header-btn primary">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
+                    <i class="fas fa-user"></i> <span>Sign In</span>
                 </a>
             </div>
         </header>
         
-        <!-- Source Tabs -->
-        <div class="source-tabs">
-            <button class="source-tab" data-source="jamendo">
-                <i class="fas fa-headphones"></i> Jamendo
-            </button>
-            <button class="source-tab" data-source="youtube">
-                <i class="fab fa-youtube"></i> YouTube
-            </button>
-            <button class="source-tab" data-source="spotify">
-                <i class="fab fa-spotify"></i> Spotify
-            </button>
-            <button class="source-tab active" data-source="audius">
-                <i class="fas fa-music"></i> Audius
-            </button>
-        </div>
-        
-        <!-- Search -->
-        <div class="search-container">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search for music...">
-        </div>
-        
-        <!-- Content -->
-        <div class="content-area">
+        <!-- Main Layout -->
+        <div class="main-layout">
             <!-- Sidebar -->
             <aside class="sidebar">
                 <div class="sidebar-section">
                     <div class="sidebar-title">Library</div>
+                    <div class="sidebar-item active" id="homeBtn">
+                        <i class="fas fa-home"></i> Home
+                    </div>
                     <div class="sidebar-item" id="likedSongsBtn">
                         <i class="fas fa-heart"></i> Liked Songs
                     </div>
@@ -773,17 +998,40 @@
                 
                 <div class="sidebar-section">
                     <div class="sidebar-title">Playlists</div>
-                    <div class="sidebar-item">
+                    <div class="sidebar-item" id="createPlaylistBtn">
                         <i class="fas fa-plus"></i> Create Playlist
                     </div>
                 </div>
             </aside>
             
-            <!-- Main Content -->
-            <main class="main-content">
-                <div class="section-title">
-                    <i class="fas fa-fire"></i> Recommended for You
+            <!-- Content Area -->
+            <main class="content-area">
+                <!-- Source Tabs -->
+                <div class="source-tabs">
+                    <button class="source-tab" data-source="jamendo">
+                        <i class="fas fa-headphones"></i> Jamendo
+                    </button>
+                    <button class="source-tab" data-source="youtube">
+                        <i class="fab fa-youtube"></i> YouTube
+                    </button>
+                    <button class="source-tab" data-source="spotify">
+                        <i class="fab fa-spotify"></i> Spotify
+                    </button>
+                    <button class="source-tab active" data-source="audius">
+                        <i class="fas fa-music"></i> Audius <span class="badge">FREE</span>
+                    </button>
                 </div>
+                
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search for music, artists, albums...">
+                        <button class="search-btn" id="searchBtn">Search</button>
+                    </div>
+                </div>
+                
+                <!-- Track List -->
                 <div id="trackList" class="track-list">
                     <div class="loading-state">
                         <div class="loading-spinner"></div>
@@ -796,27 +1044,27 @@
     
     <!-- Bottom Player -->
     <div class="bottom-player" id="bottomPlayer" style="display: none;">
-        <div class="player-art">
-            <img id="playerArt" src="" alt="">
+        <div class="player-art" id="playerArt">
+            <img src="" alt="">
         </div>
         <div class="player-info">
             <div class="player-title" id="playerTitle">No track selected</div>
             <div class="player-artist" id="playerArtist">-</div>
         </div>
         <div class="player-controls">
-            <button class="player-btn" id="shuffleBtn">
+            <button class="player-btn" id="shuffleBtn" title="Shuffle">
                 <i class="fas fa-random"></i>
             </button>
-            <button class="player-btn" id="prevBtn">
+            <button class="player-btn" id="prevBtn" title="Previous">
                 <i class="fas fa-step-backward"></i>
             </button>
-            <button class="player-btn play" id="playPauseBtn">
+            <button class="player-btn play" id="playPauseBtn" title="Play/Pause">
                 <i class="fas fa-play" id="playPauseIcon"></i>
             </button>
-            <button class="player-btn" id="nextBtn">
+            <button class="player-btn" id="nextBtn" title="Next">
                 <i class="fas fa-step-forward"></i>
             </button>
-            <button class="player-btn" id="repeatBtn">
+            <button class="player-btn" id="repeatBtn" title="Repeat">
                 <i class="fas fa-redo"></i>
             </button>
         </div>
@@ -827,6 +1075,12 @@
             </div>
             <span class="time-display" id="duration">0:00</span>
         </div>
+        <div class="volume-control">
+            <button class="player-btn" id="volumeBtn" title="Volume">
+                <i class="fas fa-volume-up" id="volumeIcon"></i>
+            </button>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="100">
+        </div>
     </div>
     
     <audio id="audioPlayer"></audio>
@@ -835,38 +1089,40 @@
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal-overlay">
         <div class="modal">
-            <div class="modal-title">Settings</div>
+            <div class="modal-title">⚙️ Settings</div>
             <div class="modal-desc" style="text-align: left;">
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">YouTube API Key</label>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">YouTube API Key</label>
                     <input type="text" id="youtubeApiKey" placeholder="Enter YouTube Data API v3 key" 
-                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
-                    <small style="color: #888; display: block; margin-top: 4px;">Get from console.cloud.google.com</small>
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-hover); color: white; font-size: 14px;">
+                    <small style="color: var(--text-muted); display: block; margin-top: 4px;">Get from console.cloud.google.com</small>
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Spotify Client ID</label>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">Spotify Client ID</label>
                     <input type="text" id="spotifyClientId" placeholder="Enter Spotify Client ID" 
-                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
-                    <small style="color: #888; display: block; margin-top: 4px;">Get from developer.spotify.com</small>
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-hover); color: white; font-size: 14px;">
+                    <small style="color: var(--text-muted); display: block; margin-top: 4px;">Get from developer.spotify.com</small>
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Spotify Client Secret</label>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">Spotify Client Secret</label>
                     <input type="password" id="spotifyClientSecret" placeholder="Enter Spotify Client Secret" 
-                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-hover); color: white; font-size: 14px;">
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Jamendo Client ID</label>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">Jamendo Client ID</label>
                     <input type="text" id="jamendoClientId" placeholder="Enter Jamendo Client ID (optional)" 
-                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
-                    <small style="color: #888; display: block; margin-top: 4px;">Default: c4ce16c7 (free tier)</small>
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-hover); color: white; font-size: 14px;">
+                    <small style="color: var(--text-muted); display: block; margin-top: 4px;">Default: c4ce16c7 (free tier)</small>
                 </div>
-                <p style="color: #10b981; font-size: 13px; margin-bottom: 16px;">
-                    <i class="fas fa-info-circle"></i> Audius works for FREE without any API keys!
-                </p>
+                <div style="padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3); margin-bottom: 20px;">
+                    <p style="color: var(--success); font-size: 13px; margin: 0;">
+                        <i class="fas fa-info-circle"></i> <strong>Audius works for FREE</strong> without any API keys!
+                    </p>
+                </div>
             </div>
             <div style="display: flex; gap: 12px;">
                 <button class="modal-btn" id="saveSettings" style="flex: 1;">Save Settings</button>
-                <button class="modal-btn" id="closeSettings" style="flex: 1; background: rgba(255,255,255,0.1);">Cancel</button>
+                <button class="modal-btn secondary" id="closeSettings" style="flex: 1;">Cancel</button>
             </div>
         </div>
     </div>
@@ -874,20 +1130,56 @@
     <script src="api-handler.js"></script>
     <script src="ui-handler.js"></script>
     <script>
+        // Security: Disable right-click, text selection, and drag-drop
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('selectstart', e => e.preventDefault());
+        document.addEventListener('dragstart', e => e.preventDefault());
+        
+        // Security: Dev tools detection
+        let devtoolsOpen = false;
+        const threshold = 160;
+        
+        const checkDevTools = () => {
+            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+            
+            if (widthThreshold || heightThreshold) {
+                if (!devtoolsOpen) {
+                    devtoolsOpen = true;
+                    console.clear();
+                    console.log('%c⚠️ Developer tools detected!', 'color: #ef4444; font-size: 20px; font-weight: bold;');
+                    console.log('%cThis action has been logged.', 'color: #666;');
+                }
+            } else {
+                devtoolsOpen = false;
+            }
+        };
+        
+        setInterval(checkDevTools, 1000);
+        
+        // Security: Clear console periodically
+        setInterval(() => {
+            console.clear();
+        }, 30000);
+        
         // State
         let currentSource = 'audius';
         let tracks = [];
         let currentTrackIndex = 0;
         let isPlaying = false;
-        let queue = [];
+        let isShuffle = false;
+        let isRepeat = false;
+        let queue = JSON.parse(localStorage.getItem('queue') || '[]');
         let likedSongs = JSON.parse(localStorage.getItem('likedSongs') || '[]');
         let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed') || '[]');
+        let youtubePlayer = null;
         
         // DOM Elements
         const pinModal = document.getElementById('pinModal');
         const disclaimerModal = document.getElementById('disclaimerModal');
         const mainApp = document.getElementById('mainApp');
         const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
         const trackList = document.getElementById('trackList');
         const bottomPlayer = document.getElementById('bottomPlayer');
         const audioPlayer = document.getElementById('audioPlayer');
@@ -900,6 +1192,11 @@
         const playerArt = document.getElementById('playerArt');
         const playerTitle = document.getElementById('playerTitle');
         const playerArtist = document.getElementById('playerArtist');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const repeatBtn = document.getElementById('repeatBtn');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const volumeSlider = document.getElementById('volumeSlider');
         
         // PIN System
         let enteredPin = '';
@@ -1006,6 +1303,10 @@
         });
         
         // Search
+        searchBtn.addEventListener('click', () => {
+            searchTracks(searchInput.value.trim());
+        });
+        
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 searchTracks(searchInput.value.trim());
@@ -1083,7 +1384,7 @@
             trackList.innerHTML = tracks.map((track, index) => `
                 <div class="track-item ${currentTrackIndex === index ? 'active' : ''}" onclick="playTrack(${index})">
                     <div class="track-art">
-                        <img src="${track.artwork}" alt="${track.name}">
+                        <img src="${track.artwork}" alt="${track.name}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(track.name)}&background=dc2626&color=fff'">
                     </div>
                     <div class="track-info">
                         <div class="track-name">${track.name}</div>
@@ -1091,11 +1392,11 @@
                     </div>
                     <div class="track-duration">${formatTime(track.duration)}</div>
                     <div class="track-actions">
-                        <button class="track-action-btn" onclick="event.stopPropagation(); addToQueue(${index})">
+                        <button class="track-action-btn" onclick="event.stopPropagation(); addToQueue(${index})" title="Add to queue">
                             <i class="fas fa-list"></i>
                         </button>
-                        <button class="track-action-btn" onclick="event.stopPropagation(); toggleLike(${index})">
-                            <i class="fas fa-heart" style="color: ${isLiked(track) ? '#ef4444' : 'inherit'}"></i>
+                        <button class="track-action-btn ${isLiked(track) ? 'liked' : ''}" onclick="event.stopPropagation(); toggleLike(${index})" title="Like">
+                            <i class="fas fa-heart"></i>
                         </button>
                     </div>
                 </div>
@@ -1174,8 +1475,12 @@
             currentTrackIndex = index;
             const track = tracks[index];
             
-            // Update player
-            playerArt.src = track.artwork;
+            const playerArtImg = playerArt.querySelector('img');
+            playerArtImg.src = track.artwork;
+            playerArtImg.onerror = () => {
+                playerArtImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(track.name)}&background=dc2626&color=fff`;
+            };
+            
             playerTitle.textContent = track.name;
             playerArtist.textContent = track.artist;
             bottomPlayer.style.display = 'flex';
@@ -1299,7 +1604,10 @@
         }
         
         function playNext() {
-            if (currentTrackIndex < tracks.length - 1) {
+            if (isShuffle) {
+                const randomIndex = Math.floor(Math.random() * tracks.length);
+                playTrack(randomIndex);
+            } else if (currentTrackIndex < tracks.length - 1) {
                 playTrack(currentTrackIndex + 1);
             } else {
                 playTrack(0);
@@ -1314,25 +1622,75 @@
             }
         }
         
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            shuffleBtn.classList.toggle('active', isShuffle);
+        }
+        
+        function toggleRepeat() {
+            isRepeat = !isRepeat;
+            repeatBtn.classList.toggle('active', isRepeat);
+        }
+        
         // Player Controls
         playPauseBtn.addEventListener('click', togglePlayPause);
         document.getElementById('nextBtn').addEventListener('click', playNext);
         document.getElementById('prevBtn').addEventListener('click', playPrevious);
+        shuffleBtn.addEventListener('click', toggleShuffle);
+        repeatBtn.addEventListener('click', toggleRepeat);
         
         progressBar.addEventListener('click', (e) => {
             const rect = progressBar.getBoundingClientRect();
             const percent = (e.clientX - rect.left) / rect.width;
-            if (tracks[currentTrackIndex]) {
-                const newTime = Math.floor(percent * tracks[currentTrackIndex].duration);
-                // Would seek audio here
+            if (audioPlayer.duration) {
+                audioPlayer.currentTime = percent * audioPlayer.duration;
             }
         });
+        
+        volumeSlider.addEventListener('input', (e) => {
+            const volume = e.target.value / 100;
+            audioPlayer.volume = volume;
+            if (window.youtubePlayer) {
+                window.youtubePlayer.setVolume(volume * 100);
+            }
+            updateVolumeIcon(volume);
+        });
+        
+        volumeBtn.addEventListener('click', () => {
+            if (audioPlayer.volume > 0) {
+                audioPlayer.dataset.previousVolume = audioPlayer.volume;
+                audioPlayer.volume = 0;
+                volumeSlider.value = 0;
+                if (window.youtubePlayer) {
+                    window.youtubePlayer.setVolume(0);
+                }
+            } else {
+                const previousVolume = audioPlayer.dataset.previousVolume || 1;
+                audioPlayer.volume = previousVolume;
+                volumeSlider.value = previousVolume * 100;
+                if (window.youtubePlayer) {
+                    window.youtubePlayer.setVolume(previousVolume * 100);
+                }
+            }
+            updateVolumeIcon(audioPlayer.volume);
+        });
+        
+        function updateVolumeIcon(volume) {
+            if (volume === 0) {
+                volumeIcon.className = 'fas fa-volume-mute';
+            } else if (volume < 0.5) {
+                volumeIcon.className = 'fas fa-volume-down';
+            } else {
+                volumeIcon.className = 'fas fa-volume-up';
+            }
+        }
         
         // Queue
         function addToQueue(index) {
             const track = tracks[index];
             if (!queue.some(t => t.id === track.id)) {
                 queue.push(track);
+                localStorage.setItem('queue', JSON.stringify(queue));
                 alert('Added to queue');
             } else {
                 alert('Already in queue');
@@ -1362,36 +1720,60 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
         
-        // Sidebar
+        // Sidebar navigation
+        document.getElementById('homeBtn').addEventListener('click', () => {
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            document.getElementById('homeBtn').classList.add('active');
+            loadRecommendations();
+        });
+        
         document.getElementById('likedSongsBtn').addEventListener('click', () => {
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            document.getElementById('likedSongsBtn').classList.add('active');
             if (likedSongs.length > 0) {
                 tracks = likedSongs;
                 currentTrackIndex = 0;
                 displayTracks();
             } else {
-                alert('No liked songs yet');
+                showEmptyState();
             }
         });
         
         document.getElementById('recentlyPlayedBtn').addEventListener('click', () => {
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            document.getElementById('recentlyPlayedBtn').classList.add('active');
             if (recentlyPlayed.length > 0) {
                 tracks = recentlyPlayed;
                 currentTrackIndex = 0;
                 displayTracks();
             } else {
-                alert('No recently played tracks');
+                showEmptyState();
             }
         });
         
         document.getElementById('queueBtn').addEventListener('click', () => {
+            document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+            document.getElementById('queueBtn').classList.add('active');
             if (queue.length > 0) {
                 tracks = queue;
                 currentTrackIndex = 0;
                 displayTracks();
             } else {
-                alert('Queue is empty');
+                showEmptyState();
             }
         });
+        
+        function showEmptyState() {
+            trackList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <h3 class="empty-state-title">Start Listening</h3>
+                    <p class="empty-state-text">Search for your favorite music or explore recommendations</p>
+                </div>
+            `;
+        }
         
         // Settings Modal
         const settingsModal = document.getElementById('settingsModal');
@@ -1453,6 +1835,10 @@
                 playNext();
             } else if (e.code === 'ArrowLeft' && e.shiftKey) {
                 playPrevious();
+            } else if (e.code === 'KeyS' && e.shiftKey) {
+                toggleShuffle();
+            } else if (e.code === 'KeyR' && e.shiftKey) {
+                toggleRepeat();
             }
         });
     </script>

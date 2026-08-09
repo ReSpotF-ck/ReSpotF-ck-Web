@@ -7,7 +7,7 @@
 // API Configuration
 let config = {
     api: {
-        jamendo: { clientId: '' },
+        jamendo: { clientId: 'c4ce16c7' },
         youtube: { apiKey: '' },
         spotify: { clientId: '', clientSecret: '' },
         audius: { enabled: true }
@@ -15,7 +15,7 @@ let config = {
 };
 
 // Runtime credentials (loaded from localStorage)
-let JAMENDO_CLIENT_ID = '';
+let JAMENDO_CLIENT_ID = 'c4ce16c7';
 let youtubeApiKey = '';
 let spotifyClientId = '';
 let spotifyClientSecret = '';
@@ -41,7 +41,7 @@ async function initAPIHandler() {
  * Load API credentials from localStorage
  */
 function loadCredentialsFromStorage() {
-    JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || '';
+    JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || 'c4ce16c7';
     youtubeApiKey = localStorage.getItem('youtubeApiKey') || '';
     spotifyClientId = localStorage.getItem('spotifyClientId') || '';
     spotifyClientSecret = localStorage.getItem('spotifyClientSecret') || '';
@@ -116,29 +116,24 @@ async function fetchConfigFromRepo(repoUrl) {
  * Save credentials to localStorage
  */
 function saveCredentials(credentials) {
-    if (credentials.youtubeApiKey !== undefined) {
+    if (credentials.youtubeApiKey) {
+        localStorage.setItem('youtubeApiKey', credentials.youtubeApiKey);
         youtubeApiKey = credentials.youtubeApiKey;
-        localStorage.setItem('youtubeApiKey', youtubeApiKey);
     }
-    if (credentials.spotifyClientId !== undefined) {
+    if (credentials.spotifyClientId) {
+        localStorage.setItem('spotifyClientId', credentials.spotifyClientId);
         spotifyClientId = credentials.spotifyClientId;
-        localStorage.setItem('spotifyClientId', spotifyClientId);
     }
-    if (credentials.spotifyClientSecret !== undefined) {
+    if (credentials.spotifyClientSecret) {
+        localStorage.setItem('spotifyClientSecret', credentials.spotifyClientSecret);
         spotifyClientSecret = credentials.spotifyClientSecret;
-        localStorage.setItem('spotifyClientSecret', spotifyClientSecret);
     }
-    if (credentials.jamendoClientId !== undefined) {
+    if (credentials.jamendoClientId) {
+        localStorage.setItem('jamendoClientId', credentials.jamendoClientId);
         JAMENDO_CLIENT_ID = credentials.jamendoClientId;
-        localStorage.setItem('jamendoClientId', JAMENDO_CLIENT_ID);
     }
     
-    // Clear Spotify token on credential change
-    if (credentials.spotifyClientId !== undefined || credentials.spotifyClientSecret !== undefined) {
-        spotifyAccessToken = null;
-    }
-    
-    console.log('Credentials saved to storage');
+    console.log('Credentials saved to localStorage');
 }
 
 /**
@@ -252,7 +247,7 @@ function formatAudiusTrack(track, host) {
  */
 async function searchJamendo(query, searchFilter = 'all') {
     // Reload from localStorage to get latest values
-    JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || '';
+    JAMENDO_CLIENT_ID = localStorage.getItem('jamendoClientId') || 'c4ce16c7';
     console.log('Jamendo Client ID:', JAMENDO_CLIENT_ID ? 'Present' : 'Missing');
     
     if (!JAMENDO_CLIENT_ID || JAMENDO_CLIENT_ID.trim() === '') {
@@ -284,13 +279,11 @@ async function searchJamendo(query, searchFilter = 'all') {
         
         if (data.results && data.results.length > 0) {
             const tracks = data.results.map(track => {
-                // Try multiple artwork sources with fallbacks
                 let artwork = track.image || 
                               track.album_image || 
                               track.cover_image || 
                               track.waveform_image || '';
                 
-                // If no artwork, generate avatar with artist initials
                 if (!artwork) {
                     const artistInitials = track.artist_name ? track.artist_name.substring(0, 2) : track.name.substring(0, 2);
                     artwork = `https://ui-avatars.com/api/?name=${encodeURIComponent(artistInitials)}&background=dc2626&color=fff&size=500&font-size=0.33`;

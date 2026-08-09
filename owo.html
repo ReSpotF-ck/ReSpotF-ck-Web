@@ -917,6 +917,9 @@
         <div class="modal">
             <div class="modal-title">🔐 Enter PIN</div>
             <div class="modal-desc">Enter the access code to continue to Spotfuck</div>
+            <div class="modal-desc" style="font-size: 12px; color: #666; margin-top: -10px;">
+                PIN: 1412 | Type on keyboard or click buttons | Bypass: Ctrl+Shift+P
+            </div>
             <div class="pin-display">
                 <div class="pin-dot"></div>
                 <div class="pin-dot"></div>
@@ -938,6 +941,7 @@
                 <button class="pin-key clear" id="deletePin">⌫</button>
             </div>
             <div id="pinError" style="color: #ef4444; text-align: center; margin-top: 20px; display: none;">Incorrect PIN</div>
+            <button id="bypassPin" style="margin-top: 15px; padding: 8px 16px; background: #333; color: #666; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Bypass PIN (Dev)</button>
         </div>
     </div>
     
@@ -1228,10 +1232,18 @@
             mainApp = document.getElementById('mainApp');
             
             console.log('Initializing PIN system...');
+            console.log('PIN modal found:', !!pinModal);
+            console.log('Disclaimer modal found:', !!disclaimerModal);
+            console.log('Main app found:', !!mainApp);
             
             // PIN keypad buttons
-            document.querySelectorAll('.pin-key[data-num]').forEach(btn => {
-                btn.addEventListener('click', () => {
+            const pinKeys = document.querySelectorAll('.pin-key[data-num]');
+            console.log('PIN keys found:', pinKeys.length);
+            
+            pinKeys.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('PIN key clicked:', btn.dataset.num);
                     if (enteredPin.length < 4) {
                         enteredPin += btn.dataset.num;
                         updatePinDisplay();
@@ -1242,29 +1254,66 @@
                 });
             });
             
-            document.getElementById('clearPin').addEventListener('click', () => {
-                enteredPin = '';
-                updatePinDisplay();
-                document.getElementById('pinError').style.display = 'none';
-            });
+            const clearBtn = document.getElementById('clearPin');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Clear PIN clicked');
+                    enteredPin = '';
+                    updatePinDisplay();
+                    document.getElementById('pinError').style.display = 'none';
+                });
+            }
             
-            document.getElementById('deletePin').addEventListener('click', () => {
-                enteredPin = enteredPin.slice(0, -1);
-                updatePinDisplay();
-            });
+            const deleteBtn = document.getElementById('deletePin');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Delete PIN clicked');
+                    enteredPin = enteredPin.slice(0, -1);
+                    updatePinDisplay();
+                });
+            }
             
             // Accept disclaimer
-            document.getElementById('acceptDisclaimer').addEventListener('click', () => {
-                disclaimerModal.classList.remove('active');
-                mainApp.classList.add('active');
-                loadRecommendations();
-            });
+            const acceptBtn = document.getElementById('acceptDisclaimer');
+            if (acceptBtn) {
+                acceptBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('Disclaimer accepted');
+                    disclaimerModal.classList.remove('active');
+                    mainApp.classList.add('active');
+                    loadRecommendations();
+                });
+            }
+            
+            // Bypass PIN button (for development)
+            const bypassBtn = document.getElementById('bypassPin');
+            if (bypassBtn) {
+                bypassBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('PIN bypass button clicked');
+                    enteredPin = correctPin;
+                    updatePinDisplay();
+                    validatePin();
+                });
+            }
             
             console.log('PIN system initialized');
         }
 
-        // Keyboard support for PIN entry
+        // Keyboard support for PIN entry and bypass
         document.addEventListener('keydown', (e) => {
+            // PIN bypass shortcut: Ctrl+Shift+P
+            if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                console.log('PIN bypass shortcut triggered');
+                enteredPin = correctPin;
+                updatePinDisplay();
+                validatePin();
+                e.preventDefault();
+                return;
+            }
+            
             // Only handle keyboard input when PIN modal is active
             if (!pinModal || !pinModal.classList.contains('active')) return;
 

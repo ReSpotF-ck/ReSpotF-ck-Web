@@ -1,5 +1,7 @@
 # Spotfuck - Free Music Streaming Platform
 
+> ⚠️ **Alpha/Beta Status**: This project is currently in alpha/beta development. Many features may not work as expected. Please report issues on GitHub.
+
 A modern, completely redesigned music streaming application that aggregates music from multiple free and legal APIs including Audius, YouTube, Spotify, and Jamendo.
 
 ## 🌐 Live Demo

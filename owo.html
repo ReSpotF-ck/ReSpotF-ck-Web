@@ -1083,7 +1083,7 @@
         </div>
     </div>
     
-    <audio id="audioPlayer"></audio>
+    <audio id="audioPlayer" crossorigin="anonymous"></audio>
     <div id="youtubePlayer" style="display: none;"></div>
     
     <!-- Settings Modal -->
@@ -1130,6 +1130,21 @@
     <script src="api-handler.js"></script>
     <script src="ui-handler.js"></script>
     <script>
+        // Wait for API handler to load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize API handler
+            if (typeof window.initAPIHandler === 'function') {
+                try {
+                    await window.initAPIHandler();
+                    console.log('API Handler initialized successfully');
+                } catch (error) {
+                    console.error('Failed to initialize API Handler:', error);
+                }
+            } else {
+                console.error('API Handler not available');
+            }
+        });
+        
         // Security: Disable right-click, text selection, and drag-drop
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('selectstart', e => e.preventDefault());
@@ -1324,9 +1339,26 @@
             `;
             
             try {
-                // Initialize API handler if needed
-                if (typeof window.initAPIHandler === 'function') {
-                    await window.initAPIHandler();
+                // Check if API function exists
+                if (typeof window[`search${currentSource.charAt(0).toUpperCase() + currentSource.slice(1)}`] !== 'function') {
+                    throw new Error(`Search function for ${currentSource} not available`);
+                }
+                
+                // Check credentials for non-Audius sources
+                if (currentSource !== 'audius' && typeof window.hasCredentialsForSource === 'function') {
+                    const hasCreds = window.hasCredentialsForSource(currentSource);
+                    if (!hasCreds) {
+                        trackList.innerHTML = `
+                            <div class="error-state">
+                                <div class="error-icon">
+                                    <i class="fas fa-key"></i>
+                                </div>
+                                <p>API key required for ${currentSource}. Please add it in Settings.</p>
+                                <button class="retry-btn" onclick="document.getElementById('settingsBtn').click()">Open Settings</button>
+                            </div>
+                        `;
+                        return;
+                    }
                 }
                 
                 let result;
@@ -1412,9 +1444,9 @@
             `;
             
             try {
-                // Initialize API handler if needed
-                if (typeof window.initAPIHandler === 'function') {
-                    await window.initAPIHandler();
+                // Check if Audius search function exists
+                if (typeof window.searchAudius !== 'function') {
+                    throw new Error('Audius search function not available');
                 }
                 
                 // Search for trending music on Audius (FREE, no API key needed)
@@ -1475,6 +1507,8 @@
             currentTrackIndex = index;
             const track = tracks[index];
             
+            console.log('Playing track:', track);
+            
             const playerArtImg = playerArt.querySelector('img');
             playerArtImg.src = track.artwork;
             playerArtImg.onerror = () => {
@@ -1485,21 +1519,33 @@
             playerArtist.textContent = track.artist;
             bottomPlayer.style.display = 'flex';
             
+            // Stop current playback
+            audioPlayer.pause();
+            if (window.youtubePlayer) {
+                window.youtubePlayer.stopVideo();
+            }
+            
             // Play audio based on source
             if (track.source === 'youtube' && track.videoId) {
                 // YouTube playback (requires YouTube IFrame API)
                 playYouTubeTrack(track);
             } else if (track.audio) {
                 // Direct audio playback (Audius, Jamendo, Spotify preview)
+                console.log('Playing audio from:', track.audio);
                 audioPlayer.src = track.audio;
+                audioPlayer.load();
                 audioPlayer.play().then(() => {
                     isPlaying = true;
                     playPauseIcon.className = 'fas fa-pause';
+                    console.log('Playback started successfully');
                 }).catch(error => {
                     console.error('Playback error:', error);
                     alert('Failed to play track. Please try another track.');
+                    isPlaying = false;
+                    playPauseIcon.className = 'fas fa-play';
                 });
             } else {
+                console.error('No audio source available for track:', track);
                 alert('No audio source available for this track');
             }
             
@@ -1566,7 +1612,7 @@
         
         // Audio player event listeners for progress tracking
         audioPlayer.addEventListener('timeupdate', () => {
-            if (audioPlayer.duration) {
+            if (audioPlayer.duration && !isNaN(audioPlayer.duration)) {
                 const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
                 progressFill.style.width = percent + '%';
                 currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
@@ -1575,15 +1621,28 @@
         });
         
         audioPlayer.addEventListener('ended', () => {
+            console.log('Track ended, playing next');
             playNext();
         });
         
         audioPlayer.addEventListener('loadedmetadata', () => {
+            console.log('Audio metadata loaded, duration:', audioPlayer.duration);
             durationEl.textContent = formatTime(audioPlayer.duration);
         });
         
+        audioPlayer.addEventListener('error', (error) => {
+            console.error('Audio player error:', error);
+            alert('Error playing audio. Please try another track.');
+        });
+        
+        audioPlayer.addEventListener('canplay', () => {
+            console.log('Audio can play');
+        });
+        
         function togglePlayPause() {
-            if (currentSource === 'youtube' && window.youtubePlayer) {
+            const currentTrack = tracks[currentTrackIndex];
+            
+            if (currentTrack && currentTrack.source === 'youtube' && window.youtubePlayer) {
                 if (isPlaying) {
                     window.youtubePlayer.pauseVideo();
                     isPlaying = false;
@@ -1593,8 +1652,14 @@
                 }
             } else {
                 if (audioPlayer.paused) {
-                    audioPlayer.play();
-                    isPlaying = true;
+                    audioPlayer.play().then(() => {
+                        isPlaying = true;
+                        playPauseIcon.className = 'fas fa-pause';
+                    }).catch(error => {
+                        console.error('Play error:', error);
+                        isPlaying = false;
+                        playPauseIcon.className = 'fas fa-play';
+                    });
                 } else {
                     audioPlayer.pause();
                     isPlaying = false;
@@ -1715,6 +1780,7 @@
         
         // Utility
         function formatTime(seconds) {
+            if (!seconds || isNaN(seconds) || !isFinite(seconds)) return '0:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -1841,6 +1907,38 @@
                 toggleRepeat();
             }
         });
+        
+        // Debug function to test API (press F12 and type testAPI() in console)
+        window.testAPI = async function() {
+            console.log('=== Testing API Functions ===');
+            console.log('API Handler available:', typeof window.initAPIHandler === 'function');
+            console.log('searchAudius available:', typeof window.searchAudius === 'function');
+            console.log('searchJamendo available:', typeof window.searchJamendo === 'function');
+            console.log('searchYouTube available:', typeof window.searchYouTube === 'function');
+            console.log('searchSpotify available:', typeof window.searchSpotify === 'function');
+            console.log('saveCredentials available:', typeof window.saveCredentials === 'function');
+            console.log('hasCredentialsForSource available:', typeof window.hasCredentialsForSource === 'function');
+            
+            // Test Audius search
+            console.log('\n=== Testing Audius Search ===');
+            try {
+                const result = await window.searchAudius('music');
+                console.log('Audius search result:', result);
+            } catch (error) {
+                console.error('Audius search error:', error);
+            }
+            
+            // Check credentials
+            console.log('\n=== Checking Credentials ===');
+            if (typeof window.hasCredentialsForSource === 'function') {
+                console.log('Audius credentials:', window.hasCredentialsForSource('audius'));
+                console.log('Jamendo credentials:', window.hasCredentialsForSource('jamendo'));
+                console.log('YouTube credentials:', window.hasCredentialsForSource('youtube'));
+                console.log('Spotify credentials:', window.hasCredentialsForSource('spotify'));
+            }
+            
+            console.log('\n=== Test Complete ===');
+        };
     </script>
 </body>
 </html>

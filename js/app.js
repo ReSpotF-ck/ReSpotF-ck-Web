@@ -100,15 +100,26 @@ function showSecurityModal() {
     const securityModal = document.getElementById('securityModal');
     const securityAccepted = localStorage.getItem('securityAccepted');
     
+    // Force show for testing - remove this line in production
+    localStorage.removeItem('securityAccepted');
+    
     if (!securityAccepted) {
-        securityModal.classList.remove('hidden');
+        securityModal.style.display = 'flex';
         
-        document.getElementById('securityAcceptBtn').addEventListener('click', () => {
-            localStorage.setItem('securityAccepted', 'true');
-            securityModal.classList.add('hidden');
-        });
+        const securityAcceptBtn = document.getElementById('securityAcceptBtn');
+        if (securityAcceptBtn) {
+            // Remove any existing listeners first
+            const newBtn = securityAcceptBtn.cloneNode(true);
+            securityAcceptBtn.parentNode.replaceChild(newBtn, securityAcceptBtn);
+            
+            newBtn.addEventListener('click', function(e) {
+                console.log('Security button clicked!');
+                localStorage.setItem('securityAccepted', 'true');
+                securityModal.style.display = 'none';
+            });
+        }
     } else {
-        securityModal.classList.add('hidden');
+        securityModal.style.display = 'none';
     }
 }
 

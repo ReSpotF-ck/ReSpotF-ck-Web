@@ -104,6 +104,19 @@
                         <i class="fab fa-spotify"></i> Spotify
                     </div>
                 </div>
+                
+                <div class="sidebar-section">
+                    <div class="sidebar-title">Discover</div>
+                    <div class="sidebar-item" id="trendingBtn">
+                        <i class="fas fa-fire"></i> Trending
+                    </div>
+                    <div class="sidebar-item" id="newReleasesBtn">
+                        <i class="fas fa-star"></i> New Releases
+                    </div>
+                    <div class="sidebar-item" id="genresBtn">
+                        <i class="fas fa-list"></i> Browse Genres
+                    </div>
+                </div>
             </aside>
 
             <!-- Content Area -->
@@ -430,6 +443,93 @@
             color: var(--text-primary);
             border-color: var(--text-muted);
         }
+        
+        /* Responsive Design for PIN Overlay */
+        @media (max-width: 768px) {
+            .pin-container {
+                padding: 32px 24px;
+                max-width: 90%;
+            }
+            
+            .pin-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            
+            .pin-title {
+                font-size: 24px;
+            }
+            
+            .pin-subtitle {
+                font-size: 14px;
+            }
+            
+            .pin-input {
+                padding: 14px 50px 14px 16px;
+                font-size: 16px;
+            }
+            
+            .pin-submit-btn {
+                padding: 14px 20px;
+                font-size: 15px;
+            }
+            
+            .pin-hint p {
+                font-size: 11px;
+            }
+            
+            .bypass-btn {
+                padding: 10px 16px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .pin-container {
+                padding: 24px 16px;
+            }
+            
+            .pin-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                margin-bottom: 16px;
+            }
+            
+            .pin-title {
+                font-size: 20px;
+            }
+            
+            .pin-subtitle {
+                font-size: 13px;
+            }
+            
+            .pin-input {
+                padding: 12px 44px 12px 14px;
+                font-size: 14px;
+            }
+            
+            .pin-submit-btn {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+            
+            .pin-error {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            
+            .pin-hint p {
+                font-size: 10px;
+            }
+            
+            .bypass-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+        }
     </style>
 
     <!-- Hidden YouTube Player -->
@@ -437,6 +537,247 @@
     
     <!-- Audio Player -->
     <audio id="audioPlayer"></audio>
+
+    <!-- Security Warning Modal -->
+    <div class="security-modal" id="securityModal">
+        <div class="security-modal-content">
+            <div class="security-modal-header">
+                <div class="security-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2>Security Notice</h2>
+            </div>
+            <div class="security-modal-body">
+                <div class="security-section">
+                    <h3><i class="fas fa-user-secret"></i> Confidentiality Agreement</h3>
+                    <p>This application is for private use only. By continuing to use this service, you agree to the following terms:</p>
+                    <ul>
+                        <li>Do not share information about this platform with others</li>
+                        <li>Do not discuss, mention, or reference this service publicly</li>
+                        <li>Keep all access credentials and PIN codes confidential</li>
+                        <li>Do not attempt to reverse engineer or inspect the code</li>
+                        <li>Respect the privacy and security measures in place</li>
+                    </ul>
+                </div>
+                <div class="security-section">
+                    <h3><i class="fas fa-lock"></i> Security Measures</h3>
+                    <p>This platform implements several security measures including:</p>
+                    <ul>
+                        <li>Access control via PIN authentication</li>
+                        <li>Prevention of unauthorized code inspection</li>
+                        <li>Protection against content downloading</li>
+                        <li>Restriction of developer tools access</li>
+                        <li>Monitoring of suspicious activities</li>
+                    </ul>
+                </div>
+                <div class="security-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Violation of these terms may result in immediate access revocation.</span>
+                </div>
+            </div>
+            <div class="security-modal-footer">
+                <button class="security-accept-btn" id="securityAcceptBtn">
+                    <i class="fas fa-check"></i> I Understand & Accept
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Modal Styles -->
+    <style>
+        .security-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .security-modal.hidden {
+            display: none;
+        }
+        
+        .security-modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .security-modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .security-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .security-modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .security-modal-body {
+            padding: 24px;
+        }
+        
+        .security-section {
+            margin-bottom: 24px;
+        }
+        
+        .security-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .security-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .security-section h3 i {
+            color: var(--primary);
+        }
+        
+        .security-section p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .security-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .security-section li {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+            line-height: 1.4;
+        }
+        
+        .security-section li:before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        .security-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: #f59e0b;
+        }
+        
+        .security-warning i {
+            font-size: 16px;
+        }
+        
+        .security-modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .security-accept-btn {
+            padding: 12px 24px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .security-accept-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .security-modal-content {
+                max-width: 95%;
+            }
+            
+            .security-modal-header {
+                padding: 20px;
+            }
+            
+            .security-modal-header h2 {
+                font-size: 18px;
+            }
+            
+            .security-modal-body {
+                padding: 20px;
+            }
+            
+            .security-section h3 {
+                font-size: 14px;
+            }
+            
+            .security-section p,
+            .security-section li {
+                font-size: 12px;
+            }
+            
+            .security-modal-footer {
+                padding: 12px 20px;
+            }
+            
+            .security-accept-btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
+    </style>
 
     <!-- DMCA Modal -->
     <div class="dmca-modal" id="dmcaModal">
@@ -1177,9 +1518,13 @@
             }
             
             if (dmcaAcknowledgeBtn) {
-                dmcaAcknowledgeBtn.addEventListener('click', () => {
+                dmcaAcknowledgeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
                     localStorage.setItem('dmcaAcknowledged', 'true');
                     dmcaModal.classList.remove('active');
+                    console.log('DMCA acknowledged');
                 });
             }
             

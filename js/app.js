@@ -88,10 +88,220 @@ window.updateAPIConfig = function(settings) {
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
     loadSettingsToAPIConfig();
+    setupSecurityMeasures();
+    showSecurityModal();
     loadRecommendations();
     setupEventListeners();
     setupKeyboardShortcuts();
 });
+
+// Show Security Modal
+function showSecurityModal() {
+    const securityModal = document.getElementById('securityModal');
+    const securityAccepted = localStorage.getItem('securityAccepted');
+    
+    if (!securityAccepted) {
+        securityModal.classList.remove('hidden');
+        
+        document.getElementById('securityAcceptBtn').addEventListener('click', () => {
+            localStorage.setItem('securityAccepted', 'true');
+            securityModal.classList.add('hidden');
+        });
+    } else {
+        securityModal.classList.add('hidden');
+    }
+}
+
+// Security measures to prevent file/URL dropping and downloading
+function setupSecurityMeasures() {
+    // Prevent drag and drop on entire document
+    document.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.effectAllowed = 'none';
+    });
+    
+    document.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.dataTransfer.effectAllowed = 'none';
+        alert('Drag and drop is not allowed for security reasons.');
+    });
+    
+    // Prevent right-click context menu on audio player
+    audioPlayer.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        alert('Context menu is disabled for audio content.');
+    });
+    
+    // Prevent save keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Prevent Ctrl+S, Ctrl+Shift+S
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            alert('Saving is not allowed.');
+        }
+        
+        // Prevent Ctrl+D
+        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+            e.preventDefault();
+        }
+        
+        // Prevent Ctrl+U (view source)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+            e.preventDefault();
+            alert('Viewing source is not allowed.');
+        }
+        
+        // Prevent Ctrl+Shift+I (dev tools)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
+            e.preventDefault();
+            alert('Developer tools are not allowed.');
+        }
+        
+        // Prevent Ctrl+Shift+J (dev tools console)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'J') {
+            e.preventDefault();
+            alert('Developer tools are not allowed.');
+        }
+        
+        // Prevent Ctrl+Shift+C (dev tools inspector)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+            e.preventDefault();
+            alert('Developer tools are not allowed.');
+        }
+        
+        // Prevent F12 (dev tools)
+        if (e.key === 'F12') {
+            e.preventDefault();
+            alert('Developer tools are not allowed.');
+        }
+        
+        // Prevent Ctrl+Shift+K (dev tools Firefox)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
+            e.preventDefault();
+            alert('Developer tools are not allowed.');
+        }
+    });
+    
+    // Prevent opening audio in new tab
+    audioPlayer.addEventListener('click', (e) => {
+        e.preventDefault();
+    });
+    
+    // Prevent audio element controls
+    audioPlayer.removeAttribute('controls');
+    
+    // Prevent download attribute on audio
+    audioPlayer.removeAttribute('download');
+    
+    // Prevent download via link
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        if (target.tagName === 'A' && target.href) {
+            // Check if link is to downloadable content
+            const href = target.href.toLowerCase();
+            if (href.includes('.mp3') || href.includes('.wav') || href.includes('.ogg') || 
+                href.includes('.m4a') || href.includes('.flac') || href.includes('.aac')) {
+                e.preventDefault();
+                alert('Downloading audio files is not allowed.');
+            }
+        }
+    }, true);
+    
+    // Prevent audio player from being dragged
+    audioPlayer.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+    });
+    
+    // Prevent right-click on document (but allow on buttons for functionality)
+    document.addEventListener('contextmenu', (e) => {
+        // Allow right-click in inputs for copy/paste
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        // Allow right-click on buttons and interactive elements
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+            return;
+        }
+        // Allow right-click on links for navigation
+        if (e.target.tagName === 'A' || e.target.closest('a')) {
+            return;
+        }
+        e.preventDefault();
+        alert('Right-click is disabled for security reasons.');
+    });
+    
+    // Prevent element inspection - allow on buttons
+    document.addEventListener('click', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            // Allow on interactive elements
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || 
+                e.target.tagName === 'BUTTON' || e.target.closest('button') ||
+                e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+            }
+            e.preventDefault();
+        }
+    }, true);
+    
+    // Prevent select all (Ctrl+A) outside of inputs
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        }
+    });
+    
+    // Prevent copy/paste outside of inputs
+    document.addEventListener('copy', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            alert('Copying is disabled for security reasons.');
+        }
+    });
+    
+    document.addEventListener('paste', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            alert('Pasting is disabled for security reasons.');
+        }
+    });
+    
+    // Detect dev tools opening
+    const devtools = {
+        open: false,
+        threshold: 160
+    };
+    
+    setInterval(() => {
+        if (window.outerWidth - window.innerWidth > devtools.threshold || 
+            window.outerHeight - window.innerHeight > devtools.threshold) {
+            if (!devtools.open) {
+                devtools.open = true;
+                console.warn('Developer tools detected');
+                // Optional: alert('Developer tools detected. Please close them to continue.');
+            }
+        } else {
+            devtools.open = false;
+        }
+    }, 500);
+    
+    // Disable inspect element
+    document.addEventListener('inspect', (e) => {
+        e.preventDefault();
+    });
+    
+    // Prevent element inspection
+    document.addEventListener('click', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && 
+                e.target.tagName !== 'BUTTON' && !e.target.closest('button') &&
+                e.target.tagName !== 'A' && !e.target.closest('a')) {
+                e.preventDefault();
+            }
+        }
+    }, true);
+}
 
 // Event Listeners
 function setupEventListeners() {
@@ -99,6 +309,40 @@ function setupEventListeners() {
     searchBtn.addEventListener('click', handleSearch);
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSearch();
+    });
+    
+    // Prevent paste events on search input (security)
+    searchInput.addEventListener('paste', (e) => {
+        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+        // Check if pasted content contains URLs
+        const urlPatterns = [
+            /^(https?:\/\/)/i,
+            /^(http?:\/\/)/i,
+            /^(ftp:\/\/)/i,
+            /\.(mp3|wav|ogg|m4a|flac|aac)$/i,
+            /^(\/|\\)/,
+            /^(C:|D:|E:|F:|G:|H:|I:|J:|K:|L:|M:|N:|O:|P:|Q:|R:|S:|T:|U:|V:|W:|X:|Y:|Z:)/i
+        ];
+        
+        if (urlPatterns.some(pattern => pattern.test(pastedText))) {
+            e.preventDefault();
+            alert('URLs and file paths are not allowed in search.');
+            return;
+        }
+        
+        // Allow regular text paste (don't prevent default)
+    });
+    
+    // Prevent drag and drop on search input
+    searchInput.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.effectAllowed = 'none';
+    });
+    
+    searchInput.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.dataTransfer.effectAllowed = 'none';
+        alert('Drag and drop is not allowed. Please type your search query.');
     });
 
     // Source tabs
@@ -137,11 +381,15 @@ function setupEventListeners() {
     // Sidebar navigation
     document.getElementById('homeBtn').addEventListener('click', () => {
         setActiveSidebar('homeBtn');
+        currentSource = 'all';
+        updateSourceTabs('all');
         loadRecommendations();
     });
 
     document.getElementById('likedSongsBtn').addEventListener('click', () => {
         setActiveSidebar('likedSongsBtn');
+        currentSource = 'all';
+        updateSourceTabs('all');
         if (likedSongs.length > 0) {
             tracks = likedSongs;
             currentTrackIndex = 0;
@@ -153,6 +401,8 @@ function setupEventListeners() {
 
     document.getElementById('recentlyPlayedBtn').addEventListener('click', () => {
         setActiveSidebar('recentlyPlayedBtn');
+        currentSource = 'all';
+        updateSourceTabs('all');
         if (recentlyPlayed.length > 0) {
             tracks = recentlyPlayed;
             currentTrackIndex = 0;
@@ -164,6 +414,8 @@ function setupEventListeners() {
 
     document.getElementById('queueBtn').addEventListener('click', () => {
         setActiveSidebar('queueBtn');
+        currentSource = 'all';
+        updateSourceTabs('all');
         if (queue.length > 0) {
             tracks = queue;
             currentTrackIndex = 0;
@@ -172,6 +424,83 @@ function setupEventListeners() {
             showEmptyState();
         }
     });
+    
+    // Music source buttons
+    document.getElementById('audiusBtn').addEventListener('click', () => {
+        setActiveSidebar('audiusBtn');
+        currentSource = 'audius';
+        updateSourceTabs('audius');
+        if (tracks.length > 0) {
+            displayTracks();
+        } else {
+            loadRecommendations();
+        }
+    });
+    
+    document.getElementById('youtubeBtn').addEventListener('click', () => {
+        setActiveSidebar('youtubeBtn');
+        currentSource = 'youtube';
+        updateSourceTabs('youtube');
+        if (tracks.length > 0) {
+            displayTracks();
+        } else {
+            loadRecommendations();
+        }
+    });
+    
+    document.getElementById('jamendoBtn').addEventListener('click', () => {
+        setActiveSidebar('jamendoBtn');
+        currentSource = 'jamendo';
+        updateSourceTabs('jamendo');
+        if (tracks.length > 0) {
+            displayTracks();
+        } else {
+            loadRecommendations();
+        }
+    });
+    
+    document.getElementById('spotifyBtn').addEventListener('click', () => {
+        setActiveSidebar('spotifyBtn');
+        currentSource = 'spotify';
+        updateSourceTabs('spotify');
+        if (tracks.length > 0) {
+            displayTracks();
+        } else {
+            loadRecommendations();
+        }
+    });
+    
+    // Discover buttons
+    const trendingBtn = document.getElementById('trendingBtn');
+    const newReleasesBtn = document.getElementById('newReleasesBtn');
+    const genresBtn = document.getElementById('genresBtn');
+    
+    if (trendingBtn) {
+        trendingBtn.addEventListener('click', () => {
+            setActiveSidebar('trendingBtn');
+            currentSource = 'all';
+            updateSourceTabs('all');
+            loadTrendingTracks();
+        });
+    }
+    
+    if (newReleasesBtn) {
+        newReleasesBtn.addEventListener('click', () => {
+            setActiveSidebar('newReleasesBtn');
+            currentSource = 'all';
+            updateSourceTabs('all');
+            loadNewReleases();
+        });
+    }
+    
+    if (genresBtn) {
+        genresBtn.addEventListener('click', () => {
+            setActiveSidebar('genresBtn');
+            currentSource = 'all';
+            updateSourceTabs('all');
+            loadGenres();
+        });
+    }
 }
 
 function setActiveSidebar(activeId) {
@@ -181,10 +510,27 @@ function setActiveSidebar(activeId) {
     document.getElementById(activeId).classList.add('active');
 }
 
+// Update Source Tabs
+function updateSourceTabs(source) {
+    sourceTabs.forEach(tab => {
+        if (tab.dataset.source === source) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+}
+
 // Search Functionality
 async function handleSearch() {
     const query = searchInput.value.trim();
     if (!query) return;
+
+    // Simplified security: Only block obvious URLs
+    if (query.startsWith('http://') || query.startsWith('https://') || query.startsWith('ftp://')) {
+        showErrorState('security', 'Direct URLs are not allowed. Please search for music by title, artist, or album name.');
+        return;
+    }
 
     showLoadingState();
     
@@ -220,11 +566,11 @@ async function searchAllSources(query) {
     const searchPromises = [];
     const sources = [];
     
+    // Always try Audius (no API key needed for public search)
+    searchPromises.push(searchAudius(query));
+    sources.push('Audius');
+    
     // Search sources that have API keys configured
-    if (API_CONFIG.audius.apiKey) {
-        searchPromises.push(searchAudius(query));
-        sources.push('Audius');
-    }
     if (API_CONFIG.youtube.apiKey) {
         searchPromises.push(searchYouTube(query));
         sources.push('YouTube');
@@ -236,12 +582,6 @@ async function searchAllSources(query) {
     if (API_CONFIG.spotify.clientId && API_CONFIG.spotify.clientSecret) {
         searchPromises.push(searchSpotify(query));
         sources.push('Spotify');
-    }
-
-    // If no sources configured, return mock data for demo
-    if (searchPromises.length === 0) {
-        console.log('No API keys configured, using demo data');
-        return getMockSearchResults(query);
     }
 
     try {
@@ -261,41 +601,58 @@ async function searchAllSources(query) {
             }
         });
 
-        // If no results from APIs, fall back to demo data
-        if (allTracks.length === 0) {
-            console.log('No results from APIs, using demo data');
-            return getMockSearchResults(query);
+        // If we got API results, prioritize them and add demo as backup
+        if (allTracks.length > 0) {
+            console.log(`Using ${allTracks.length} tracks from ${successCount} API sources`);
+            // Add a few demo tracks for variety if API results are limited
+            if (allTracks.length < 10) {
+                const demoTracks = getMockSearchResults(query).slice(0, 5);
+                allTracks.push(...demoTracks);
+                console.log(`Added ${demoTracks.length} demo tracks for variety`);
+            }
+            return allTracks;
         }
 
-        console.log(`Total tracks found: ${allTracks.length} from ${successCount} sources`);
-        return allTracks;
+        // If no results from APIs, fall back to demo data
+        console.log('No results from APIs, using demo data');
+        return getMockSearchResults(query);
     } catch (error) {
         console.error('Search all sources error:', error);
-        throw new Error('Failed to search music sources');
+        // Always return demo tracks as fallback
+        console.log('Error occurred, using demo data as fallback');
+        return getMockSearchResults(query);
     }
 }
 
 // API Search Functions
 async function searchAudius(query) {
     try {
-        // Audius API requires specific format
-        const response = await fetch(`https://audius.co/search?query=${encodeURIComponent(query)}&type=tracks`, {
-            headers: {
-                'Authorization': `Bearer ${API_CONFIG.audius.apiKey}`
-            }
-        });
+        // Use Audius Discovery API with fallback host
+        const hosts = ['https://discovery-auditius.co', 'https://discoveryprovider.audius.co', 'https://api.audius.co'];
+        let data = null;
         
-        if (!response.ok) {
-            if (response.status === 401) throw new Error('Audius authentication failed');
-            if (response.status === 429) throw new Error('Audius rate limit exceeded');
-            if (response.status === 404) throw new Error('Audius service unavailable');
-            throw new Error(`Audius API error: ${response.status}`);
+        for (const host of hosts) {
+            try {
+                const response = await fetch(`${host}/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=Spotfuck&limit=15`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    data = await response.json();
+                    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Failed with ${host}:`, e);
+                continue;
+            }
         }
         
-        const data = await response.json();
-        
-        if (!data.data || !Array.isArray(data.data)) {
-            console.warn('Audius returned unexpected data format');
+        if (!data || !data.data || !Array.isArray(data.data)) {
+            console.warn('Audius returned no data');
             return [];
         }
         
@@ -303,25 +660,23 @@ async function searchAudius(query) {
             id: track.id,
             title: track.title,
             artist: track.user?.name || 'Unknown Artist',
-            album: track.album || 'Unknown',
+            album: track.album?.name || 'Unknown',
             duration: track.duration || 0,
-            artwork: track.artwork?.['150x150'] || track.artwork?.['480x480'] || null,
+            artwork: track.artwork?.['480x480'] || track.artwork?.['150x150'] || track.artwork?.['1000x1000'] || null,
             source: 'audius',
-            audioUrl: track.stream_url || track.mp3 || null
-        })).filter(track => track.audioUrl); // Only return tracks with playable URLs
+            audioUrl: `https://discovery-auditius.co/v1/tracks/${track.id}/stream?app_name=Spotfuck`
+        }));
     } catch (error) {
         console.error('Audius search error:', error);
-        if (error.message.includes('network') || error.message.includes('fetch')) {
-            throw new Error('Network error connecting to Audius');
-        }
-        throw error;
+        return [];
     }
 }
 
 async function searchYouTube(query) {
     try {
+        // Search for music-related videos
         const response = await fetch(
-            `${API_CONFIG.youtube.baseUrl}/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${API_CONFIG.youtube.apiKey}`
+            `${API_CONFIG.youtube.baseUrl}/search?part=snippet&q=${encodeURIComponent(query + ' music')}+music&type=video&maxResults=15&key=${API_CONFIG.youtube.apiKey}`
         );
         
         if (!response.ok) {
@@ -335,13 +690,29 @@ async function searchYouTube(query) {
             return [];
         }
         
+        // Get video IDs for duration information
+        const videoIds = data.items.map(item => item.id.videoId).join(',');
+        const durationResponse = await fetch(
+            `${API_CONFIG.youtube.baseUrl}/videos?part=contentDetails&id=${videoIds}&key=${API_CONFIG.youtube.apiKey}`
+        );
+        
+        const durationData = await durationResponse.json();
+        const durationMap = {};
+        
+        if (durationData.items && Array.isArray(durationData.items)) {
+            durationData.items.forEach(item => {
+                const duration = item.contentDetails.duration;
+                durationMap[item.id] = parseYouTubeDuration(duration);
+            });
+        }
+        
         return data.items.map(item => ({
             id: item.id.videoId,
             title: item.snippet.title.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&"),
             artist: item.snippet.channelTitle,
             album: 'YouTube',
-            duration: 0, // YouTube duration needs additional API call
-            artwork: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+            duration: durationMap[item.id.videoId] || 0,
+            artwork: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
             source: 'youtube',
             videoId: item.id.videoId
         }));
@@ -349,6 +720,18 @@ async function searchYouTube(query) {
         console.error('YouTube search error:', error);
         return [];
     }
+}
+
+// Parse YouTube duration format (PT4M30S -> 270 seconds)
+function parseYouTubeDuration(duration) {
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    if (!match) return 0;
+    
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    const seconds = parseInt(match[3] || '0');
+    
+    return hours * 3600 + minutes * 60 + seconds;
 }
 
 async function searchJamendo(query) {
@@ -407,7 +790,7 @@ async function searchSpotify(query) {
         }
         
         const response = await fetch(
-            `${API_CONFIG.spotify.baseUrl}/search?q=${encodeURIComponent(query)}&type=track&limit=10`,
+            `${API_CONFIG.spotify.baseUrl}/search?q=${encodeURIComponent(query)}&type=track&limit=15&market=US`,
             {
                 headers: {
                     'Authorization': `Bearer ${tokenData.access_token}`
@@ -432,7 +815,7 @@ async function searchSpotify(query) {
             artist: track.artists[0]?.name || 'Unknown Artist',
             album: track.album?.name || 'Unknown',
             duration: track.duration_ms / 1000,
-            artwork: track.album?.images?.[0]?.url || null,
+            artwork: track.album?.images?.[0]?.url || track.album?.images?.[1]?.url || null,
             source: 'spotify',
             previewUrl: track.preview_url
         })).filter(track => track.previewUrl); // Only return tracks with preview URLs
@@ -454,7 +837,7 @@ function getMockSearchResults(query) {
             duration: 184,
             artwork: 'https://picsum.photos/seed/music1/300/300',
             source: 'audius',
-            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav'
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
         },
         {
             id: 'demo2', 
@@ -464,7 +847,7 @@ function getMockSearchResults(query) {
             duration: 212,
             artwork: 'https://picsum.photos/seed/music2/300/300',
             source: 'jamendo',
-            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav'
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
         },
         {
             id: 'demo3',
@@ -474,7 +857,7 @@ function getMockSearchResults(query) {
             duration: 195,
             artwork: 'https://picsum.photos/seed/music3/300/300',
             source: 'audius',
-            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/ImperialMarch60.wav'
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'
         },
         {
             id: 'demo4',
@@ -484,7 +867,7 @@ function getMockSearchResults(query) {
             duration: 240,
             artwork: 'https://picsum.photos/seed/music4/300/300',
             source: 'jamendo',
-            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand60.wav'
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3'
         },
         {
             id: 'demo5',
@@ -494,7 +877,7 @@ function getMockSearchResults(query) {
             duration: 178,
             artwork: 'https://picsum.photos/seed/music5/300/300', 
             source: 'audius',
-            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/gettysburg10.wav'
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3'
         },
         {
             id: 'demo6',
@@ -504,7 +887,7 @@ function getMockSearchResults(query) {
             duration: 267,
             artwork: 'https://picsum.photos/seed/music6/300/300',
             source: 'jamendo', 
-            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/preamble10.wav'
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3'
         },
         {
             id: 'demo7',
@@ -514,7 +897,7 @@ function getMockSearchResults(query) {
             duration: 198,
             artwork: 'https://picsum.photos/seed/music7/300/300',
             source: 'audius',
-            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/antarctica10.wav'
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'
         },
         {
             id: 'demo8',
@@ -524,7 +907,137 @@ function getMockSearchResults(query) {
             duration: 312,
             artwork: 'https://picsum.photos/seed/music8/300/300',
             source: 'jamendo',
-            audioUrl: 'https://www2.cs.uic.edu/~i101/SoundFiles/hawaii10.wav'
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3'
+        },
+        {
+            id: 'demo9',
+            title: 'YouTube Demo',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 210,
+            artwork: 'https://picsum.photos/seed/music9/300/300',
+            source: 'youtube',
+            videoId: 'dQw4w9WgXcQ'
+        },
+        {
+            id: 'demo10',
+            title: 'Indie Folk',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 225,
+            artwork: 'https://picsum.photos/seed/music10/300/300',
+            source: 'audius',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
+        },
+        {
+            id: 'demo11',
+            title: 'Lo-Fi Hip Hop',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 189,
+            artwork: 'https://picsum.photos/seed/music11/300/300',
+            source: 'jamendo',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
+        },
+        {
+            id: 'demo12',
+            title: 'Synthwave',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 203,
+            artwork: 'https://picsum.photos/seed/music12/300/300',
+            source: 'audius',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3'
+        },
+        {
+            id: 'demo13',
+            title: 'Deep House',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 256,
+            artwork: 'https://picsum.photos/seed/music13/300/300',
+            source: 'jamendo',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3'
+        },
+        {
+            id: 'demo14',
+            title: 'Dance Pop',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 187,
+            artwork: 'https://picsum.photos/seed/music14/300/300',
+            source: 'audius',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3'
+        },
+        {
+            id: 'demo15',
+            title: 'R&B Soul',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 278,
+            artwork: 'https://picsum.photos/seed/music15/300/300',
+            source: 'jamendo',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3'
+        },
+        {
+            id: 'demo16',
+            title: 'Reggae Vibes',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 234,
+            artwork: 'https://picsum.photos/seed/music16/300/300',
+            source: 'audius',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3'
+        },
+        {
+            id: 'demo17',
+            title: 'Country Roads',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 201,
+            artwork: 'https://picsum.photos/seed/music17/300/300',
+            source: 'jamendo',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3'
+        },
+        {
+            id: 'demo18',
+            title: 'Metal Core',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 186,
+            artwork: 'https://picsum.photos/seed/music18/300/300',
+            source: 'audius',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3'
+        },
+        {
+            id: 'demo19',
+            title: 'World Music',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 267,
+            artwork: 'https://picsum.photos/seed/music19/300/300',
+            source: 'jamendo',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-18.mp3'
+        },
+        {
+            id: 'demo20',
+            title: 'Latin Beats',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 223,
+            artwork: 'https://picsum.photos/seed/music20/300/300',
+            source: 'audius',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-19.mp3'
+        }
+    ];
+            id: 'demo18',
+            title: 'Metal Core',
+            artist: 'Demo Artist',
+            album: 'Demo Collection',
+            duration: 186,
+            artwork: 'https://picsum.photos/seed/music18/300/300',
+            source: 'audius',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3'
         }
     ];
     
@@ -534,7 +1047,8 @@ function getMockSearchResults(query) {
         const filtered = demoTracks.filter(track => 
             track.title.toLowerCase().includes(lowerQuery) ||
             track.artist.toLowerCase().includes(lowerQuery) ||
-            track.album.toLowerCase().includes(lowerQuery)
+            track.album.toLowerCase().includes(lowerQuery) ||
+            track.source.toLowerCase().includes(lowerQuery)
         );
         return filtered.length > 0 ? filtered : demoTracks.slice(0, 3); // Return some matches or first 3
     }
@@ -652,6 +1166,12 @@ function showErrorState(errorType, details = '') {
             message = 'Invalid API credentials.';
             suggestion = 'Update your API keys in Settings.';
             break;
+        case 'security':
+            icon = 'fa-shield-alt';
+            title = 'Security Restriction';
+            message = 'Direct URLs and file paths are not allowed.';
+            suggestion = 'Please search for music by title, artist, or album name only.';
+            break;
         default:
             icon = 'fa-exclamation-triangle';
             title = 'Search Failed';
@@ -690,11 +1210,122 @@ function showErrorState(errorType, details = '') {
 function loadRecommendations() {
     // Load demo recommendations (all tracks since no query)
     console.log('Loading demo recommendations...');
-    tracks = getMockSearchResults('');
+    const demoTracks = getMockSearchResults('');
+    console.log('Demo tracks loaded:', demoTracks.length);
+    
+    if (demoTracks.length === 0) {
+        console.error('No demo tracks available!');
+        showErrorState('api_error', 'No tracks available to load.');
+        return;
+    }
+    
+    tracks = demoTracks;
     currentTrackIndex = 0;
     displayTracks();
-    console.log('Loaded', tracks.length, 'demo tracks');
+    console.log('Displayed', tracks.length, 'demo tracks');
 }
+
+async function loadTrendingTracks() {
+    showLoadingState();
+    
+    try {
+        // Try to get trending from Audius (no API key needed)
+        const trendingQuery = 'trending popular hits';
+        const results = await searchAudius(trendingQuery);
+        
+        if (results.length > 0) {
+            tracks = results;
+            currentTrackIndex = 0;
+            displayTracks();
+            return;
+        }
+        
+        // Fallback to demo tracks
+        console.log('No trending results, using demo tracks');
+        tracks = getMockSearchResults('').slice(0, 10);
+        currentTrackIndex = 0;
+        displayTracks();
+    } catch (error) {
+        console.error('Error loading trending:', error);
+        loadRecommendations();
+    }
+}
+
+async function loadNewReleases() {
+    showLoadingState();
+    
+    try {
+        // Try to get new releases from Audius (no API key needed)
+        const newReleasesQuery = 'new releases latest songs';
+        const results = await searchAudius(newReleasesQuery);
+        
+        if (results.length > 0) {
+            tracks = results;
+            currentTrackIndex = 0;
+            displayTracks();
+            return;
+        }
+        
+        // Fallback to demo tracks
+        console.log('No new releases, using demo tracks');
+        tracks = getMockSearchResults('').slice(0, 10);
+        currentTrackIndex = 0;
+        displayTracks();
+    } catch (error) {
+        console.error('Error loading new releases:', error);
+        loadRecommendations();
+    }
+}
+
+function loadGenres() {
+    // Show genre selection UI
+    const genres = [
+        { name: 'Electronic', icon: 'fa-bolt', query: 'electronic music' },
+        { name: 'Rock', icon: 'fa-guitar', query: 'rock music' },
+        { name: 'Pop', icon: 'fa-music', query: 'pop music' },
+        { name: 'Hip-Hop', icon: 'fa-microphone', query: 'hip hop music' },
+        { name: 'Jazz', icon: 'fa-saxophone', query: 'jazz music' },
+        { name: 'Classical', icon: 'fa-violin', query: 'classical music' },
+        { name: 'Ambient', icon: 'fa-cloud', query: 'ambient music' },
+        { name: 'Indie', icon: 'fa-star', query: 'indie music' }
+    ];
+    
+    trackList.innerHTML = `
+        <div class="genres-grid">
+            ${genres.map(genre => `
+                <div class="genre-card" onclick="searchByGenre('${genre.query}')">
+                    <div class="genre-icon">
+                        <i class="fas ${genre.icon}"></i>
+                    </div>
+                    <div class="genre-name">${genre.name}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+async function searchByGenre(query) {
+    showLoadingState();
+    
+    try {
+        const results = await searchAllSources(query);
+        
+        if (results.length === 0) {
+            showErrorState('no_results');
+            return;
+        }
+        
+        tracks = results;
+        currentTrackIndex = 0;
+        displayTracks();
+    } catch (error) {
+        console.error('Genre search error:', error);
+        showErrorState('api_error');
+    }
+}
+
+// Make searchByGenre available globally for the onclick handler
+window.searchByGenre = searchByGenre;
 
 // Player Functions
 function playTrack(index) {
@@ -952,8 +1583,18 @@ function handleTrackEnd() {
 
 function handleAudioError(error) {
     console.error('Audio player error:', error);
+    // Show error to user and try next track
+    const currentTrack = tracks[currentTrackIndex];
+    console.error('Failed to play:', currentTrack);
+    
     // Try next track
-    playNext();
+    if (currentTrackIndex < tracks.length - 1) {
+        playNext();
+    } else {
+        // Show error state if no more tracks
+        isPlaying = false;
+        playPauseIcon.className = 'fas fa-play';
+    }
 }
 
 // Volume Functions

@@ -20,6 +20,10 @@ A modern, completely redesigned music streaming application that aggregates musi
 - **Local Storage**: Your preferences and playlists are saved locally
 - **Keyboard Shortcuts**: Control playback with keyboard shortcuts
 - **No Account Required**: Use without signing up (API keys optional)
+- **Discover Section**: Trending, new releases, and genre browsing
+- **Real YouTube Playback**: YouTube video integration with duration tracking
+- **Spotify Previews**: 30-second preview clips from Spotify
+- **Expanded Demo Library**: 20+ demo tracks with reliable audio
 
 ## Getting Started
 

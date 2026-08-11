@@ -18,6 +18,22 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Beta/Alpha Warning Banner -->
+    <div class="beta-banner" id="betaBanner">
+        <div class="beta-banner-content">
+            <div class="beta-banner-icon">
+                <i class="fas fa-flask"></i>
+            </div>
+            <div class="beta-banner-text">
+                <div class="beta-banner-title">Alpha/Beta Version</div>
+                <div class="beta-banner-info">This application is still in development. Some features may not work as expected.</div>
+            </div>
+            <button class="beta-banner-close" id="betaBannerClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- PIN Entry Overlay -->
     <div class="pin-overlay" id="pinOverlay">
         <div class="pin-container">
@@ -56,22 +72,6 @@
     </div>
 
     <div class="app-container" id="appContainer" style="display: none;">
-        <!-- Beta/Alpha Warning Banner -->
-        <div class="beta-banner" id="betaBanner">
-            <div class="beta-banner-content">
-                <div class="beta-banner-icon">
-                    <i class="fas fa-flask"></i>
-                </div>
-                <div class="beta-banner-text">
-                    <div class="beta-banner-title">Alpha/Beta Version</div>
-                    <div class="beta-banner-info">This application is still in development. Some features may not work as expected.</div>
-                </div>
-                <button class="beta-banner-close" id="betaBannerClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-
         <!-- Header -->
         <header class="header">
             <div class="logo">
@@ -562,7 +562,7 @@
     <!-- Audio Player -->
     <audio id="audioPlayer"></audio>
 
-    <!-- Security Warning Modal -->
+    <!-- Security Modal -->
     <div class="security-modal" id="securityModal">
         <div class="security-modal-content">
             <div class="security-modal-header">
@@ -582,6 +582,24 @@
                         <li>Do not share information about this platform with others</li>
                         <li>Do not discuss, mention, or reference this service publicly</li>
                         <li>Keep all access credentials and PIN codes confidential</li>
+                        <li>Do not attempt to reverse engineer or inspect the code</li>
+                        <li>Respect the privacy and security measures in place</li>
+                    </ul>
+                </div>
+                <div class="security-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Violation of these terms may result in immediate access revocation.</span>
+                </div>
+            </div>
+            <div class="security-modal-footer">
+                <button class="security-accept-btn" id="securityAcceptBtn">
+                    <i class="fas fa-check"></i> I Understand & Accept
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DMCA Modal -->
                         <li>Do not attempt to reverse engineer or inspect the code</li>
                         <li>Respect the privacy and security measures in place</li>
                     </ul>
@@ -609,222 +627,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Security Modal Styles -->
-    <style>
-        .security-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .security-modal.hidden {
-            display: none;
-        }
-        
-        .security-modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .security-modal-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        
-        .security-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: white;
-            flex-shrink: 0;
-        }
-        
-        .security-modal-header h2 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-            flex: 1;
-        }
-        
-        .security-close-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 20px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        
-        .security-close-btn:hover {
-            color: var(--text-primary);
-            background: var(--bg-hover);
-        }
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0;
-        }
-        
-        .security-modal-body {
-            padding: 24px;
-        }
-        
-        .security-section {
-            margin-bottom: 24px;
-        }
-        
-        .security-section:last-child {
-            margin-bottom: 0;
-        }
-        
-        .security-section h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .security-section h3 i {
-            color: var(--primary);
-        }
-        
-        .security-section p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-        
-        .security-section ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .security-section li {
-            font-size: 13px;
-            color: var(--text-secondary);
-            padding: 6px 0;
-            padding-left: 20px;
-            position: relative;
-            line-height: 1.4;
-        }
-        
-        .security-section li:before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
-        }
-        
-        .security-warning {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 8px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 13px;
-            color: #f59e0b;
-        }
-        
-        .security-warning i {
-            font-size: 16px;
-        }
-        
-        .security-modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: flex-end;
-        }
-        
-        .security-accept-btn {
-            padding: 12px 24px;
-            background: var(--primary);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .security-accept-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-        }
-        
-        @media (max-width: 768px) {
-            .security-modal-content {
-                max-width: 95%;
-            }
-            
-            .security-modal-header {
-                padding: 20px;
-            }
-            
-            .security-modal-header h2 {
-                font-size: 18px;
-            }
-            
-            .security-modal-body {
-                padding: 20px;
-            }
-            
-            .security-section h3 {
-                font-size: 14px;
-            }
-            
-            .security-section p,
-            .security-section li {
-                font-size: 12px;
-            }
-            
-            .security-modal-footer {
-                padding: 12px 20px;
-            }
-            
-            .security-accept-btn {
-                padding: 10px 20px;
-                font-size: 13px;
-            }
-        }
-    </style>
 
     <!-- DMCA Modal -->
     <div class="dmca-modal" id="dmcaModal">

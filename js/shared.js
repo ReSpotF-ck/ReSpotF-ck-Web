@@ -27,6 +27,8 @@ function setupSecurityModal() {
         securityModal.style.display = 'flex';
         
         const securityAcceptBtn = document.getElementById('securityAcceptBtn');
+        const securityCloseBtn = document.getElementById('securityCloseBtn');
+        
         if (securityAcceptBtn) {
             // Remove any existing listeners first
             const newBtn = securityAcceptBtn.cloneNode(true);
@@ -35,6 +37,12 @@ function setupSecurityModal() {
             newBtn.addEventListener('click', function(e) {
                 console.log('Security button clicked!');
                 localStorage.setItem('securityAccepted', 'true');
+                securityModal.style.display = 'none';
+            });
+        }
+        
+        if (securityCloseBtn) {
+            securityCloseBtn.addEventListener('click', function(e) {
                 securityModal.style.display = 'none';
             });
         }

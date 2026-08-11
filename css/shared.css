@@ -14,6 +14,10 @@
     --success: #10b981;
 }
 
+body {
+    padding-top: 50px; /* Space for fixed beta banner */
+}
+
 /* Beta Banner */
 .beta-banner {
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
@@ -22,6 +26,12 @@
     padding: 12px 16px;
     animation: slideDown 0.5s ease;
     margin-bottom: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 100%;
 }
 
 @keyframes slideDown {
@@ -103,7 +113,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 3000;
+    z-index: 5000;
     animation: fadeIn 0.3s ease;
 }
 
@@ -292,7 +302,7 @@
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
+    z-index: 6000;
     align-items: center;
     justify-content: center;
     animation: fadeIn 0.3s ease;

@@ -370,6 +370,27 @@ async function handleSearch() {
             return;
         }
         
+        // Check if we only got demo tracks due to API failures
+        if (window.lastSearchErrors && Object.keys(window.lastSearchErrors).length > 0) {
+            const apiSources = Object.keys(window.lastSearchErrors);
+            console.log('API sources failed:', apiSources);
+            
+            // Show warning if all APIs failed
+            if (apiSources.length >= 2 || (apiSources.includes('Audius') && apiSources.includes('Jamendo'))) {
+                // Most APIs failed, show warning but still display demo tracks
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'api-warning';
+                warningDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Music services unavailable. Using demo tracks. Check your API keys in Settings.</span>
+                    <button class="warning-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                trackList.prepend(warningDiv);
+            }
+        }
+        
         tracks = results;
         currentTrackIndex = 0;
         displayTracks();
@@ -393,6 +414,7 @@ async function handleSearch() {
 async function searchAllSources(query) {
     const searchPromises = [];
     const sources = [];
+    const sourceErrors = {};
     
     // Always try Audius (no API key needed for public search)
     searchPromises.push(searchAudius(query));
@@ -424,14 +446,22 @@ async function searchAllSources(query) {
                 console.log(`${sources[index]}: Found ${result.value.length} tracks`);
             } else if (result.status === 'rejected') {
                 console.error(`${sources[index]} search failed:`, result.reason.message);
+                sourceErrors[sources[index]] = result.reason.message;
             } else {
                 console.log(`${sources[index]}: No results found`);
+                sourceErrors[sources[index]] = 'No results found';
             }
         });
 
         // If we got API results, prioritize them and add demo as backup
         if (allTracks.length > 0) {
             console.log(`Using ${allTracks.length} tracks from ${successCount} API sources`);
+            
+            // Log any source errors for debugging
+            if (Object.keys(sourceErrors).length > 0) {
+                console.log('Source errors:', sourceErrors);
+            }
+            
             // Add a few demo tracks for variety if API results are limited
             if (allTracks.length < 10) {
                 const demoTracks = getMockSearchResults(query).slice(0, 5);
@@ -441,13 +471,19 @@ async function searchAllSources(query) {
             return allTracks;
         }
 
-        // If no results from APIs, fall back to demo data
+        // If no results from APIs, fall back to demo data with error information
         console.log('No results from APIs, using demo data');
+        console.log('Source errors:', sourceErrors);
+        
+        // Store source errors for display
+        window.lastSearchErrors = sourceErrors;
+        
         return getMockSearchResults(query);
     } catch (error) {
         console.error('Search all sources error:', error);
         // Always return demo tracks as fallback
         console.log('Error occurred, using demo data as fallback');
+        window.lastSearchErrors = { 'General': error.message };
         return getMockSearchResults(query);
     }
 }
@@ -573,19 +609,39 @@ async function searchJamendo(query) {
         // If no API key, try using Jamendo's public API with a default client ID
         const clientId = API_CONFIG.jamendo.clientId || '339c6fbc';
         
-        const response = await fetch(
-            `${API_CONFIG.jamendo.baseUrl}/tracks/search?name=${encodeURIComponent(query)}&client_id=${clientId}&limit=10&format=jsonpretty&include=musicinfo`
-        );
+        // Try multiple endpoint variations for better compatibility
+        const endpoints = [
+            `${API_CONFIG.jamendo.baseUrl}/tracks/?client_id=${clientId}&format=jsonpretty&limit=10&search=${encodeURIComponent(query)}&include=musicinfo`,
+            `${API_CONFIG.jamendo.baseUrl}/tracks/search?client_id=${clientId}&format=jsonpretty&limit=10&name=${encodeURIComponent(query)}&include=musicinfo`,
+            `${API_CONFIG.jamendo.baseUrl}/tracks/?client_id=${clientId}&format=jsonpretty&limit=10&namesearch=${encodeURIComponent(query)}&include=musicinfo`
+        ];
         
-        if (!response.ok) {
-            throw new Error(`Jamendo API error: ${response.status}`);
+        let data = null;
+        let lastError = null;
+        
+        for (const endpoint of endpoints) {
+            try {
+                const response = await fetch(endpoint);
+                
+                if (response.ok) {
+                    data = await response.json();
+                    if (data.results && Array.isArray(data.results) && data.results.length > 0) {
+                        console.log('Jamendo search successful with endpoint:', endpoint);
+                        break;
+                    }
+                } else {
+                    lastError = `HTTP ${response.status}: ${response.statusText}`;
+                }
+            } catch (e) {
+                lastError = e.message;
+                console.warn('Jamendo endpoint failed:', endpoint, e);
+                continue;
+            }
         }
         
-        const data = await response.json();
-        
-        if (!data.results || !Array.isArray(data.results)) {
-            console.warn('Jamendo returned unexpected data format');
-            return [];
+        if (!data || !data.results || !Array.isArray(data.results)) {
+            console.warn('Jamendo returned no data or unexpected format:', data);
+            throw new Error(`Jamendo search failed: ${lastError || 'No results found'}`);
         }
         
         return data.results.map(track => ({
@@ -600,7 +656,7 @@ async function searchJamendo(query) {
         })).filter(track => track.audioUrl); // Only return tracks with playable URLs
     } catch (error) {
         console.error('Jamendo search error:', error);
-        return [];
+        throw error; // Re-throw to allow error handling
     }
 }
 
@@ -617,13 +673,13 @@ async function searchSpotify(query) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': 'Basic ' + btoa(API_CONFIG.spotify.clientId + ':' + API_CONFIG.spotify.clientSecret)
             },
-            body: 'grant_type=client_credentials'
+            body: `grant_type=client_credentials&client_id=${encodeURIComponent(API_CONFIG.spotify.clientId)}&client_secret=${encodeURIComponent(API_CONFIG.spotify.clientSecret)}`
         });
         
         if (!tokenResponse.ok) {
-            throw new Error(`Spotify token error: ${tokenResponse.status}`);
+            const errorData = await tokenResponse.json().catch(() => ({}));
+            throw new Error(`Spotify token error: ${tokenResponse.status} - ${errorData.error_description || tokenResponse.statusText}`);
         }
         
         const tokenData = await tokenResponse.json();
@@ -642,13 +698,14 @@ async function searchSpotify(query) {
         );
         
         if (!response.ok) {
-            throw new Error(`Spotify search error: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`Spotify search error: ${response.status} - ${errorData.error?.message || response.statusText}`);
         }
         
         const data = await response.json();
         
         if (!data.tracks || !data.tracks.items || !Array.isArray(data.tracks.items)) {
-            console.warn('Spotify returned unexpected data format');
+            console.warn('Spotify returned unexpected data format:', data);
             return [];
         }
         
@@ -664,7 +721,7 @@ async function searchSpotify(query) {
         })).filter(track => track.previewUrl); // Only return tracks with preview URLs
     } catch (error) {
         console.error('Spotify search error:', error);
-        return [];
+        throw error; // Re-throw to allow error handling
     }
 }
 
@@ -970,6 +1027,20 @@ function showLoadingState() {
 
 function showErrorState(errorType, details = '') {
     let icon, title, message, suggestion;
+    let errorDetails = details;
+    
+    // Check for source-specific errors
+    if (window.lastSearchErrors && Object.keys(window.lastSearchErrors).length > 0) {
+        const errorSources = Object.keys(window.lastSearchErrors);
+        errorDetails = `Source errors: ${errorSources.join(', ')}`;
+        
+        // Build detailed error message
+        const errorMessages = Object.entries(window.lastSearchErrors)
+            .map(([source, error]) => `${source}: ${error}`)
+            .join('\n');
+        
+        errorDetails = errorMessages;
+    }
     
     switch(errorType) {
         case 'no_results':
@@ -1026,7 +1097,7 @@ function showErrorState(errorType, details = '') {
                 <i class="fas fa-lightbulb"></i>
                 <span>${suggestion}</span>
             </div>
-            ${details ? `<div class="error-details"><small>${details}</small></div>` : ''}
+            ${errorDetails ? `<div class="error-details"><small>${errorDetails}</small></div>` : ''}
             <button class="error-retry-btn" id="errorRetryBtn">
                 <i class="fas fa-redo"></i> Try Again
             </button>

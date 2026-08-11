@@ -48,6 +48,22 @@
     </div>
 
     <div class="app-container" id="appContainer" style="display: none;">
+        <!-- Beta/Alpha Warning Banner -->
+        <div class="beta-banner" id="betaBanner">
+            <div class="beta-banner-content">
+                <div class="beta-banner-icon">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <div class="beta-banner-text">
+                    <div class="beta-banner-title">Alpha/Beta Version</div>
+                    <div class="beta-banner-info">This application is still in development. Some features may not work as expected.</div>
+                </div>
+                <button class="beta-banner-close" id="betaBannerClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
         <!-- Security Notice Banner -->
         <div class="security-banner" id="securityBanner">
             <div class="security-banner-content">
@@ -365,6 +381,84 @@
         }
         
         .security-banner.hidden {
+            display: none;
+        }
+        
+        /* Beta Banner */
+        .beta-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 0 0 12px 12px;
+            padding: 12px 16px;
+            animation: slideDown 0.5s ease;
+            margin-bottom: 0;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .beta-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .beta-banner-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .beta-banner-text {
+            flex: 1;
+        }
+        
+        .beta-banner-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f59e0b;
+            margin-bottom: 4px;
+        }
+        
+        .beta-banner-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .beta-banner-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .beta-banner-close:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+        
+        .beta-banner.hidden {
             display: none;
         }
         
@@ -1864,6 +1958,22 @@
                 securityBanner.classList.add('hidden');
             } else {
                 detectIP();
+            }
+            
+            // Beta Banner Handler
+            const betaBanner = document.getElementById('betaBanner');
+            const betaBannerClose = document.getElementById('betaBannerClose');
+            const betaBannerDismissed = localStorage.getItem('betaBannerDismissed');
+            
+            if (betaBannerDismissed === 'true') {
+                betaBanner.classList.add('hidden');
+            }
+            
+            if (betaBannerClose) {
+                betaBannerClose.addEventListener('click', () => {
+                    betaBanner.classList.add('hidden');
+                    localStorage.setItem('betaBannerDismissed', 'true');
+                });
             }
             
             // Make settings available globally for app.js

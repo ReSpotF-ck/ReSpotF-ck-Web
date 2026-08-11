@@ -9,30 +9,12 @@ let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed')) || [];
 let queue = JSON.parse(localStorage.getItem('queue')) || [];
 let currentSource = 'all';
 
-// DOM Elements
-const audioPlayer = document.getElementById('audioPlayer');
-const playPauseBtn = document.getElementById('playPauseBtn');
-const playPauseIcon = playPauseBtn.querySelector('i');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const shuffleBtn = document.getElementById('shuffleBtn');
-const repeatBtn = document.getElementById('repeatBtn');
-const progressBar = document.getElementById('progressBar');
-const progressFill = document.getElementById('progressFill');
-const currentTimeEl = document.getElementById('currentTime');
-const durationEl = document.getElementById('duration');
-const volumeSlider = document.getElementById('volumeSlider');
-const volumeBtn = document.getElementById('volumeBtn');
-const volumeIcon = volumeBtn.querySelector('i');
-const trackTitle = document.getElementById('trackTitle');
-const trackArtist = document.getElementById('trackArtist');
-const trackArt = document.getElementById('trackArt');
-const likeBtn = document.getElementById('likeBtn');
-const likeIcon = likeBtn.querySelector('i');
-const searchInput = document.getElementById('searchInput');
-const searchBtn = document.getElementById('searchBtn');
-const trackList = document.getElementById('trackList');
-const sourceTabs = document.querySelectorAll('.source-tab');
+// DOM Elements (will be initialized after DOM is loaded)
+let audioPlayer, playPauseBtn, playPauseIcon, prevBtn, nextBtn, shuffleBtn, repeatBtn;
+let progressBar, progressFill, currentTimeEl, durationEl;
+let volumeSlider, volumeBtn, volumeIcon;
+let trackTitle, trackArtist, trackArt, likeBtn, likeIcon;
+let searchInput, searchBtn, trackList, sourceTabs;
 
 // API Configuration
 const API_CONFIG = {
@@ -66,7 +48,7 @@ function loadSettingsToAPIConfig() {
     if (settings.spotifyClientSecret) API_CONFIG.spotify.clientSecret = settings.spotifyClientSecret;
     
     // Apply volume settings
-    if (settings.defaultVolume && volumeSlider) {
+    if (settings.defaultVolume && volumeSlider && audioPlayer) {
         volumeSlider.value = settings.defaultVolume;
         audioPlayer.volume = settings.defaultVolume / 100;
     }
@@ -79,18 +61,46 @@ window.updateAPIConfig = function(settings) {
     if (settings.jamendoClientId) API_CONFIG.jamendo.clientId = settings.jamendoClientId;
     if (settings.spotifyClientId) API_CONFIG.spotify.clientId = settings.spotifyClientId;
     if (settings.spotifyClientSecret) API_CONFIG.spotify.clientSecret = settings.spotifyClientSecret;
-    if (settings.defaultVolume && volumeSlider) {
+    if (settings.defaultVolume && volumeSlider && audioPlayer) {
         volumeSlider.value = settings.defaultVolume;
         audioPlayer.volume = settings.defaultVolume / 100;
     }
 };
 
+// Initialize DOM Elements
+function initializeDOMElements() {
+    audioPlayer = document.getElementById('audioPlayer');
+    playPauseBtn = document.getElementById('playPauseBtn');
+    if (playPauseBtn) playPauseIcon = playPauseBtn.querySelector('i');
+    prevBtn = document.getElementById('prevBtn');
+    nextBtn = document.getElementById('nextBtn');
+    shuffleBtn = document.getElementById('shuffleBtn');
+    repeatBtn = document.getElementById('repeatBtn');
+    progressBar = document.getElementById('progressBar');
+    progressFill = document.getElementById('progressFill');
+    currentTimeEl = document.getElementById('currentTime');
+    durationEl = document.getElementById('duration');
+    volumeSlider = document.getElementById('volumeSlider');
+    volumeBtn = document.getElementById('volumeBtn');
+    if (volumeBtn) volumeIcon = volumeBtn.querySelector('i');
+    trackTitle = document.getElementById('trackTitle');
+    trackArtist = document.getElementById('trackArtist');
+    trackArt = document.getElementById('trackArt');
+    likeBtn = document.getElementById('likeBtn');
+    if (likeBtn) likeIcon = likeBtn.querySelector('i');
+    searchInput = document.getElementById('searchInput');
+    searchBtn = document.getElementById('searchBtn');
+    trackList = document.getElementById('trackList');
+    sourceTabs = document.querySelectorAll('.source-tab');
+}
+
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
+    initializeDOMElements();
     loadSettingsToAPIConfig();
     setupSecurityMeasures();
     showSecurityModal();
-    loadRecommendations();
+    // Don't load recommendations yet - wait for app to be shown after PIN entry
     setupEventListeners();
     setupKeyboardShortcuts();
 });
@@ -98,10 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Show Security Modal
 function showSecurityModal() {
     const securityModal = document.getElementById('securityModal');
-    const securityAccepted = localStorage.getItem('securityAccepted');
+    if (!securityModal) return;
     
-    // Force show for testing - remove this line in production
-    localStorage.removeItem('securityAccepted');
+    const securityAccepted = localStorage.getItem('securityAccepted');
     
     if (!securityAccepted) {
         securityModal.style.display = 'flex';
@@ -138,10 +147,12 @@ function setupSecurityMeasures() {
     });
     
     // Prevent right-click context menu on audio player
-    audioPlayer.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        alert('Context menu is disabled for audio content.');
-    });
+    if (audioPlayer) {
+        audioPlayer.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            alert('Context menu is disabled for audio content.');
+        });
+    }
     
     // Prevent save keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -194,15 +205,17 @@ function setupSecurityMeasures() {
     });
     
     // Prevent opening audio in new tab
-    audioPlayer.addEventListener('click', (e) => {
-        e.preventDefault();
-    });
+    if (audioPlayer) {
+        audioPlayer.addEventListener('click', (e) => {
+            e.preventDefault();
+        });
+    }
     
     // Prevent audio element controls
     audioPlayer.removeAttribute('controls');
     
     // Prevent download attribute on audio
-    audioPlayer.removeAttribute('download');
+    if (audioPlayer) audioPlayer.removeAttribute('download');
     
     // Prevent download via link
     document.addEventListener('click', (e) => {
@@ -219,9 +232,11 @@ function setupSecurityMeasures() {
     }, true);
     
     // Prevent audio player from being dragged
-    audioPlayer.addEventListener('dragstart', (e) => {
-        e.preventDefault();
-    });
+    if (audioPlayer) {
+        audioPlayer.addEventListener('dragstart', (e) => {
+            e.preventDefault();
+        });
+    }
     
     // Prevent right-click on document (but allow on buttons for functionality)
     document.addEventListener('contextmenu', (e) => {
@@ -317,87 +332,95 @@ function setupSecurityMeasures() {
 // Event Listeners
 function setupEventListeners() {
     // Search
-    searchBtn.addEventListener('click', handleSearch);
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSearch();
-    });
-    
-    // Prevent paste events on search input (security)
-    searchInput.addEventListener('paste', (e) => {
-        const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-        // Check if pasted content contains URLs
-        const urlPatterns = [
-            /^(https?:\/\/)/i,
-            /^(http?:\/\/)/i,
-            /^(ftp:\/\/)/i,
-            /\.(mp3|wav|ogg|m4a|flac|aac)$/i,
-            /^(\/|\\)/,
-            /^(C:|D:|E:|F:|G:|H:|I:|J:|K:|L:|M:|N:|O:|P:|Q:|R:|S:|T:|U:|V:|W:|X:|Y:|Z:)/i
-        ];
+    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
         
-        if (urlPatterns.some(pattern => pattern.test(pastedText))) {
+        // Prevent paste events on search input (security)
+        searchInput.addEventListener('paste', (e) => {
+            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+            // Check if pasted content contains URLs
+            const urlPatterns = [
+                /^(https?:\/\/)/i,
+                /^(http?:\/\/)/i,
+                /^(ftp:\/\/)/i,
+                /\.(mp3|wav|ogg|m4a|flac|aac)$/i,
+                /^(\/|\\)/,
+                /^(C:|D:|E:|F:|G:|H:|I:|J:|K:|L:|M:|N:|O:|P:|Q:|R:|S:|T:|U:|V:|W:|X:|Y:|Z:)/i
+            ];
+            
+            if (urlPatterns.some(pattern => pattern.test(pastedText))) {
+                e.preventDefault();
+                alert('URLs and file paths are not allowed in search.');
+                return;
+            }
+            
+            // Allow regular text paste (don't prevent default)
+        });
+        
+        // Prevent drag and drop on search input
+        searchInput.addEventListener('dragover', (e) => {
             e.preventDefault();
-            alert('URLs and file paths are not allowed in search.');
-            return;
-        }
+            e.dataTransfer.effectAllowed = 'none';
+        });
         
-        // Allow regular text paste (don't prevent default)
-    });
-    
-    // Prevent drag and drop on search input
-    searchInput.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.effectAllowed = 'none';
-    });
-    
-    searchInput.addEventListener('drop', (e) => {
-        e.preventDefault();
-        e.dataTransfer.effectAllowed = 'none';
-        alert('Drag and drop is not allowed. Please type your search query.');
-    });
+        searchInput.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.dataTransfer.effectAllowed = 'none';
+            alert('Drag and drop is not allowed. Please type your search query.');
+        });
+    }
 
     // Source tabs
-    sourceTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            sourceTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            currentSource = tab.dataset.source;
-            if (tracks.length > 0) {
-                displayTracks();
-            }
+    if (sourceTabs && sourceTabs.length > 0) {
+        sourceTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                sourceTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentSource = tab.dataset.source;
+                if (tracks.length > 0) {
+                    displayTracks();
+                }
+            });
         });
-    });
+    }
 
     // Player controls
-    playPauseBtn.addEventListener('click', togglePlayPause);
-    nextBtn.addEventListener('click', playNext);
-    prevBtn.addEventListener('click', playPrevious);
-    shuffleBtn.addEventListener('click', toggleShuffle);
-    repeatBtn.addEventListener('click', toggleRepeat);
-    likeBtn.addEventListener('click', toggleLike);
+    if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlayPause);
+    if (nextBtn) nextBtn.addEventListener('click', playNext);
+    if (prevBtn) prevBtn.addEventListener('click', playPrevious);
+    if (shuffleBtn) shuffleBtn.addEventListener('click', toggleShuffle);
+    if (repeatBtn) repeatBtn.addEventListener('click', toggleRepeat);
+    if (likeBtn) likeBtn.addEventListener('click', toggleLike);
 
     // Progress bar
-    progressBar.addEventListener('click', handleProgressClick);
+    if (progressBar) progressBar.addEventListener('click', handleProgressClick);
 
     // Volume
-    volumeSlider.addEventListener('input', handleVolumeChange);
-    volumeBtn.addEventListener('click', toggleMute);
+    if (volumeSlider) volumeSlider.addEventListener('input', handleVolumeChange);
+    if (volumeBtn) volumeBtn.addEventListener('click', toggleMute);
 
     // Audio events
-    audioPlayer.addEventListener('timeupdate', updateProgress);
-    audioPlayer.addEventListener('ended', handleTrackEnd);
-    audioPlayer.addEventListener('loadedmetadata', handleMetadataLoaded);
-    audioPlayer.addEventListener('error', handleAudioError);
+    if (audioPlayer) {
+        audioPlayer.addEventListener('timeupdate', updateProgress);
+        audioPlayer.addEventListener('ended', handleTrackEnd);
+        audioPlayer.addEventListener('loadedmetadata', handleMetadataLoaded);
+        audioPlayer.addEventListener('error', handleAudioError);
+    }
 
     // Sidebar navigation
-    document.getElementById('homeBtn').addEventListener('click', () => {
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) homeBtn.addEventListener('click', () => {
         setActiveSidebar('homeBtn');
         currentSource = 'all';
         updateSourceTabs('all');
         loadRecommendations();
     });
 
-    document.getElementById('likedSongsBtn').addEventListener('click', () => {
+    const likedSongsBtn = document.getElementById('likedSongsBtn');
+    if (likedSongsBtn) likedSongsBtn.addEventListener('click', () => {
         setActiveSidebar('likedSongsBtn');
         currentSource = 'all';
         updateSourceTabs('all');
@@ -410,7 +433,8 @@ function setupEventListeners() {
         }
     });
 
-    document.getElementById('recentlyPlayedBtn').addEventListener('click', () => {
+    const recentlyPlayedBtn = document.getElementById('recentlyPlayedBtn');
+    if (recentlyPlayedBtn) recentlyPlayedBtn.addEventListener('click', () => {
         setActiveSidebar('recentlyPlayedBtn');
         currentSource = 'all';
         updateSourceTabs('all');
@@ -423,7 +447,8 @@ function setupEventListeners() {
         }
     });
 
-    document.getElementById('queueBtn').addEventListener('click', () => {
+    const queueBtn = document.getElementById('queueBtn');
+    if (queueBtn) queueBtn.addEventListener('click', () => {
         setActiveSidebar('queueBtn');
         currentSource = 'all';
         updateSourceTabs('all');
@@ -437,7 +462,8 @@ function setupEventListeners() {
     });
     
     // Music source buttons
-    document.getElementById('audiusBtn').addEventListener('click', () => {
+    const audiusBtn = document.getElementById('audiusBtn');
+    if (audiusBtn) audiusBtn.addEventListener('click', () => {
         setActiveSidebar('audiusBtn');
         currentSource = 'audius';
         updateSourceTabs('audius');
@@ -448,7 +474,8 @@ function setupEventListeners() {
         }
     });
     
-    document.getElementById('youtubeBtn').addEventListener('click', () => {
+    const youtubeBtn = document.getElementById('youtubeBtn');
+    if (youtubeBtn) youtubeBtn.addEventListener('click', () => {
         setActiveSidebar('youtubeBtn');
         currentSource = 'youtube';
         updateSourceTabs('youtube');
@@ -459,7 +486,8 @@ function setupEventListeners() {
         }
     });
     
-    document.getElementById('jamendoBtn').addEventListener('click', () => {
+    const jamendoBtn = document.getElementById('jamendoBtn');
+    if (jamendoBtn) jamendoBtn.addEventListener('click', () => {
         setActiveSidebar('jamendoBtn');
         currentSource = 'jamendo';
         updateSourceTabs('jamendo');
@@ -470,7 +498,8 @@ function setupEventListeners() {
         }
     });
     
-    document.getElementById('spotifyBtn').addEventListener('click', () => {
+    const spotifyBtn = document.getElementById('spotifyBtn');
+    if (spotifyBtn) spotifyBtn.addEventListener('click', () => {
         setActiveSidebar('spotifyBtn');
         currentSource = 'spotify';
         updateSourceTabs('spotify');
@@ -518,18 +547,21 @@ function setActiveSidebar(activeId) {
     document.querySelectorAll('.sidebar-item').forEach(item => {
         item.classList.remove('active');
     });
-    document.getElementById(activeId).classList.add('active');
+    const activeElement = document.getElementById(activeId);
+    if (activeElement) activeElement.classList.add('active');
 }
 
 // Update Source Tabs
 function updateSourceTabs(source) {
-    sourceTabs.forEach(tab => {
-        if (tab.dataset.source === source) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
-    });
+    if (sourceTabs && sourceTabs.length > 0) {
+        sourceTabs.forEach(tab => {
+            if (tab.dataset.source === source) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+    }
 }
 
 // Search Functionality
@@ -581,14 +613,14 @@ async function searchAllSources(query) {
     searchPromises.push(searchAudius(query));
     sources.push('Audius');
     
+    // Always try Jamendo with default client ID (works without API key)
+    searchPromises.push(searchJamendo(query));
+    sources.push('Jamendo');
+    
     // Search sources that have API keys configured
     if (API_CONFIG.youtube.apiKey) {
         searchPromises.push(searchYouTube(query));
         sources.push('YouTube');
-    }
-    if (API_CONFIG.jamendo.clientId) {
-        searchPromises.push(searchJamendo(query));
-        sources.push('Jamendo');
     }
     if (API_CONFIG.spotify.clientId && API_CONFIG.spotify.clientSecret) {
         searchPromises.push(searchSpotify(query));
@@ -675,7 +707,7 @@ async function searchAudius(query) {
             duration: track.duration || 0,
             artwork: track.artwork?.['480x480'] || track.artwork?.['150x150'] || track.artwork?.['1000x1000'] || null,
             source: 'audius',
-            audioUrl: `https://discovery-auditius.co/v1/tracks/${track.id}/stream?app_name=Spotfuck`
+            audioUrl: `https://discoveryprovider.audius.co/v1/tracks/${track.id}/stream?app_name=Spotfuck`
         }));
     } catch (error) {
         console.error('Audius search error:', error);
@@ -685,6 +717,12 @@ async function searchAudius(query) {
 
 async function searchYouTube(query) {
     try {
+        // If no API key, return empty and let demo tracks handle it
+        if (!API_CONFIG.youtube.apiKey) {
+            console.log('YouTube API key not configured, skipping YouTube search');
+            return [];
+        }
+        
         // Search for music-related videos
         const response = await fetch(
             `${API_CONFIG.youtube.baseUrl}/search?part=snippet&q=${encodeURIComponent(query + ' music')}+music&type=video&maxResults=15&key=${API_CONFIG.youtube.apiKey}`
@@ -747,8 +785,11 @@ function parseYouTubeDuration(duration) {
 
 async function searchJamendo(query) {
     try {
+        // If no API key, try using Jamendo's public API with a default client ID
+        const clientId = API_CONFIG.jamendo.clientId || '339c6fbc';
+        
         const response = await fetch(
-            `${API_CONFIG.jamendo.baseUrl}/tracks/search?name=${encodeURIComponent(query)}&client_id=${API_CONFIG.jamendo.clientId}&limit=10&format=jsonpretty&include=musicinfo`
+            `${API_CONFIG.jamendo.baseUrl}/tracks/search?name=${encodeURIComponent(query)}&client_id=${clientId}&limit=10&format=jsonpretty&include=musicinfo`
         );
         
         if (!response.ok) {
@@ -780,6 +821,12 @@ async function searchJamendo(query) {
 
 async function searchSpotify(query) {
     try {
+        // If no API credentials, return empty and let demo tracks handle it
+        if (!API_CONFIG.spotify.clientId || !API_CONFIG.spotify.clientSecret) {
+            console.log('Spotify API credentials not configured, skipping Spotify search');
+            return [];
+        }
+        
         // First get access token
         const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
             method: 'POST',
@@ -1041,16 +1088,6 @@ function getMockSearchResults(query) {
             audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-19.mp3'
         }
     ];
-            id: 'demo18',
-            title: 'Metal Core',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 186,
-            artwork: 'https://picsum.photos/seed/music18/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3'
-        }
-    ];
     
     // If query is provided, filter tracks (otherwise return all)
     if (query && query.trim() !== '') {
@@ -1069,6 +1106,8 @@ function getMockSearchResults(query) {
 
 // Display Functions
 function displayTracks() {
+    if (!trackList) return;
+    
     const filteredTracks = currentSource === 'all' 
         ? tracks 
         : tracks.filter(track => track.source === currentSource);
@@ -1115,6 +1154,7 @@ function displayTracks() {
 }
 
 function showEmptyState() {
+    if (!trackList) return;
     trackList.innerHTML = `
         <div class="empty-state">
             <div class="empty-state-icon">
@@ -1236,6 +1276,9 @@ function loadRecommendations() {
     console.log('Displayed', tracks.length, 'demo tracks');
 }
 
+// Make loadRecommendations available globally
+window.loadRecommendations = loadRecommendations;
+
 async function loadTrendingTracks() {
     showLoadingState();
     
@@ -1346,18 +1389,20 @@ function playTrack(index) {
     if (!track) return;
 
     // Update UI
-    trackTitle.textContent = track.title;
-    trackArtist.textContent = track.artist;
+    if (trackTitle) trackTitle.textContent = track.title;
+    if (trackArtist) trackArtist.textContent = track.artist;
     
-    if (track.artwork) {
-        trackArt.innerHTML = `<img src="${track.artwork}" alt="${track.title}">`;
-    } else {
-        trackArt.innerHTML = '<i class="fas fa-music"></i>';
+    if (trackArt) {
+        if (track.artwork) {
+            trackArt.innerHTML = `<img src="${track.artwork}" alt="${track.title}">`;
+        } else {
+            trackArt.innerHTML = '<i class="fas fa-music"></i>';
+        }
     }
 
     // Update like button
-    likeIcon.className = isLiked(track) ? 'fas fa-heart' : 'far fa-heart';
-    likeBtn.classList.toggle('liked', isLiked(track));
+    if (likeIcon) likeIcon.className = isLiked(track) ? 'fas fa-heart' : 'far fa-heart';
+    if (likeBtn) likeBtn.classList.toggle('liked', isLiked(track));
 
     // Play based on source
     if (track.source === 'youtube') {
@@ -1400,15 +1445,24 @@ function playAudioTrack(track) {
         return;
     }
     
+    console.log('Playing audio from:', audioUrl);
+    
+    if (!audioPlayer) {
+        console.error('Audio player not initialized');
+        alert('Audio player not available. Please refresh the page.');
+        return;
+    }
+    
     audioPlayer.src = audioUrl;
     audioPlayer.play().then(() => {
         isPlaying = true;
-        playPauseIcon.className = 'fas fa-pause';
+        if (playPauseIcon) playPauseIcon.className = 'fas fa-pause';
+        console.log('Successfully playing:', track.title);
     }).catch(error => {
         console.error('Play error:', error);
         isPlaying = false;
-        playPauseIcon.className = 'fas fa-play';
-        alert('Error playing audio. The source may be unavailable.');
+        if (playPauseIcon) playPauseIcon.className = 'fas fa-play';
+        alert('Error playing audio. The source may be unavailable or blocked by CORS policy.');
     });
 }
 
@@ -1496,7 +1550,7 @@ function onYouTubePlayerStateChange(event) {
 }
 
 function togglePlayPause() {
-    if (tracks.length === 0) return;
+    if (tracks.length === 0 || !audioPlayer) return;
     
     const currentTrack = tracks[currentTrackIndex];
     
@@ -1512,18 +1566,18 @@ function togglePlayPause() {
         if (audioPlayer.paused) {
             audioPlayer.play().then(() => {
                 isPlaying = true;
-                playPauseIcon.className = 'fas fa-pause';
+                if (playPauseIcon) playPauseIcon.className = 'fas fa-pause';
             }).catch(error => {
                 console.error('Play error:', error);
                 isPlaying = false;
-                playPauseIcon.className = 'fas fa-play';
+                if (playPauseIcon) playPauseIcon.className = 'fas fa-play';
             });
         } else {
             audioPlayer.pause();
             isPlaying = false;
         }
     }
-    playPauseIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+    if (playPauseIcon) playPauseIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
 }
 
 function playNext() {
@@ -1551,25 +1605,26 @@ function playPrevious() {
 
 function toggleShuffle() {
     isShuffle = !isShuffle;
-    shuffleBtn.classList.toggle('active', isShuffle);
+    if (shuffleBtn) shuffleBtn.classList.toggle('active', isShuffle);
 }
 
 function toggleRepeat() {
     isRepeat = !isRepeat;
-    repeatBtn.classList.toggle('active', isRepeat);
+    if (repeatBtn) repeatBtn.classList.toggle('active', isRepeat);
 }
 
 // Progress Functions
 function updateProgress() {
-    if (audioPlayer.duration && !isNaN(audioPlayer.duration)) {
+    if (audioPlayer && audioPlayer.duration && !isNaN(audioPlayer.duration)) {
         const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-        progressFill.style.width = percent + '%';
-        currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
-        durationEl.textContent = formatTime(audioPlayer.duration);
+        if (progressFill) progressFill.style.width = percent + '%';
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+        if (durationEl) durationEl.textContent = formatTime(audioPlayer.duration);
     }
 }
 
 function handleProgressClick(e) {
+    if (!progressBar || !audioPlayer) return;
     const rect = progressBar.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     if (audioPlayer.duration) {
@@ -1578,7 +1633,7 @@ function handleProgressClick(e) {
 }
 
 function handleMetadataLoaded() {
-    durationEl.textContent = formatTime(audioPlayer.duration);
+    if (durationEl && audioPlayer) durationEl.textContent = formatTime(audioPlayer.duration);
 }
 
 function handleTrackEnd() {
@@ -1610,6 +1665,7 @@ function handleAudioError(error) {
 
 // Volume Functions
 function handleVolumeChange(e) {
+    if (!audioPlayer) return;
     const volume = e.target.value / 100;
     audioPlayer.volume = volume;
     if (window.youtubePlayer) {
@@ -1619,6 +1675,7 @@ function handleVolumeChange(e) {
 }
 
 function toggleMute() {
+    if (!audioPlayer || !volumeSlider) return;
     if (audioPlayer.volume > 0) {
         audioPlayer.dataset.previousVolume = audioPlayer.volume;
         audioPlayer.volume = 0;
@@ -1638,6 +1695,7 @@ function toggleMute() {
 }
 
 function updateVolumeIcon(volume) {
+    if (!volumeIcon) return;
     if (volume === 0) {
         volumeIcon.className = 'fas fa-volume-mute';
     } else if (volume < 0.5) {
@@ -1653,7 +1711,7 @@ function isLiked(track) {
 }
 
 function toggleLike() {
-    if (tracks.length === 0) return;
+    if (tracks.length === 0 || !likeBtn || !likeIcon) return;
     
     const track = tracks[currentTrackIndex];
     if (isLiked(track)) {
@@ -1690,6 +1748,10 @@ function addToQueueByIndex(index) {
         alert('Already in queue');
     }
 }
+
+// Make functions available globally for onclick handlers
+window.toggleLikeByIndex = toggleLikeByIndex;
+window.addToQueueByIndex = addToQueueByIndex;
 
 // Utility Functions
 function formatTime(seconds) {
@@ -1737,4 +1799,4 @@ function loadCredentials() {
 }
 
 // Load saved credentials on startup
-loadCredentials();
+// This is now handled in loadSettingsToAPIConfig()

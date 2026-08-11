@@ -1465,6 +1465,13 @@
                 pinOverlay.classList.add('hidden');
                 appContainer.style.display = 'flex';
                 
+                // Load recommendations after app is shown
+                if (typeof loadRecommendations === 'function') {
+                    setTimeout(() => {
+                        loadRecommendations();
+                    }, 100);
+                }
+                
                 // Trigger DMCA modal if not acknowledged
                 setTimeout(() => {
                     const dmcaModal = document.getElementById('dmcaModal');

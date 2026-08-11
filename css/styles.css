@@ -32,11 +32,11 @@ body {
     height: 100vh;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
-    /* Prevent drag and drop */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+    /* Allow text selection on inputs and textareas */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 ::-webkit-scrollbar {
@@ -64,6 +64,22 @@ body {
     user-drag: none;
 }
 
+/* Allow selection on inputs and textareas */
+input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Prevent selection on other elements */
+.track-item, .sidebar-item, .source-tab, .header-btn, .control-btn, .track-action-btn {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 /* Prevent drag and drop on specific elements */
 .search-input,
 .track-item,
@@ -75,6 +91,14 @@ a {
     -moz-user-drag: none;
     -ms-user-drag: none;
     user-drag: none;
+}
+
+/* Allow text selection only on inputs and textareas */
+input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 }
 
 /* Prevent right-click context menu on audio elements */

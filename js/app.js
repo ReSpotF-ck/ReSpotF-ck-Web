@@ -99,37 +99,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeDOMElements();
     loadSettingsToAPIConfig();
     setupSecurityMeasures();
-    showSecurityModal();
+    // Don't show security modal here - N3K0.html handles it
     // Don't load recommendations yet - wait for app to be shown after PIN entry
     setupEventListeners();
     setupKeyboardShortcuts();
 });
 
-// Show Security Modal
+// Show Security Modal - handled by N3K0.html
 function showSecurityModal() {
-    const securityModal = document.getElementById('securityModal');
-    if (!securityModal) return;
-    
-    const securityAccepted = localStorage.getItem('securityAccepted');
-    
-    if (!securityAccepted) {
-        securityModal.style.display = 'flex';
-        
-        const securityAcceptBtn = document.getElementById('securityAcceptBtn');
-        if (securityAcceptBtn) {
-            // Remove any existing listeners first
-            const newBtn = securityAcceptBtn.cloneNode(true);
-            securityAcceptBtn.parentNode.replaceChild(newBtn, securityAcceptBtn);
-            
-            newBtn.addEventListener('click', function(e) {
-                console.log('Security button clicked!');
-                localStorage.setItem('securityAccepted', 'true');
-                securityModal.style.display = 'none';
-            });
-        }
-    } else {
-        securityModal.style.display = 'none';
-    }
+    // Security modal is now handled directly in N3K0.html
+    // This function is kept for compatibility but does nothing
+    console.log('Security modal handling delegated to N3K0.html');
 }
 
 // Security measures to prevent file/URL dropping and downloading
@@ -153,6 +133,49 @@ function setupSecurityMeasures() {
             alert('Context menu is disabled for audio content.');
         });
     }
+    
+    // Enhanced right-click prevention - allow on interactive elements
+    document.addEventListener('contextmenu', (e) => {
+        // Allow right-click on inputs for copy/paste
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        // Allow right-click on buttons and interactive elements
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+            return;
+        }
+        // Allow right-click on links for navigation
+        if (e.target.tagName === 'A' || e.target.closest('a')) {
+            return;
+        }
+        // Allow right-click on select elements
+        if (e.target.tagName === 'SELECT') {
+            return;
+        }
+        e.preventDefault();
+        // Don't show alert for right-click, just prevent it
+    });
+    
+    // Prevent text selection outside of inputs
+    document.addEventListener('selectstart', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+        }
+    });
+    
+    // Prevent copy outside of inputs
+    document.addEventListener('copy', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+        }
+    });
+    
+    // Prevent cut outside of inputs
+    document.addEventListener('cut', (e) => {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+        }
+    });
     
     // Prevent save keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -275,21 +298,6 @@ function setupSecurityMeasures() {
             if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                 e.preventDefault();
             }
-        }
-    });
-    
-    // Prevent copy/paste outside of inputs
-    document.addEventListener('copy', (e) => {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-            alert('Copying is disabled for security reasons.');
-        }
-    });
-    
-    document.addEventListener('paste', (e) => {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-            alert('Pasting is disabled for security reasons.');
         }
     });
     

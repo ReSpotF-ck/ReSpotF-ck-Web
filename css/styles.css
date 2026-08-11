@@ -174,8 +174,8 @@ audio {
     flex: 1;
     overflow: hidden;
     min-height: 0;
-    height: calc(100vh - 128px); /* 56px header + 72px player */
-    max-height: calc(100vh - 128px);
+    height: calc(100vh - 178px); /* 50px beta banner + 56px header + 72px player */
+    max-height: calc(100vh - 178px);
 }
 
 /* Sidebar */
@@ -733,11 +733,14 @@ audio {
     background: rgba(0, 0, 0, 0.95);
     backdrop-filter: blur(20px);
     border-top: 1px solid var(--border);
-    position: sticky;
+    position: fixed;
     bottom: 0;
+    left: 0;
+    right: 0;
     z-index: 100;
     height: 72px;
     flex-shrink: 0;
+    width: 100%;
 }
 
 .player-info {
@@ -948,8 +951,8 @@ audio {
     }
     
     .main-layout {
-        height: calc(100vh - 128px);
-        max-height: calc(100vh - 128px);
+        height: calc(100vh - 178px);
+        max-height: calc(100vh - 178px);
     }
 }
 
@@ -1021,26 +1024,35 @@ audio {
         flex-wrap: wrap;
         gap: 8px;
         padding: 8px 12px;
-        height: 80px;
+        height: auto;
+        min-height: 72px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
     }
     
     .player-info {
         width: 100%;
         order: 1;
         gap: 8px;
+        margin-bottom: 4px;
     }
     
     .player-controls {
         order: 2;
         flex: 0;
         justify-content: center;
-        gap: 8px;
+        gap: 12px;
+        width: 100%;
     }
     
     .player-progress {
         width: 100%;
         order: 3;
         gap: 6px;
+        margin-bottom: 4px;
     }
     
     .player-volume {
@@ -1083,8 +1095,9 @@ audio {
     }
     
     .main-layout {
-        height: calc(100vh - 128px);
-        max-height: calc(100vh - 128px);
+        height: calc(100vh - 200px);
+        max-height: calc(100vh - 200px);
+        padding-bottom: 80px;
     }
     
     .content-area {

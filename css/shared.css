@@ -468,9 +468,37 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    body {
+        padding-top: 60px; /* Adjusted for mobile beta banner */
+    }
+    
+    .beta-banner-content {
+        gap: 8px;
+    }
+    
+    .beta-banner-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+    
+    .beta-banner-title {
+        font-size: 12px;
+    }
+    
+    .beta-banner-info {
+        font-size: 11px;
+    }
+    
+    .beta-banner-close {
+        padding: 6px;
+        font-size: 14px;
+    }
+    
     .security-modal-content,
     .dmca-modal-content {
         max-width: 95%;
+        margin: 16px;
     }
     
     .security-modal-header,

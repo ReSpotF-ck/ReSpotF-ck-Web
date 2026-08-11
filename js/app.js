@@ -959,8 +959,12 @@ function displayTracks() {
         return;
     }
 
-    trackList.innerHTML = filteredTracks.map((track, index) => `
-        <div class="track-item ${index === currentTrackIndex ? 'playing' : ''}" data-index="${index}">
+    trackList.innerHTML = filteredTracks.map((track, filteredIndex) => {
+        // Find the original index in the full tracks array
+        const originalIndex = tracks.findIndex(t => t.id === track.id);
+        
+        return `
+        <div class="track-item ${originalIndex === currentTrackIndex ? 'playing' : ''}" data-index="${originalIndex}" data-filtered-index="${filteredIndex}">
             <div class="track-art">
                 ${track.artwork 
                     ? `<img src="${track.artwork}" alt="${track.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -976,20 +980,22 @@ function displayTracks() {
             <div class="track-source ${track.source}">${track.source}</div>
             <div class="track-duration">${formatTime(track.duration)}</div>
             <div class="track-actions">
-                <button class="track-action-btn ${isLiked(track) ? 'liked' : ''}" onclick="event.stopPropagation(); toggleLikeByIndex(${index})">
+                <button class="track-action-btn ${isLiked(track) ? 'liked' : ''}" onclick="event.stopPropagation(); toggleLikeByIndex(${originalIndex})">
                     <i class="${isLiked(track) ? 'fas' : 'far'} fa-heart"></i>
                 </button>
-                <button class="track-action-btn" onclick="event.stopPropagation(); addToQueueByIndex(${index})">
+                <button class="track-action-btn" onclick="event.stopPropagation(); addToQueueByIndex(${originalIndex})">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
 
     // Add click listeners to track items
     document.querySelectorAll('.track-item').forEach(item => {
         item.addEventListener('click', () => {
             const index = parseInt(item.dataset.index);
+            console.log('Playing track at original index:', index, 'Track:', tracks[index]);
             playTrack(index);
         });
     });
@@ -1238,10 +1244,21 @@ window.searchByGenre = searchByGenre;
 
 // Player Functions
 function playTrack(index) {
+    // Validate index
+    if (index < 0 || index >= tracks.length) {
+        console.error('Invalid track index:', index, 'Total tracks:', tracks.length);
+        return;
+    }
+    
     currentTrackIndex = index;
     const track = tracks[index];
     
-    if (!track) return;
+    if (!track) {
+        console.error('No track found at index:', index);
+        return;
+    }
+
+    console.log('Playing track:', track.title, 'by', track.artist, 'from source:', track.source, 'at index:', index);
 
     // Update UI
     if (trackTitle) trackTitle.textContent = track.title;
@@ -1292,6 +1309,8 @@ function playTrack(index) {
 }
 
 function playAudioTrack(track) {
+    console.log('playAudioTrack called with:', track);
+    
     const audioUrl = track.audioUrl || track.previewUrl;
     
     if (!audioUrl) {
@@ -1300,7 +1319,7 @@ function playAudioTrack(track) {
         return;
     }
     
-    console.log('Playing audio from:', audioUrl);
+    console.log('Playing audio from:', audioUrl, 'for track:', track.title);
     
     if (!audioPlayer) {
         console.error('Audio player not initialized');
@@ -1308,7 +1327,13 @@ function playAudioTrack(track) {
         return;
     }
     
+    // Set the audio source
     audioPlayer.src = audioUrl;
+    
+    // Log the current track info for debugging
+    console.log('Current audio player source:', audioPlayer.src);
+    console.log('Expected track:', track.title, 'by', track.artist);
+    
     audioPlayer.play().then(() => {
         isPlaying = true;
         if (playPauseIcon) playPauseIcon.className = 'fas fa-pause';
@@ -1438,24 +1463,33 @@ function togglePlayPause() {
 function playNext() {
     if (tracks.length === 0) return;
     
+    let nextIndex;
+    
     if (isShuffle) {
-        const randomIndex = Math.floor(Math.random() * tracks.length);
-        playTrack(randomIndex);
+        nextIndex = Math.floor(Math.random() * tracks.length);
     } else if (currentTrackIndex < tracks.length - 1) {
-        playTrack(currentTrackIndex + 1);
+        nextIndex = currentTrackIndex + 1;
     } else {
-        playTrack(0);
+        nextIndex = 0;
     }
+    
+    console.log('playNext: current index:', currentTrackIndex, 'next index:', nextIndex, 'track:', tracks[nextIndex]);
+    playTrack(nextIndex);
 }
 
 function playPrevious() {
     if (tracks.length === 0) return;
     
+    let prevIndex;
+    
     if (currentTrackIndex > 0) {
-        playTrack(currentTrackIndex - 1);
+        prevIndex = currentTrackIndex - 1;
     } else {
-        playTrack(tracks.length - 1);
+        prevIndex = tracks.length - 1;
     }
+    
+    console.log('playPrevious: current index:', currentTrackIndex, 'previous index:', prevIndex, 'track:', tracks[prevIndex]);
+    playTrack(prevIndex);
 }
 
 function toggleShuffle() {

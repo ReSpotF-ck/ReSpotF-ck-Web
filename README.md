@@ -7,6 +7,8 @@ A modern, completely redesigned music streaming application that aggregates musi
 - **index.html** - Landing page with special access requirements
 - **signin.html** - Sign-in page with Discord, Telegram, and invite form
 - **N3K0.html** - Main music streaming application (requires access)
+- **css/shared.css** - Shared CSS components for all pages
+- **js/shared.js** - Shared JavaScript functionality for all pages
 
 ## Features
 

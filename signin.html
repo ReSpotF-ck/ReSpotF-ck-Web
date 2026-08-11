@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotfuck - Sign In</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="description" content="Sign in to Spotfuck music streaming">
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/shared.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -237,83 +245,7 @@
             }
         }
         
-        /* Beta Banner */
-        .beta-banner {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 0 0 12px 12px;
-            padding: 12px 16px;
-            animation: slideDown 0.5s ease;
-            margin-bottom: 0;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .beta-banner-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .beta-banner-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: white;
-            flex-shrink: 0;
-        }
-        
-        .beta-banner-text {
-            flex: 1;
-        }
-        
-        .beta-banner-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #f59e0b;
-            margin-bottom: 4px;
-        }
-        
-        .beta-banner-info {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-        
-        .beta-banner-close {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        
-        .beta-banner-close:hover {
-            color: var(--text-primary);
-            background: var(--bg-hover);
-        }
-        
-        .beta-banner.hidden {
-            display: none;
-        }
+
         
         .form-title {
             font-size: 18px;
@@ -638,21 +570,13 @@
             });
         });
         
-        // Beta Banner Handler
-        const betaBanner = document.getElementById('betaBanner');
-        const betaBannerClose = document.getElementById('betaBannerClose');
-        const betaBannerDismissed = localStorage.getItem('betaBannerDismissed');
-        
-        if (betaBannerDismissed === 'true') {
-            betaBanner.classList.add('hidden');
-        }
-        
-        if (betaBannerClose) {
-            betaBannerClose.addEventListener('click', () => {
-                betaBanner.classList.add('hidden');
-                localStorage.setItem('betaBannerDismissed', 'true');
-            });
-        }
     </script>
+    <script>
+        // Initialize particles
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+        });
+    </script>
+    <script src="js/shared.js"></script>
 </body>
 </html>

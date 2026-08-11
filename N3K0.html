@@ -4,9 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotfuck - Free Music Streaming</title>
+    <meta name="description" content="Free music streaming from multiple sources including Audius, YouTube, Jamendo, and Spotify">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23ef4444'/><polygon points='35,25 35,75 80,50' fill='white' stroke='white' stroke-width='2'/></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23ef4444'/><polygon points='35,25 35,75 80,50' fill='white' stroke='white' stroke-width='2'/></svg>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -36,7 +44,7 @@
             </div>
             
             <div class="pin-hint">
-                <p>Hint: The PIN is the filename without the extension</p>
+                <p>Hint: The PIN is the name of this file (N3K0)</p>
             </div>
             
             <div class="pin-bypass">
@@ -64,24 +72,7 @@
             </div>
         </div>
 
-        <!-- Security Notice Banner -->
-        <div class="security-banner" id="securityBanner">
-            <div class="security-banner-content">
-                <div class="security-banner-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <div class="security-banner-text">
-                    <div class="security-banner-title">Protected Connection</div>
-                    <div class="security-banner-info" id="ipInfo">Detecting your IP...</div>
-                    <div class="security-banner-rec">
-                        <i class="fas fa-lock"></i> Recommended DNS: 1.1.1.1 (Cloudflare) or 8.8.8.8 (Google) for faster, secure browsing
-                    </div>
-                </div>
-                <button class="security-banner-close" id="securityBannerClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
+
 
         <!-- Header -->
         <header class="header">
@@ -295,93 +286,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-        
-        /* Security Banner */
-        .security-banner {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 0 0 12px 12px;
-            padding: 12px 16px;
-            animation: slideDown 0.5s ease;
-            margin-bottom: 0;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .security-banner-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .security-banner-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--success), #059669);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: white;
-            flex-shrink: 0;
-        }
-        
-        .security-banner-text {
-            flex: 1;
-        }
-        
-        .security-banner-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--success);
-            margin-bottom: 4px;
-        }
-        
-        .security-banner-info {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-        
-        .security-banner-rec {
-            font-size: 11px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .security-banner-close {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        
-        .security-banner-close:hover {
-            color: var(--text-primary);
-            background: var(--bg-hover);
-        }
-        
-        .security-banner.hidden {
-            display: none;
         }
         
         /* Beta Banner */
@@ -1068,8 +972,9 @@
                 <div class="settings-section">
                     <h3><i class="fas fa-audio-description"></i> Audius API</h3>
                     <div class="settings-input-group">
-                        <label>API Key</label>
+                        <label>API Key (Optional)</label>
                         <input type="text" class="settings-input" id="audiusApiKey" placeholder="Enter your Audius API key">
+                        <small class="settings-note">Leave empty to use demo mode</small>
                     </div>
                     <p class="settings-help">Get your API key from <a href="https://developers.audius.co/" target="_blank">Audius Developers</a></p>
                 </div>
@@ -1077,8 +982,9 @@
                 <div class="settings-section">
                     <h3><i class="fab fa-youtube"></i> YouTube API</h3>
                     <div class="settings-input-group">
-                        <label>API Key</label>
+                        <label>API Key (Optional)</label>
                         <input type="text" class="settings-input" id="youtubeApiKey" placeholder="Enter your YouTube API key">
+                        <small class="settings-note">Leave empty to use demo mode</small>
                     </div>
                     <p class="settings-help">Get your API key from <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></p>
                 </div>
@@ -1086,8 +992,9 @@
                 <div class="settings-section">
                     <h3><i class="fas fa-music"></i> Jamendo API</h3>
                     <div class="settings-input-group">
-                        <label>Client ID</label>
+                        <label>Client ID (Optional)</label>
                         <input type="text" class="settings-input" id="jamendoClientId" placeholder="Enter your Jamendo Client ID">
+                        <small class="settings-note">Leave empty to use demo mode</small>
                     </div>
                     <p class="settings-help">Get your Client ID from <a href="https://developer.jamendo.com/v3.0/" target="_blank">Jamendo Developers</a></p>
                 </div>
@@ -1095,12 +1002,14 @@
                 <div class="settings-section">
                     <h3><i class="fab fa-spotify"></i> Spotify API</h3>
                     <div class="settings-input-group">
-                        <label>Client ID</label>
+                        <label>Client ID (Optional)</label>
                         <input type="text" class="settings-input" id="spotifyClientId" placeholder="Enter your Spotify Client ID">
+                        <small class="settings-note">Leave empty to use demo mode</small>
                     </div>
                     <div class="settings-input-group">
-                        <label>Client Secret</label>
+                        <label>Client Secret (Optional)</label>
                         <input type="password" class="settings-input" id="spotifyClientSecret" placeholder="Enter your Spotify Client Secret">
+                        <small class="settings-note">Required if Client ID is provided</small>
                     </div>
                     <p class="settings-help">Get your credentials from <a href="https://developer.spotify.com/dashboard/" target="_blank">Spotify Developer Dashboard</a></p>
                 </div>
@@ -1503,6 +1412,14 @@
             text-decoration: underline;
         }
         
+        .settings-note {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-style: italic;
+        }
+        
         .settings-range {
             width: 100%;
             height: 6px;
@@ -1838,14 +1755,72 @@
                 if (settings.showNotifications !== undefined) showNotifications.checked = settings.showNotifications;
             }
             
+            // Validate API key format
+            function validateAPIKey(key, type) {
+                if (!key) return { valid: true, message: 'Optional - using demo mode' };
+                
+                switch (type) {
+                    case 'youtube':
+                        // YouTube API keys are typically 39 characters
+                        if (key.length < 30 || key.length > 50) {
+                            return { valid: false, message: 'Invalid YouTube API key format' };
+                        }
+                        break;
+                    case 'spotify':
+                        // Spotify client IDs are typically 32 characters
+                        if (key.length < 20 || key.length > 50) {
+                            return { valid: false, message: 'Invalid Spotify Client ID format' };
+                        }
+                        break;
+                    case 'audius':
+                    case 'jamendo':
+                        // Less strict validation for these
+                        if (key.length < 5) {
+                            return { valid: false, message: 'Key too short' };
+                        }
+                        break;
+                }
+                return { valid: true, message: 'Valid format' };
+            }
+
             // Save settings
-            function saveSettings() {
+            async function saveSettings() {
+                const audiusKey = audiusApiKey.value.trim();
+                const youtubeKey = youtubeApiKey.value.trim();
+                const jamendoKey = jamendoClientId.value.trim();
+                const spotifyKey = spotifyClientId.value.trim();
+                const spotifySecret = spotifyClientSecret.value.trim();
+                
+                // Validate API keys
+                const validationResults = {
+                    audius: validateAPIKey(audiusKey, 'audius'),
+                    youtube: validateAPIKey(youtubeKey, 'youtube'),
+                    jamendo: validateAPIKey(jamendoKey, 'jamendo'),
+                    spotify: validateAPIKey(spotifyKey, 'spotify')
+                };
+                
+                // Check if any validations failed
+                const hasErrors = Object.values(validationResults).some(result => !result.valid && result.message !== 'Optional - using demo mode');
+                
+                if (hasErrors) {
+                    // Show error feedback
+                    const originalText = settingsSaveBtn.innerHTML;
+                    settingsSaveBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Invalid Keys';
+                    settingsSaveBtn.style.background = 'var(--primary)';
+                    
+                    setTimeout(() => {
+                        settingsSaveBtn.innerHTML = originalText;
+                        settingsSaveBtn.style.background = '';
+                    }, 2000);
+                    return;
+                }
+                
                 const settings = {
-                    audiusApiKey: audiusApiKey.value.trim(),
-                    youtubeApiKey: youtubeApiKey.value.trim(),
-                    jamendoClientId: jamendoClientId.value.trim(),
-                    spotifyClientId: spotifyClientId.value.trim(),
-                    spotifyClientSecret: spotifyClientSecret.value.trim(),
+                    audiusApiKey: audiusKey,
+                    youtubeApiKey: youtubeKey,
+                    jamendoClientId: jamendoKey,
+                    spotifyClientId: spotifyKey,
+                    spotifyClientSecret: spotifySecret,
                     defaultVolume: defaultVolume.value,
                     autoPlayNext: autoPlayNext.checked,
                     showNotifications: showNotifications.checked
@@ -1925,57 +1900,7 @@
                     }
                 });
             }
-            
-            // Security Banner
-            const securityBanner = document.getElementById('securityBanner');
-            const securityBannerClose = document.getElementById('securityBannerClose');
-            const ipInfo = document.getElementById('ipInfo');
-            
-            // Detect IP address
-            async function detectIP() {
-                try {
-                    const response = await fetch('https://api.ipify.org?format=json');
-                    const data = await response.json();
-                    if (data.ip) {
-                        ipInfo.textContent = `Your IP: ${data.ip} - Connection Secure`;
-                    }
-                } catch (error) {
-                    console.log('IP detection failed:', error);
-                    ipInfo.textContent = 'Your IP: Hidden - Connection Secure';
-                }
-            }
-            
-            // Close security banner
-            if (securityBannerClose) {
-                securityBannerClose.addEventListener('click', () => {
-                    securityBanner.classList.add('hidden');
-                    localStorage.setItem('securityBannerDismissed', 'true');
-                });
-            }
-            
-            // Check if banner was previously dismissed
-            if (localStorage.getItem('securityBannerDismissed') === 'true') {
-                securityBanner.classList.add('hidden');
-            } else {
-                detectIP();
-            }
-            
-            // Beta Banner Handler
-            const betaBanner = document.getElementById('betaBanner');
-            const betaBannerClose = document.getElementById('betaBannerClose');
-            const betaBannerDismissed = localStorage.getItem('betaBannerDismissed');
-            
-            if (betaBannerDismissed === 'true') {
-                betaBanner.classList.add('hidden');
-            }
-            
-            if (betaBannerClose) {
-                betaBannerClose.addEventListener('click', () => {
-                    betaBanner.classList.add('hidden');
-                    localStorage.setItem('betaBannerDismissed', 'true');
-                });
-            }
-            
+
             // Make settings available globally for app.js
             window.getSettings = function() {
                 return JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');

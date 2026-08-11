@@ -112,9 +112,9 @@ function showSecurityModal() {
     console.log('Security modal handling delegated to N3K0.html');
 }
 
-// Security measures to prevent file/URL dropping and downloading
+// Basic security measures (minimal, non-intrusive)
 function setupSecurityMeasures() {
-    // Prevent drag and drop on entire document
+    // Prevent drag and drop on entire document (for UX consistency)
     document.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.effectAllowed = 'none';
@@ -123,218 +123,13 @@ function setupSecurityMeasures() {
     document.addEventListener('drop', (e) => {
         e.preventDefault();
         e.dataTransfer.effectAllowed = 'none';
-        alert('Drag and drop is not allowed for security reasons.');
     });
     
-    // Prevent right-click context menu on audio player
+    // Prevent audio element controls for custom player consistency
     if (audioPlayer) {
-        audioPlayer.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            alert('Context menu is disabled for audio content.');
-        });
+        audioPlayer.removeAttribute('controls');
+        audioPlayer.removeAttribute('download');
     }
-    
-    // Enhanced right-click prevention - allow on interactive elements
-    document.addEventListener('contextmenu', (e) => {
-        // Allow right-click on inputs for copy/paste
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            return;
-        }
-        // Allow right-click on buttons and interactive elements
-        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-            return;
-        }
-        // Allow right-click on links for navigation
-        if (e.target.tagName === 'A' || e.target.closest('a')) {
-            return;
-        }
-        // Allow right-click on select elements
-        if (e.target.tagName === 'SELECT') {
-            return;
-        }
-        e.preventDefault();
-        // Don't show alert for right-click, just prevent it
-    });
-    
-    // Prevent text selection outside of inputs
-    document.addEventListener('selectstart', (e) => {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-        }
-    });
-    
-    // Prevent copy outside of inputs
-    document.addEventListener('copy', (e) => {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-        }
-    });
-    
-    // Prevent cut outside of inputs
-    document.addEventListener('cut', (e) => {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            e.preventDefault();
-        }
-    });
-    
-    // Prevent save keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        // Prevent Ctrl+S, Ctrl+Shift+S
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-            e.preventDefault();
-            alert('Saving is not allowed.');
-        }
-        
-        // Prevent Ctrl+D
-        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
-            e.preventDefault();
-        }
-        
-        // Prevent Ctrl+U (view source)
-        if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-            e.preventDefault();
-            alert('Viewing source is not allowed.');
-        }
-        
-        // Prevent Ctrl+Shift+I (dev tools)
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') {
-            e.preventDefault();
-            alert('Developer tools are not allowed.');
-        }
-        
-        // Prevent Ctrl+Shift+J (dev tools console)
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'J') {
-            e.preventDefault();
-            alert('Developer tools are not allowed.');
-        }
-        
-        // Prevent Ctrl+Shift+C (dev tools inspector)
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
-            e.preventDefault();
-            alert('Developer tools are not allowed.');
-        }
-        
-        // Prevent F12 (dev tools)
-        if (e.key === 'F12') {
-            e.preventDefault();
-            alert('Developer tools are not allowed.');
-        }
-        
-        // Prevent Ctrl+Shift+K (dev tools Firefox)
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
-            e.preventDefault();
-            alert('Developer tools are not allowed.');
-        }
-    });
-    
-    // Prevent opening audio in new tab
-    if (audioPlayer) {
-        audioPlayer.addEventListener('click', (e) => {
-            e.preventDefault();
-        });
-    }
-    
-    // Prevent audio element controls
-    audioPlayer.removeAttribute('controls');
-    
-    // Prevent download attribute on audio
-    if (audioPlayer) audioPlayer.removeAttribute('download');
-    
-    // Prevent download via link
-    document.addEventListener('click', (e) => {
-        const target = e.target;
-        if (target.tagName === 'A' && target.href) {
-            // Check if link is to downloadable content
-            const href = target.href.toLowerCase();
-            if (href.includes('.mp3') || href.includes('.wav') || href.includes('.ogg') || 
-                href.includes('.m4a') || href.includes('.flac') || href.includes('.aac')) {
-                e.preventDefault();
-                alert('Downloading audio files is not allowed.');
-            }
-        }
-    }, true);
-    
-    // Prevent audio player from being dragged
-    if (audioPlayer) {
-        audioPlayer.addEventListener('dragstart', (e) => {
-            e.preventDefault();
-        });
-    }
-    
-    // Prevent right-click on document (but allow on buttons for functionality)
-    document.addEventListener('contextmenu', (e) => {
-        // Allow right-click in inputs for copy/paste
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            return;
-        }
-        // Allow right-click on buttons and interactive elements
-        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-            return;
-        }
-        // Allow right-click on links for navigation
-        if (e.target.tagName === 'A' || e.target.closest('a')) {
-            return;
-        }
-        e.preventDefault();
-        alert('Right-click is disabled for security reasons.');
-    });
-    
-    // Prevent element inspection - allow on buttons
-    document.addEventListener('click', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-            // Allow on interactive elements
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || 
-                e.target.tagName === 'BUTTON' || e.target.closest('button') ||
-                e.target.tagName === 'A' || e.target.closest('a')) {
-                return;
-            }
-            e.preventDefault();
-        }
-    }, true);
-    
-    // Prevent select all (Ctrl+A) outside of inputs
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-            }
-        }
-    });
-    
-    // Detect dev tools opening
-    const devtools = {
-        open: false,
-        threshold: 160
-    };
-    
-    setInterval(() => {
-        if (window.outerWidth - window.innerWidth > devtools.threshold || 
-            window.outerHeight - window.innerHeight > devtools.threshold) {
-            if (!devtools.open) {
-                devtools.open = true;
-                console.warn('Developer tools detected');
-                // Optional: alert('Developer tools detected. Please close them to continue.');
-            }
-        } else {
-            devtools.open = false;
-        }
-    }, 500);
-    
-    // Disable inspect element
-    document.addEventListener('inspect', (e) => {
-        e.preventDefault();
-    });
-    
-    // Prevent element inspection
-    document.addEventListener('click', (e) => {
-        if (e.ctrlKey || e.metaKey) {
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && 
-                e.target.tagName !== 'BUTTON' && !e.target.closest('button') &&
-                e.target.tagName !== 'A' && !e.target.closest('a')) {
-                e.preventDefault();
-            }
-        }
-    }, true);
 }
 
 // Event Listeners
@@ -346,29 +141,12 @@ function setupEventListeners() {
             if (e.key === 'Enter') handleSearch();
         });
         
-        // Prevent paste events on search input (security)
+        // Basic input paste handling (no restriction)
         searchInput.addEventListener('paste', (e) => {
-            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-            // Check if pasted content contains URLs
-            const urlPatterns = [
-                /^(https?:\/\/)/i,
-                /^(http?:\/\/)/i,
-                /^(ftp:\/\/)/i,
-                /\.(mp3|wav|ogg|m4a|flac|aac)$/i,
-                /^(\/|\\)/,
-                /^(C:|D:|E:|F:|G:|H:|I:|J:|K:|L:|M:|N:|O:|P:|Q:|R:|S:|T:|U:|V:|W:|X:|Y:|Z:)/i
-            ];
-            
-            if (urlPatterns.some(pattern => pattern.test(pastedText))) {
-                e.preventDefault();
-                alert('URLs and file paths are not allowed in search.');
-                return;
-            }
-            
-            // Allow regular text paste (don't prevent default)
+            // Allow normal paste behavior
         });
         
-        // Prevent drag and drop on search input
+        // Prevent drag and drop on search input (for UX consistency)
         searchInput.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.effectAllowed = 'none';
@@ -377,7 +155,6 @@ function setupEventListeners() {
         searchInput.addEventListener('drop', (e) => {
             e.preventDefault();
             e.dataTransfer.effectAllowed = 'none';
-            alert('Drag and drop is not allowed. Please type your search query.');
         });
     }
 
@@ -982,8 +759,8 @@ function getMockSearchResults(query) {
             album: 'Demo Collection',
             duration: 210,
             artwork: 'https://picsum.photos/seed/music9/300/300',
-            source: 'youtube',
-            videoId: 'dQw4w9WgXcQ'
+            source: 'audius',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
         },
         {
             id: 'demo10',
@@ -1253,6 +1030,7 @@ function showErrorState(errorType, details = '') {
             <button class="error-retry-btn" id="errorRetryBtn">
                 <i class="fas fa-redo"></i> Try Again
             </button>
+        </div>
     `;
     
     // Add event listener to retry button
@@ -1262,8 +1040,6 @@ function showErrorState(errorType, details = '') {
             retryBtn.addEventListener('click', handleSearch);
         }
     }, 0);
-        </div>
-    `;
 }
 
 function loadRecommendations() {

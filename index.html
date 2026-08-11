@@ -4,9 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotfuck - Special Access</title>
+    <meta name="description" content="Spotfuck - Free music streaming from multiple sources">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23ef4444'/><polygon points='35,25 35,75 80,50' fill='white' stroke='white' stroke-width='2'/></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23ef4444'/><polygon points='35,25 35,75 80,50' fill='white' stroke='white' stroke-width='2'/></svg>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/shared.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -121,84 +129,6 @@
                 opacity: 1;
                 transform: translateX(0);
             }
-        }
-        
-        /* Beta Banner */
-        .beta-banner {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 0 0 12px 12px;
-            padding: 12px 16px;
-            animation: slideDown 0.5s ease;
-            margin-bottom: 0;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .beta-banner-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .beta-banner-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: white;
-            flex-shrink: 0;
-        }
-        
-        .beta-banner-text {
-            flex: 1;
-        }
-        
-        .beta-banner-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #f59e0b;
-            margin-bottom: 4px;
-        }
-        
-        .beta-banner-info {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-        
-        .beta-banner-close {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        
-        .beta-banner-close:hover {
-            color: var(--text-primary);
-            background: var(--bg-hover);
-        }
-        
-        .beta-banner.hidden {
-            display: none;
         }
         
         .lock-icon {
@@ -345,206 +275,6 @@
             border-color: rgba(245, 158, 11, 0.5);
         }
         
-        .dmca-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .dmca-modal.active {
-            display: flex;
-        }
-        
-        .dmca-modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-            margin: 20px;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .dmca-modal-header {
-            display: flex;
-            align-items: center;
-            padding: 24px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            background: var(--bg-card);
-            z-index: 10;
-        }
-        
-        .dmca-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 16px;
-            font-size: 20px;
-            color: white;
-        }
-        
-        .dmca-modal-header h2 {
-            flex: 1;
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        
-        .dmca-close-btn {
-            width: 36px;
-            height: 36px;
-            background: var(--bg-hover);
-            border: none;
-            border-radius: 8px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-        
-        .dmca-close-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .dmca-modal-body {
-            padding: 24px;
-        }
-        
-        .dmca-section {
-            margin-bottom: 24px;
-        }
-        
-        .dmca-section:last-child {
-            margin-bottom: 0;
-        }
-        
-        .dmca-section h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .dmca-section h3 i {
-            color: #f59e0b;
-        }
-        
-        .dmca-section p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 8px;
-        }
-        
-        .dmca-section ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .dmca-section li {
-            font-size: 14px;
-            color: var(--text-secondary);
-            padding: 8px 0;
-            padding-left: 24px;
-            position: relative;
-        }
-        
-        .dmca-section li::before {
-            content: '•';
-            position: absolute;
-            left: 8px;
-            color: var(--primary);
-        }
-        
-        .dmca-disclaimer {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 8px;
-            padding: 16px;
-            font-size: 13px;
-            color: #f59e0b;
-            line-height: 1.5;
-        }
-        
-        .dmca-modal-footer {
-            padding: 24px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: flex-end;
-            position: sticky;
-            bottom: 0;
-            background: var(--bg-card);
-        }
-        
-        .dmca-acknowledge-btn {
-            padding: 12px 24px;
-            background: var(--primary);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-        }
-        
-        .dmca-acknowledge-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-        
-        .dmca-modal-content::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .dmca-modal-content::-webkit-scrollbar-track {
-            background: var(--bg-dark);
-        }
-        
-        .dmca-modal-content::-webkit-scrollbar-thumb {
-            background: var(--bg-hover);
-            border-radius: 3px;
-        }
-        
-        .dmca-modal-content::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-        }
-        
         /* Responsive Design */
         @media (max-width: 768px) {
             .access-container {
@@ -586,51 +316,6 @@
             .dmca-footer-btn {
                 padding: 6px 12px;
                 font-size: 10px;
-            }
-            
-            .dmca-modal-content {
-                margin: 10px;
-                max-height: 90vh;
-            }
-            
-            .dmca-modal-header {
-                padding: 16px;
-            }
-            
-            .dmca-modal-header h2 {
-                font-size: 18px;
-            }
-            
-            .dmca-modal-body {
-                padding: 16px;
-            }
-            
-            .dmca-section h3 {
-                font-size: 14px;
-            }
-            
-            .dmca-section p {
-                font-size: 13px;
-            }
-            
-            .dmca-section li {
-                font-size: 13px;
-                padding: 6px 0;
-                padding-left: 20px;
-            }
-            
-            .dmca-disclaimer {
-                font-size: 12px;
-                padding: 12px;
-            }
-            
-            .dmca-modal-footer {
-                padding: 16px;
-            }
-            
-            .dmca-acknowledge-btn {
-                padding: 10px 20px;
-                font-size: 13px;
             }
         }
         
@@ -685,44 +370,6 @@
             
             .feature-text {
                 font-size: 11px;
-            }
-        }
-        
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 0;
-        }
-        
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: var(--primary);
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: float 15s infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.3;
-            }
-            90% {
-                opacity: 0.3;
-            }
-            100% {
-                transform: translateY(-100vh) rotate(720deg);
-                opacity: 0;
             }
         }
     </style>
@@ -856,55 +503,6 @@
         </div>
     </div>
     
-    <script>
-        // Create floating particles
-        function createParticles() {
-            const container = document.getElementById('particles');
-            const particleCount = 50;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 15 + 's';
-                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                container.appendChild(particle);
-            }
-        }
-        
-        createParticles();
-        
-        // DMCA Modal functionality
-        const dmcaFooterBtn = document.getElementById('dmcaFooterBtn');
-        const dmcaModal = document.getElementById('dmcaModal');
-        const dmcaCloseBtn = document.getElementById('dmcaCloseBtn');
-        const dmcaAcknowledgeBtn = document.getElementById('dmcaAcknowledgeBtn');
-        
-        if (dmcaFooterBtn && dmcaModal) {
-            dmcaFooterBtn.addEventListener('click', () => {
-                dmcaModal.classList.add('active');
-            });
-            
-            dmcaCloseBtn.addEventListener('click', () => {
-                dmcaModal.classList.remove('active');
-            });
-            
-            dmcaAcknowledgeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                localStorage.setItem('dmcaAcknowledged', 'true');
-                dmcaModal.classList.remove('active');
-            });
-            
-            dmcaModal.addEventListener('click', (e) => {
-                if (e.target === dmcaModal) {
-                    dmcaModal.classList.remove('active');
-                }
-            });
-        }
-    </script>
-
     <!-- Security Modal -->
     <div class="security-modal" id="securityModal">
         <div class="security-modal-content">
@@ -913,6 +511,9 @@
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <h2>Security Notice</h2>
+                <button class="security-close-btn" id="securityCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="security-modal-body">
                 <div class="security-section">
@@ -939,201 +540,6 @@
         </div>
     </div>
 
-    <!-- Security Modal Styles -->
-    <style>
-        .security-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .security-modal.hidden {
-            display: none;
-        }
-        
-        .security-modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .security-modal-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        
-        .security-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: white;
-            flex-shrink: 0;
-        }
-        
-        .security-modal-header h2 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0;
-        }
-        
-        .security-modal-body {
-            padding: 24px;
-        }
-        
-        .security-section {
-            margin-bottom: 24px;
-        }
-        
-        .security-section h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .security-section h3 i {
-            color: var(--primary);
-        }
-        
-        .security-section p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
-        
-        .security-section ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .security-section li {
-            font-size: 13px;
-            color: var(--text-secondary);
-            padding: 6px 0;
-            padding-left: 20px;
-            position: relative;
-            line-height: 1.4;
-        }
-        
-        .security-section li:before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
-        }
-        
-        .security-warning {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            border-radius: 8px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 13px;
-            color: #f59e0b;
-        }
-        
-        .security-warning i {
-            font-size: 16px;
-        }
-        
-        .security-modal-footer {
-            padding: 16px 24px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: flex-end;
-        }
-        
-        .security-accept-btn {
-            padding: 12px 24px;
-            background: var(--primary);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .security-accept-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-        }
-    </style>
-
-    <script>
-        // Show security modal
-        const securityModal = document.getElementById('securityModal');
-        const securityAccepted = localStorage.getItem('securityAccepted');
-        
-        if (!securityAccepted) {
-            securityModal.style.display = 'flex';
-            
-            const securityAcceptBtn = document.getElementById('securityAcceptBtn');
-            if (securityAcceptBtn) {
-                // Remove any existing listeners first
-                const newBtn = securityAcceptBtn.cloneNode(true);
-                securityAcceptBtn.parentNode.replaceChild(newBtn, securityAcceptBtn);
-                
-                newBtn.addEventListener('click', function(e) {
-                    console.log('Security button clicked!');
-                    localStorage.setItem('securityAccepted', 'true');
-                    securityModal.style.display = 'none';
-                });
-            }
-        } else {
-            securityModal.style.display = 'none';
-        }
-        
-        // Beta Banner Handler
-        const betaBanner = document.getElementById('betaBanner');
-        const betaBannerClose = document.getElementById('betaBannerClose');
-        const betaBannerDismissed = localStorage.getItem('betaBannerDismissed');
-        
-        if (betaBannerDismissed === 'true') {
-            betaBanner.classList.add('hidden');
-        }
-        
-        if (betaBannerClose) {
-            betaBannerClose.addEventListener('click', () => {
-                betaBanner.classList.add('hidden');
-                localStorage.setItem('betaBannerDismissed', 'true');
-            });
-        }
-    </script>
+    <script src="js/shared.js"></script>
 </body>
 </html>

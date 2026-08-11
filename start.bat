@@ -11,6 +11,13 @@ echo PIN Entry for N3K0.html:
 echo - Correct PIN: N3K0
 echo - Admin bypass: ADMIN (or Ctrl+Shift+B)
 echo.
+echo Recent improvements:
+echo - Removed intrusive security measures
+echo - Consolidated code and improved performance
+echo - Enhanced error handling and user feedback
+echo - Added API key validation
+echo - Optimized external dependencies
+echo.
 echo If the pages don't load properly, try:
 echo 1. Using a local server (see README.md)
 echo 2. Opening the files directly

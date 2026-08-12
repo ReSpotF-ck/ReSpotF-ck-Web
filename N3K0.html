@@ -2689,6 +2689,91 @@
         
         // PIN Entry System
         document.addEventListener('DOMContentLoaded', function() {
+            // Load saved settings function (moved here to be accessible)
+            window.loadSettings = function() {
+                const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+
+                // API Keys
+                const audiusApiKey = document.getElementById('audiusApiKey');
+                const youtubeApiKey = document.getElementById('youtubeApiKey');
+                const jamendoClientId = document.getElementById('jamendoClientId');
+                const spotifyClientId = document.getElementById('spotifyClientId');
+                const spotifyClientSecret = document.getElementById('spotifyClientSecret');
+
+                if (audiusApiKey && settings.audiusApiKey) audiusApiKey.value = settings.audiusApiKey;
+                if (youtubeApiKey && settings.youtubeApiKey) youtubeApiKey.value = settings.youtubeApiKey;
+                if (jamendoClientId && settings.jamendoClientId) jamendoClientId.value = settings.jamendoClientId;
+                if (spotifyClientId && settings.spotifyClientId) spotifyClientId.value = settings.spotifyClientId;
+                if (spotifyClientSecret && settings.spotifyClientSecret) spotifyClientSecret.value = settings.spotifyClientSecret;
+
+                // Playback Settings
+                const defaultVolume = document.getElementById('defaultVolume');
+                const volumeValue = document.getElementById('volumeValue');
+                const autoPlayNext = document.getElementById('autoPlayNext');
+                const showNotifications = document.getElementById('showNotifications');
+                const crossfadeEnabled = document.getElementById('crossfadeEnabled');
+                const crossfadeDuration = document.getElementById('crossfadeDuration');
+                const gaplessPlayback = document.getElementById('gaplessPlayback');
+                const playbackSpeed = document.getElementById('playbackSpeed');
+
+                if (defaultVolume && settings.defaultVolume) {
+                    defaultVolume.value = settings.defaultVolume;
+                    if (volumeValue) volumeValue.textContent = settings.defaultVolume + '%';
+                }
+                if (autoPlayNext && settings.autoPlayNext !== undefined) autoPlayNext.checked = settings.autoPlayNext;
+                if (showNotifications && settings.showNotifications !== undefined) showNotifications.checked = settings.showNotifications;
+                if (crossfadeEnabled && settings.crossfadeEnabled !== undefined) crossfadeEnabled.checked = settings.crossfadeEnabled;
+                if (crossfadeDuration && settings.crossfadeDuration) crossfadeDuration.value = settings.crossfadeDuration;
+                if (gaplessPlayback && settings.gaplessPlayback !== undefined) gaplessPlayback.checked = settings.gaplessPlayback;
+                if (playbackSpeed && settings.playbackSpeed) playbackSpeed.value = settings.playbackSpeed;
+
+                // Audio Settings
+                const equalizerPreset = document.getElementById('equalizerPreset');
+                const volumeNormalization = document.getElementById('volumeNormalization');
+                const enableVisualizer = document.getElementById('enableVisualizer');
+
+                if (equalizerPreset && settings.equalizerPreset) equalizerPreset.value = settings.equalizerPreset;
+                if (volumeNormalization && settings.volumeNormalization !== undefined) volumeNormalization.checked = settings.volumeNormalization;
+                if (enableVisualizer && settings.enableVisualizer !== undefined) enableVisualizer.checked = settings.enableVisualizer;
+
+                // Debug Settings
+                const debugMode = document.getElementById('debugMode');
+                if (debugMode && settings.debugMode !== undefined) debugMode.checked = settings.debugMode;
+
+                // Developer Settings
+                const apiTimeout = document.getElementById('apiTimeout');
+                const apiRetryAttempts = document.getElementById('apiRetryAttempts');
+                const corsProxy = document.getElementById('corsProxy');
+                const enablePerformanceProfiling = document.getElementById('enablePerformanceProfiling');
+
+                if (apiTimeout && settings.apiTimeout) apiTimeout.value = settings.apiTimeout;
+                if (apiRetryAttempts && settings.apiRetryAttempts) apiRetryAttempts.value = settings.apiRetryAttempts;
+                if (corsProxy && settings.corsProxy) corsProxy.value = settings.corsProxy;
+                if (enablePerformanceProfiling && settings.enablePerformanceProfiling !== undefined) enablePerformanceProfiling.checked = settings.enablePerformanceProfiling;
+
+                // Download Settings
+                const downloadFormat = document.getElementById('downloadFormat');
+                const downloadQuality = document.getElementById('downloadQuality');
+                const overwriteBehavior = document.getElementById('overwriteBehavior');
+                const downloadMetadata = document.getElementById('downloadMetadata');
+                const downloadCoverArt = document.getElementById('downloadCoverArt');
+                const autoOrganize = document.getElementById('autoOrganize');
+
+                if (downloadFormat && settings.downloadFormat) downloadFormat.value = settings.downloadFormat;
+                if (downloadQuality && settings.downloadQuality) downloadQuality.value = settings.downloadQuality;
+                if (overwriteBehavior && settings.overwriteBehavior) overwriteBehavior.value = settings.overwriteBehavior;
+                if (downloadMetadata && settings.downloadMetadata !== undefined) downloadMetadata.checked = settings.downloadMetadata;
+                if (downloadCoverArt && settings.downloadCoverArt !== undefined) downloadCoverArt.checked = settings.downloadCoverArt;
+                if (autoOrganize && settings.autoOrganize !== undefined) autoOrganize.checked = settings.autoOrganize;
+
+                // Load playlists if function exists
+                if (typeof window.updatePlaylistUI === 'function') {
+                    window.updatePlaylistUI();
+                }
+
+                console.log('Settings loaded');
+            };
+
             // Security Modal Handler
             const securityModal = document.getElementById('securityModal');
             const securityAcceptBtn = document.getElementById('securityAcceptBtn');
@@ -2924,57 +3009,8 @@
                 });
             });
             
-            // Load saved settings
-            function loadSettings() {
-                const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
-                
-                // API Keys
-                if (settings.audiusApiKey) audiusApiKey.value = settings.audiusApiKey;
-                if (settings.youtubeApiKey) youtubeApiKey.value = settings.youtubeApiKey;
-                if (settings.jamendoClientId) jamendoClientId.value = settings.jamendoClientId;
-                if (settings.spotifyClientId) spotifyClientId.value = settings.spotifyClientId;
-                if (settings.spotifyClientSecret) spotifyClientSecret.value = settings.spotifyClientSecret;
-                
-                // Playback Settings
-                if (settings.defaultVolume) {
-                    defaultVolume.value = settings.defaultVolume;
-                    volumeValue.textContent = settings.defaultVolume + '%';
-                }
-                if (settings.autoPlayNext !== undefined) autoPlayNext.checked = settings.autoPlayNext;
-                if (settings.showNotifications !== undefined) showNotifications.checked = settings.showNotifications;
-                if (settings.crossfadeEnabled !== undefined) crossfadeEnabled.checked = settings.crossfadeEnabled;
-                if (settings.crossfadeDuration) crossfadeDuration.value = settings.crossfadeDuration;
-                if (settings.gaplessPlayback !== undefined) gaplessPlayback.checked = settings.gaplessPlayback;
-                if (settings.playbackSpeed) playbackSpeed.value = settings.playbackSpeed;
-                
-                // Audio Settings
-                if (settings.equalizerPreset) equalizerPreset.value = settings.equalizerPreset;
-                if (settings.volumeNormalization !== undefined) volumeNormalization.checked = settings.volumeNormalization;
-                if (settings.enableVisualizer !== undefined) enableVisualizer.checked = settings.enableVisualizer;
-                
-                // Debug Settings
-                if (settings.debugMode !== undefined) debugMode.checked = settings.debugMode;
-                
-                // Developer Settings
-                if (settings.apiTimeout) apiTimeout.value = settings.apiTimeout;
-                if (settings.apiRetryAttempts) apiRetryAttempts.value = settings.apiRetryAttempts;
-                if (settings.corsProxy) corsProxy.value = settings.corsProxy;
-                if (settings.enablePerformanceProfiling !== undefined) enablePerformanceProfiling.checked = settings.enablePerformanceProfiling;
-                
-                // Download Settings
-                if (settings.downloadFormat) downloadFormat.value = settings.downloadFormat;
-                if (settings.downloadQuality) downloadQuality.value = settings.downloadQuality;
-                if (settings.overwriteBehavior) overwriteBehavior.value = settings.overwriteBehavior;
-                if (settings.downloadMetadata !== undefined) downloadMetadata.checked = settings.downloadMetadata;
-                if (settings.downloadCoverArt !== undefined) downloadCoverArt.checked = settings.downloadCoverArt;
-                if (settings.autoOrganize !== undefined) autoOrganize.checked = settings.autoOrganize;
-                
-                // Load playlists
-                updatePlaylistUI();
-            }
-            
             // Validate API key format
-            function validateAPIKey(key, type) {
+            window.validateAPIKey = function(key, type) {
                 if (!key) return { valid: true, message: 'Optional - using demo mode' };
                 
                 switch (type) {
@@ -3002,7 +3038,40 @@
             }
 
             // Save settings
-            async function saveSettings() {
+            window.saveSettings = async function() {
+                // Get elements
+                const audiusApiKey = document.getElementById('audiusApiKey');
+                const youtubeApiKey = document.getElementById('youtubeApiKey');
+                const jamendoClientId = document.getElementById('jamendoClientId');
+                const spotifyClientId = document.getElementById('spotifyClientId');
+                const spotifyClientSecret = document.getElementById('spotifyClientSecret');
+                const defaultVolume = document.getElementById('defaultVolume');
+                const autoPlayNext = document.getElementById('autoPlayNext');
+                const showNotifications = document.getElementById('showNotifications');
+                const crossfadeEnabled = document.getElementById('crossfadeEnabled');
+                const crossfadeDuration = document.getElementById('crossfadeDuration');
+                const gaplessPlayback = document.getElementById('gaplessPlayback');
+                const playbackSpeed = document.getElementById('playbackSpeed');
+                const equalizerPreset = document.getElementById('equalizerPreset');
+                const volumeNormalization = document.getElementById('volumeNormalization');
+                const enableVisualizer = document.getElementById('enableVisualizer');
+                const debugMode = document.getElementById('debugMode');
+                const apiTimeout = document.getElementById('apiTimeout');
+                const apiRetryAttempts = document.getElementById('apiRetryAttempts');
+                const corsProxy = document.getElementById('corsProxy');
+                const enablePerformanceProfiling = document.getElementById('enablePerformanceProfiling');
+                const downloadFormat = document.getElementById('downloadFormat');
+                const downloadQuality = document.getElementById('downloadQuality');
+                const overwriteBehavior = document.getElementById('overwriteBehavior');
+                const downloadMetadata = document.getElementById('downloadMetadata');
+                const downloadCoverArt = document.getElementById('downloadCoverArt');
+                const autoOrganize = document.getElementById('autoOrganize');
+
+                if (!audiusApiKey || !youtubeApiKey || !jamendoClientId || !spotifyClientId || !spotifyClientSecret) {
+                    alert('Error: Required settings elements not found');
+                    return;
+                }
+
                 const audiusKey = audiusApiKey.value.trim();
                 const youtubeKey = youtubeApiKey.value.trim();
                 const jamendoKey = jamendoClientId.value.trim();
@@ -3011,10 +3080,10 @@
                 
                 // Validate API keys
                 const validationResults = {
-                    audius: validateAPIKey(audiusKey, 'audius'),
-                    youtube: validateAPIKey(youtubeKey, 'youtube'),
-                    jamendo: validateAPIKey(jamendoKey, 'jamendo'),
-                    spotify: validateAPIKey(spotifyKey, 'spotify')
+                    audius: window.validateAPIKey(audiusKey, 'audius'),
+                    youtube: window.validateAPIKey(youtubeKey, 'youtube'),
+                    jamendo: window.validateAPIKey(jamendoKey, 'jamendo'),
+                    spotify: window.validateAPIKey(spotifyKey, 'spotify')
                 };
                 
                 // Check if any validations failed
@@ -3039,27 +3108,27 @@
                     jamendoClientId: jamendoKey,
                     spotifyClientId: spotifyKey,
                     spotifyClientSecret: spotifySecret,
-                    defaultVolume: defaultVolume.value,
-                    autoPlayNext: autoPlayNext.checked,
-                    showNotifications: showNotifications.checked,
-                    crossfadeEnabled: crossfadeEnabled.checked,
-                    crossfadeDuration: crossfadeDuration.value,
-                    gaplessPlayback: gaplessPlayback.checked,
-                    playbackSpeed: playbackSpeed.value,
-                    equalizerPreset: equalizerPreset.value,
-                    volumeNormalization: volumeNormalization.checked,
-                    enableVisualizer: enableVisualizer.checked,
-                    debugMode: debugMode.checked,
-                    apiTimeout: apiTimeout.value,
-                    apiRetryAttempts: apiRetryAttempts.value,
-                    corsProxy: corsProxy.value,
-                    enablePerformanceProfiling: enablePerformanceProfiling.checked,
-                    downloadFormat: downloadFormat.value,
-                    downloadQuality: downloadQuality.value,
-                    overwriteBehavior: overwriteBehavior.value,
-                    downloadMetadata: downloadMetadata.checked,
-                    downloadCoverArt: downloadCoverArt.checked,
-                    autoOrganize: autoOrganize.checked
+                    defaultVolume: defaultVolume ? defaultVolume.value : 70,
+                    autoPlayNext: autoPlayNext ? autoPlayNext.checked : true,
+                    showNotifications: showNotifications ? showNotifications.checked : false,
+                    crossfadeEnabled: crossfadeEnabled ? crossfadeEnabled.checked : false,
+                    crossfadeDuration: crossfadeDuration ? crossfadeDuration.value : 2,
+                    gaplessPlayback: gaplessPlayback ? gaplessPlayback.checked : false,
+                    playbackSpeed: playbackSpeed ? playbackSpeed.value : 1,
+                    equalizerPreset: equalizerPreset ? equalizerPreset.value : 'flat',
+                    volumeNormalization: volumeNormalization ? volumeNormalization.checked : false,
+                    enableVisualizer: enableVisualizer ? enableVisualizer.checked : false,
+                    debugMode: debugMode ? debugMode.checked : false,
+                    apiTimeout: apiTimeout ? apiTimeout.value : 10000,
+                    apiRetryAttempts: apiRetryAttempts ? apiRetryAttempts.value : 3,
+                    corsProxy: corsProxy ? corsProxy.value : '',
+                    enablePerformanceProfiling: enablePerformanceProfiling ? enablePerformanceProfiling.checked : false,
+                    downloadFormat: downloadFormat ? downloadFormat.value : 'mp3',
+                    downloadQuality: downloadQuality ? downloadQuality.value : 'medium',
+                    overwriteBehavior: overwriteBehavior ? overwriteBehavior.value : 'ask',
+                    downloadMetadata: downloadMetadata ? downloadMetadata.checked : true,
+                    downloadCoverArt: downloadCoverArt ? downloadCoverArt.checked : true,
+                    autoOrganize: autoOrganize ? autoOrganize.checked : false
                 };
                 
                 localStorage.setItem('spotfuckSettings', JSON.stringify(settings));
@@ -3078,13 +3147,15 @@
                     settingsSaveBtn.innerHTML = originalText;
                     settingsSaveBtn.style.background = '';
                 }, 2000);
-            }
-            
+            };
+
             // Reset settings
-            function resetSettings() {
+            window.resetSettings = function() {
                 if (confirm('Are you sure you want to reset all settings to defaults?')) {
                     localStorage.removeItem('spotfuckSettings');
-                    loadSettings();
+                    if (typeof window.loadSettings === 'function') {
+                        window.loadSettings();
+                    }
                     
                     // Show feedback
                     const originalText = settingsResetBtn.innerHTML;
@@ -3099,8 +3170,18 @@
             // Settings button click
             if (settingsBtn) {
                 settingsBtn.addEventListener('click', () => {
-                    loadSettings();
-                    settingsModal.classList.add('active');
+                    console.log('Settings button clicked');
+                    if (typeof window.loadSettings === 'function') {
+                        window.loadSettings();
+                    } else {
+                        console.error('loadSettings function not found');
+                    }
+                    if (settingsModal) {
+                        settingsModal.classList.add('active');
+                        console.log('Settings modal activated');
+                    } else {
+                        console.error('Settings modal not found');
+                    }
                 });
             }
             
@@ -3113,12 +3194,16 @@
             
             // Save settings
             if (settingsSaveBtn) {
-                settingsSaveBtn.addEventListener('click', saveSettings);
+                settingsSaveBtn.addEventListener('click', () => {
+                    if (typeof window.saveSettings === 'function') {
+                        window.saveSettings();
+                    }
+                });
             }
             
             // Reset settings
             if (settingsResetBtn) {
-                settingsResetBtn.addEventListener('click', resetSettings);
+                settingsResetBtn.addEventListener('click', window.resetSettings);
             }
             
             // Volume slider display

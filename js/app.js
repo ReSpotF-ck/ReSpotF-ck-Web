@@ -30,6 +30,31 @@ let downloadSettings = {
     autoOrganize: false
 };
 
+// Progress update interval for YouTube
+let progressUpdateInterval = null;
+
+function startProgressUpdate() {
+    // Clear existing interval
+    if (progressUpdateInterval) {
+        clearInterval(progressUpdateInterval);
+    }
+    
+    // Start new interval for YouTube progress
+    progressUpdateInterval = setInterval(() => {
+        const currentTrack = tracks[currentTrackIndex];
+        if (currentTrack && currentTrack.source === 'youtube' && window.youtubePlayer && isPlaying) {
+            updateProgress();
+        }
+    }, 1000);
+}
+
+function stopProgressUpdate() {
+    if (progressUpdateInterval) {
+        clearInterval(progressUpdateInterval);
+        progressUpdateInterval = null;
+    }
+}
+
 // DOM Elements (will be initialized after DOM is loaded)
 let audioPlayer, playPauseBtn, playPauseIcon, prevBtn, nextBtn, shuffleBtn, repeatBtn;
 let progressBar, progressFill, currentTimeEl, durationEl;
@@ -217,6 +242,9 @@ function setupEventListeners() {
         audioPlayer.addEventListener('ended', handleTrackEnd);
         audioPlayer.addEventListener('loadedmetadata', handleMetadataLoaded);
         audioPlayer.addEventListener('error', handleAudioError);
+        audioPlayer.addEventListener('canplay', () => {
+            addDebugLog('Player', 'Audio ready to play', 'info');
+        });
     }
 
     // Sidebar navigation
@@ -384,7 +412,16 @@ function updateSourceTabs(source) {
 // Search Functionality
 async function handleSearch() {
     const query = searchInput.value.trim();
-    if (!query) return;
+    if (!query) {
+        showErrorState('no_results', 'Please enter a search term');
+        return;
+    }
+
+    // Validate search input
+    if (query.length < 2) {
+        showErrorState('no_results', 'Search term must be at least 2 characters');
+        return;
+    }
 
     // Simplified security: Only block obvious URLs
     if (query.startsWith('http://') || query.startsWith('https://') || query.startsWith('ftp://')) {
@@ -393,6 +430,7 @@ async function handleSearch() {
     }
 
     showLoadingState();
+    addDebugLog('Search', `Searching for: "${query}"`, 'info');
     
     try {
         const results = await searchAllSources(query);
@@ -405,6 +443,7 @@ async function handleSearch() {
         tracks = results;
         currentTrackIndex = 0;
         displayTracks();
+        addDebugLog('Search', `Found ${results.length} tracks`, 'success');
     } catch (error) {
         console.error('Search error:', error);
         
@@ -457,18 +496,22 @@ async function searchAllSources(query) {
                 allTracks.push(...result.value);
                 successCount++;
                 console.log(`${sources[index]}: Found ${result.value.length} tracks`);
+                addDebugLog(sources[index], `Found ${result.value.length} tracks`, 'success');
             } else if (result.status === 'rejected') {
                 console.error(`${sources[index]} search failed:`, result.reason.message);
                 sourceErrors[sources[index]] = result.reason.message;
+                addDebugLog(sources[index], `Search failed: ${result.reason.message}`, 'error');
             } else {
                 console.log(`${sources[index]}: No results found`);
                 sourceErrors[sources[index]] = 'No results found';
+                addDebugLog(sources[index], 'No results found', 'info');
             }
         });
 
         // If we got API results, return them
         if (allTracks.length > 0) {
             console.log(`Using ${allTracks.length} tracks from ${successCount} API sources`);
+            addDebugLog('Search', `Total results: ${allTracks.length} from ${successCount} sources`, 'success');
             
             // Log any source errors for debugging
             if (Object.keys(sourceErrors).length > 0) {
@@ -481,6 +524,7 @@ async function searchAllSources(query) {
         // If no results from APIs, throw error with information
         console.log('No results from APIs');
         console.log('Source errors:', sourceErrors);
+        addDebugLog('Search', 'No results from any API source', 'error');
         
         // Store source errors for display
         window.lastSearchErrors = sourceErrors;
@@ -488,6 +532,7 @@ async function searchAllSources(query) {
         throw new Error('No results found from any music source. Please check your API keys in Settings or try a different search term.');
     } catch (error) {
         console.error('Search all sources error:', error);
+        addDebugLog('Search', `Search error: ${error.message}`, 'error');
         // Store error for display
         window.lastSearchErrors = sourceErrors;
         throw error; // Re-throw to show error instead of silent fallback
@@ -759,6 +804,12 @@ function displayTracks() {
     trackList.innerHTML = filteredTracks.map((track, filteredIndex) => {
         // Find the original index in the full tracks array
         const originalIndex = tracks.findIndex(t => t.id === track.id);
+        
+        // Validate track has required fields
+        if (!track.title || !track.audioUrl && !track.videoId) {
+            console.warn('Invalid track data:', track);
+            return '';
+        }
         
         return `
         <div class="track-item ${originalIndex === currentTrackIndex ? 'playing' : ''}" data-index="${originalIndex}" data-filtered-index="${filteredIndex}">
@@ -1110,6 +1161,7 @@ function playTrack(index) {
     // Validate index
     if (index < 0 || index >= tracks.length) {
         console.error('Invalid track index:', index, 'Total tracks:', tracks.length);
+        addDebugLog('Player', `Invalid track index: ${index}`, 'error');
         return;
     }
     
@@ -1118,10 +1170,21 @@ function playTrack(index) {
     
     if (!track) {
         console.error('No track found at index:', index);
+        addDebugLog('Player', `No track found at index: ${index}`, 'error');
+        return;
+    }
+
+    // Validate track data
+    const validation = validateTrack(track);
+    if (!validation.valid) {
+        console.error('Invalid track data:', validation.error);
+        addDebugLog('Player', `Invalid track: ${validation.error}`, 'error');
+        alert(`Cannot play this track: ${validation.error}`);
         return;
     }
 
     console.log('Playing track:', track.title, 'by', track.artist, 'from source:', track.source, 'at index:', index);
+    addDebugLog('Player', `Playing: ${track.title} by ${track.artist}`, 'info');
 
     // Update UI
     if (trackTitle) trackTitle.textContent = track.title;
@@ -1169,6 +1232,9 @@ function playTrack(index) {
 
     // Update display
     displayTracks();
+    
+    // Start progress update interval for YouTube
+    startProgressUpdate();
 }
 
 function playAudioTrack(track) {
@@ -1178,14 +1244,27 @@ function playAudioTrack(track) {
     
     if (!audioUrl) {
         console.error('No audio URL available for track:', track);
+        addDebugLog('Player', 'No audio URL available for track', 'error');
         alert('No playable audio available for this track.');
         return;
     }
     
+    // Validate URL
+    try {
+        new URL(audioUrl);
+    } catch (e) {
+        console.error('Invalid audio URL:', audioUrl);
+        addDebugLog('Player', `Invalid audio URL: ${audioUrl}`, 'error');
+        alert('Invalid audio URL. This track cannot be played.');
+        return;
+    }
+    
     console.log('Playing audio from:', audioUrl, 'for track:', track.title);
+    addDebugLog('Player', `Loading audio from: ${audioUrl}`, 'info');
     
     if (!audioPlayer) {
         console.error('Audio player not initialized');
+        addDebugLog('Player', 'Audio player not initialized', 'error');
         alert('Audio player not available. Please refresh the page.');
         return;
     }
@@ -1207,6 +1286,7 @@ function playAudioTrack(track) {
         isPlaying = true;
         if (playPauseIcon) playPauseIcon.className = 'fas fa-pause';
         console.log('Successfully playing:', track.title);
+        addDebugLog('Player', `Successfully playing: ${track.title}`, 'success');
         
         // Activate visualizer if enabled
         if (settings.enableVisualizer) {
@@ -1220,7 +1300,21 @@ function playAudioTrack(track) {
         console.error('Play error:', error);
         isPlaying = false;
         if (playPauseIcon) playPauseIcon.className = 'fas fa-play';
-        alert('Error playing audio. The source may be unavailable or blocked by CORS policy.');
+        addDebugLog('Player', `Play error: ${error.message}`, 'error');
+        
+        // Provide user-friendly error message
+        let errorMessage = 'Error playing audio. ';
+        if (error.message.includes('CORS')) {
+            errorMessage += 'The source may be blocked by CORS policy. Try a different track or add API keys.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage += 'Network error. Please check your internet connection.';
+        } else if (error.message.includes('404')) {
+            errorMessage += 'The audio file is not available (404 error).';
+        } else {
+            errorMessage += 'The source may be unavailable.';
+        }
+        
+        alert(errorMessage);
     });
 }
 
@@ -1231,26 +1325,48 @@ function playYouTubeTrack(track) {
         return;
     }
     
-    // For audio-only playback, we'll use the standard HTML5 audio player with a YouTube audio URL
-    // This avoids the heavy IFrame API and provides better audio-only experience
-    try {
-        // Use a YouTube to MP3 conversion service or direct audio stream
-        // Note: This is a workaround - proper YouTube audio requires server-side processing
-        const audioUrl = `https://www.youtube.com/watch?v=${track.videoId}`;
-        
-        // Since we can't directly play YouTube audio without the IFrame API,
-        // we'll show a message to the user
-        alert(`YouTube playback requires the IFrame API. To play "${track.title}",\nplease add your YouTube API key in Settings for proper audio playback.\n\nVideo ID: ${track.videoId}`);
-        
-        // Alternative: Open in new tab for playback
-        // window.open(audioUrl, '_blank');
-        
-        // For now, we'll use the IFrame API as fallback
-        loadYouTubeIFrame(track);
-    } catch (error) {
-        console.error('YouTube playback error:', error);
-        alert('Error playing YouTube track. Please try another source.');
+    // Use the IFrame API for YouTube playback
+    loadYouTubeIFrame(track);
+}
+
+function playYouTubeURL(url) {
+    const videoId = extractYouTubeVideoId(url);
+    
+    if (!videoId) {
+        alert('Invalid YouTube URL. Please enter a valid YouTube video URL.');
+        return;
     }
+    
+    const track = {
+        id: videoId,
+        title: 'YouTube Video',
+        artist: 'YouTube',
+        album: 'YouTube',
+        duration: 0,
+        artwork: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+        source: 'youtube',
+        videoId: videoId
+    };
+    
+    loadYouTubeIFrame(track);
+}
+
+function extractYouTubeVideoId(url) {
+    const patterns = [
+        /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+        /youtube\.com\/embed\/([^"&?\/\s]{11})/,
+        /youtube\.com\/v\/([^"&?\/\s]{11})/,
+        /youtube\.com\/watch\?v=([^"&?\/\s]{11})/
+    ];
+    
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
+        }
+    }
+    
+    return null;
 }
 
 function loadYouTubeIFrame(track) {
@@ -1270,27 +1386,52 @@ function loadYouTubeIFrame(track) {
 }
 
 function createYouTubePlayer(track) {
-    if (window.youtubePlayer) {
-        window.youtubePlayer.loadVideoById(track.videoId);
-    } else {
-        window.youtubePlayer = new YT.Player('youtubePlayer', {
-            height: '0',
-            width: '0',
-            videoId: track.videoId,
-            playerVars: {
-                'autoplay': 1,
-                'controls': 0,
-                'disablekb': 1,
-                'origin': window.location.origin
-            },
-            events: {
-                'onStateChange': onYouTubePlayerStateChange,
-                'onError': onYouTubePlayerError
+    try {
+        if (window.youtubePlayer) {
+            window.youtubePlayer.loadVideoById(track.videoId);
+        } else {
+            window.youtubePlayer = new YT.Player('youtubePlayer', {
+                height: '0',
+                width: '0',
+                videoId: track.videoId,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'disablekb': 1,
+                    'origin': window.location.origin,
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': function(event) {
+                        console.log('YouTube player ready');
+                        event.target.playVideo();
+                    },
+                    'onStateChange': onYouTubePlayerStateChange,
+                    'onError': onYouTubePlayerError
+                }
+            });
+        }
+        
+        // Update UI
+        if (trackTitle) trackTitle.textContent = track.title;
+        if (trackArtist) trackArtist.textContent = track.artist;
+        if (trackArt) {
+            if (track.artwork) {
+                trackArt.innerHTML = `<img src="${track.artwork}" alt="${track.title}">`;
+            } else {
+                trackArt.innerHTML = '<i class="fab fa-youtube"></i>';
             }
-        });
+        }
+        
+        isPlaying = true;
+        if (playPauseIcon) playPauseIcon.className = 'fas fa-pause';
+        
+        addDebugLog('YouTube', `Playing video: ${track.videoId}`, 'success');
+    } catch (error) {
+        console.error('Error creating YouTube player:', error);
+        addDebugLog('YouTube', `Error creating player: ${error.message}`, 'error');
+        alert('Error playing YouTube video. Please check your internet connection and try again.');
     }
-    isPlaying = true;
-    playPauseIcon.className = 'fas fa-pause';
 }
 
 function onYouTubePlayerError(event) {
@@ -1305,17 +1446,20 @@ function onYouTubePlayerError(event) {
             errorMessage = 'HTML5 player error.';
             break;
         case 100:
-            errorMessage = 'Video not found.';
+            errorMessage = 'Video not found or removed.';
             break;
         case 101:
         case 150:
-            errorMessage = 'Video not embeddable.';
+            errorMessage = 'Video not embeddable (owner restricted).';
             break;
+        default:
+            errorMessage = `YouTube error (code: ${event.data})`;
     }
     
+    addDebugLog('YouTube', errorMessage, 'error');
     alert(errorMessage);
     isPlaying = false;
-    playPauseIcon.className = 'fas fa-play';
+    if (playPauseIcon) playPauseIcon.className = 'fas fa-play';
 }
 
 function onYouTubePlayerStateChange(event) {
@@ -1331,33 +1475,55 @@ function onYouTubePlayerStateChange(event) {
 }
 
 function togglePlayPause() {
-    if (tracks.length === 0 || !audioPlayer) return;
+    if (tracks.length === 0) {
+        addDebugLog('Player', 'No tracks to play', 'error');
+        return;
+    }
     
     const currentTrack = tracks[currentTrackIndex];
     
-    if (currentTrack && currentTrack.source === 'youtube' && window.youtubePlayer) {
+    if (!currentTrack) {
+        addDebugLog('Player', 'No current track available', 'error');
+        return;
+    }
+    
+    if (currentTrack.source === 'youtube' && window.youtubePlayer) {
+        // YouTube playback
         if (isPlaying) {
             window.youtubePlayer.pauseVideo();
             isPlaying = false;
+            addDebugLog('YouTube', 'Paused playback', 'info');
         } else {
             window.youtubePlayer.playVideo();
             isPlaying = true;
+            addDebugLog('YouTube', 'Resumed playback', 'info');
         }
     } else {
+        // Regular audio playback
+        if (!audioPlayer) {
+            addDebugLog('Player', 'Audio player not available', 'error');
+            return;
+        }
+        
         if (audioPlayer.paused) {
             audioPlayer.play().then(() => {
                 isPlaying = true;
                 if (playPauseIcon) playPauseIcon.className = 'fas fa-pause';
+                addDebugLog('Player', `Playing: ${currentTrack.title}`, 'success');
             }).catch(error => {
                 console.error('Play error:', error);
                 isPlaying = false;
                 if (playPauseIcon) playPauseIcon.className = 'fas fa-play';
+                addDebugLog('Player', `Play error: ${error.message}`, 'error');
+                alert('Error playing audio. The source may be unavailable or blocked by CORS policy.');
             });
         } else {
             audioPlayer.pause();
             isPlaying = false;
+            addDebugLog('Player', 'Paused playback', 'info');
         }
     }
+    
     if (playPauseIcon) playPauseIcon.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
 }
 
@@ -1405,7 +1571,21 @@ function toggleRepeat() {
 
 // Progress Functions
 function updateProgress() {
-    if (audioPlayer && audioPlayer.duration && !isNaN(audioPlayer.duration)) {
+    const currentTrack = tracks[currentTrackIndex];
+    
+    if (currentTrack && currentTrack.source === 'youtube' && window.youtubePlayer) {
+        // YouTube progress
+        const currentTime = window.youtubePlayer.getCurrentTime();
+        const duration = window.youtubePlayer.getDuration();
+        
+        if (duration > 0) {
+            const percent = (currentTime / duration) * 100;
+            if (progressFill) progressFill.style.width = percent + '%';
+            if (currentTimeEl) currentTimeEl.textContent = formatTime(currentTime);
+            if (durationEl) durationEl.textContent = formatTime(duration);
+        }
+    } else if (audioPlayer && audioPlayer.duration && !isNaN(audioPlayer.duration)) {
+        // Regular audio progress
         const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
         if (progressFill) progressFill.style.width = percent + '%';
         if (currentTimeEl) currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
@@ -1414,10 +1594,18 @@ function updateProgress() {
 }
 
 function handleProgressClick(e) {
-    if (!progressBar || !audioPlayer) return;
+    if (!progressBar) return;
+    
+    const currentTrack = tracks[currentTrackIndex];
     const rect = progressBar.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
-    if (audioPlayer.duration) {
+    
+    if (currentTrack && currentTrack.source === 'youtube' && window.youtubePlayer) {
+        const duration = window.youtubePlayer.getDuration();
+        if (duration > 0) {
+            window.youtubePlayer.seekTo(duration * percent);
+        }
+    } else if (audioPlayer && audioPlayer.duration) {
         audioPlayer.currentTime = percent * audioPlayer.duration;
     }
 }
@@ -1430,18 +1618,28 @@ function handleTrackEnd() {
     const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
     const autoPlayNext = settings.autoPlayNext !== undefined ? settings.autoPlayNext : true;
     
+    addDebugLog('Player', 'Track ended', 'info');
+    
     if (isRepeat) {
+        addDebugLog('Player', 'Repeating track', 'info');
         playTrack(currentTrackIndex);
     } else if (autoPlayNext) {
+        addDebugLog('Player', 'Auto-playing next track', 'info');
         playNext();
     }
 }
 
 function handleAudioError(error) {
     console.error('Audio player error:', error);
-    // Show error to user and try next track
+    
     const currentTrack = tracks[currentTrackIndex];
-    console.error('Failed to play:', currentTrack);
+    addDebugLog('Player', `Audio error: ${error.message}`, 'error');
+    
+    // Show error to user
+    if (currentTrack) {
+        console.error('Failed to play:', currentTrack);
+        alert(`Error playing "${currentTrack.title}". The source may be unavailable or blocked by CORS policy.`);
+    }
     
     // Try next track
     if (currentTrackIndex < tracks.length - 1) {
@@ -1449,19 +1647,26 @@ function handleAudioError(error) {
     } else {
         // Show error state if no more tracks
         isPlaying = false;
-        playPauseIcon.className = 'fas fa-play';
+        if (playPauseIcon) playPauseIcon.className = 'fas fa-play';
     }
 }
 
 // Volume Functions
 function handleVolumeChange(e) {
-    if (!audioPlayer) return;
+    if (!volumeSlider) return;
+    
     const volume = e.target.value / 100;
-    audioPlayer.volume = volume;
+    
+    if (audioPlayer) {
+        audioPlayer.volume = volume;
+    }
+    
     if (window.youtubePlayer) {
         window.youtubePlayer.setVolume(volume * 100);
     }
+    
     updateVolumeIcon(volume);
+    addDebugLog('Player', `Volume set to ${Math.round(volume * 100)}%`, 'info');
 }
 
 function toggleMute() {
@@ -1617,7 +1822,42 @@ function formatTime(seconds) {
     if (!seconds || isNaN(seconds) || !isFinite(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, '0)}`;
+}
+
+// Comprehensive track validation
+function validateTrack(track) {
+    if (!track) {
+        return { valid: false, error: 'Track object is null or undefined' };
+    }
+    
+    if (!track.title || typeof track.title !== 'string') {
+        return { valid: false, error: 'Track title is missing or invalid' };
+    }
+    
+    if (!track.audioUrl && !track.videoId) {
+        return { valid: false, error: 'Track has no audio URL or video ID' };
+    }
+    
+    if (track.audioUrl && !isValidUrl(track.audioUrl)) {
+        return { valid: false, error: 'Track audio URL is invalid' };
+    }
+    
+    if (track.source && !['audius', 'youtube', 'jamendo', 'spotify'].includes(track.source)) {
+        return { valid: false, error: `Invalid track source: ${track.source}` };
+    }
+    
+    return { valid: true };
+}
+
+// Validate URL
+function isValidUrl(string) {
+    try {
+        const url = new URL(string);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch (_) {
+        return false;
+    }
 }
 
 // Keyboard Shortcuts
@@ -2303,11 +2543,18 @@ function downloadFromDirectUrl() {
     }
     
     // Validate URL
-    try {
-        new URL(url);
-    } catch (e) {
-        alert('Please enter a valid URL');
+    if (!isValidUrl(url)) {
+        alert('Please enter a valid URL (must start with http:// or https://)');
         return;
+    }
+    
+    // Check if URL points to an audio file
+    const audioExtensions = ['.mp3', '.wav', '.m4a', '.ogg', '.flac', '.aac'];
+    const hasAudioExtension = audioExtensions.some(ext => url.toLowerCase().endsWith(ext));
+    
+    if (!hasAudioExtension) {
+        const proceed = confirm('The URL does not appear to be an audio file. Proceed anyway?');
+        if (!proceed) return;
     }
     
     // Update download settings from UI before downloading
@@ -2647,3 +2894,11 @@ window.pauseDownloads = pauseDownloads;
 window.clearDownloadQueue = clearDownloadQueue;
 window.retryDownload = retryDownload;
 window.removeFromDownloadQueue = removeFromDownloadQueue;
+
+// Make YouTube functions available globally
+window.playYouTubeURL = playYouTubeURL;
+window.extractYouTubeVideoId = extractYouTubeVideoId;
+
+// Make validation functions available globally
+window.validateTrack = validateTrack;
+window.isValidUrl = isValidUrl;

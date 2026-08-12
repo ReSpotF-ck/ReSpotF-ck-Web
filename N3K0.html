@@ -708,6 +708,9 @@
                 <button class="settings-tab" data-tab="playback">
                     <i class="fas fa-play"></i> Playback
                 </button>
+                <button class="settings-tab" data-tab="youtube">
+                    <i class="fab fa-youtube"></i> YouTube
+                </button>
                 <button class="settings-tab" data-tab="debug">
                     <i class="fas fa-bug"></i> Debug
                 </button>
@@ -821,6 +824,40 @@
                                 <option value="1.5">1.5x</option>
                                 <option value="2">2x</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- YouTube Tab -->
+                <div class="settings-tab-content" id="youtube-tab">
+                    <div class="settings-section">
+                        <h3><i class="fab fa-youtube"></i> YouTube Audio Playback</h3>
+                        
+                        <div class="settings-input-group">
+                            <label>YouTube URL</label>
+                            <input type="text" class="settings-input" id="youtubeUrlInput" placeholder="https://www.youtube.com/watch?v=...">
+                            <small class="settings-note">Paste a YouTube video URL to play the audio</small>
+                        </div>
+                        
+                        <button class="download-btn" id="playYouTubeBtn">
+                            <i class="fas fa-play"></i> Play YouTube Audio
+                        </button>
+                        
+                        <div class="youtube-info">
+                            <p><strong>Note:</strong> YouTube audio playback requires a YouTube API key for full functionality. Without an API key, you can still try to play videos, but they may not work due to YouTube's restrictions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3><i class="fas fa-info-circle"></i> How it works</h3>
+                        <div class="youtube-instructions">
+                            <ol>
+                                <li>Copy a YouTube video URL</li>
+                                <li>Paste it in the field above</li>
+                                <li>Click "Play YouTube Audio"</li>
+                                <li>The audio will play using the built-in player controls</li>
+                            </ol>
+                            <p class="settings-note">For best results, add your YouTube API key in the API Keys tab.</p>
                         </div>
                     </div>
                 </div>
@@ -2079,6 +2116,48 @@
             color: var(--primary);
         }
         
+        /* YouTube Tab Styles */
+        .youtube-info {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        
+        .youtube-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        .youtube-info strong {
+            color: var(--text-primary);
+        }
+        
+        .youtube-instructions {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        
+        .youtube-instructions ol {
+            margin: 0 0 16px 20px;
+            color: var(--text-secondary);
+        }
+        
+        .youtube-instructions li {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .youtube-instructions p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        
         /* Additional Form Elements */
         .settings-select {
             width: 100%;
@@ -3285,6 +3364,30 @@
             if (autoOrganize) {
                 autoOrganize.addEventListener('change', (e) => {
                     downloadSettings.autoOrganize = e.target.checked;
+                });
+            }
+            
+            // YouTube functionality
+            const youtubeUrlInput = document.getElementById('youtubeUrlInput');
+            const playYouTubeBtn = document.getElementById('playYouTubeBtn');
+            
+            if (playYouTubeBtn && youtubeUrlInput) {
+                playYouTubeBtn.addEventListener('click', () => {
+                    const url = youtubeUrlInput.value.trim();
+                    if (url && typeof window.playYouTubeURL === 'function') {
+                        window.playYouTubeURL(url);
+                    } else {
+                        alert('Please enter a YouTube URL');
+                    }
+                });
+                
+                youtubeUrlInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const url = youtubeUrlInput.value.trim();
+                        if (url && typeof window.playYouTubeURL === 'function') {
+                            window.playYouTubeURL(url);
+                        }
+                    }
                 });
             }
 

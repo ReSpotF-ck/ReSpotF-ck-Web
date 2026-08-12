@@ -720,6 +720,9 @@
                 <button class="settings-tab" data-tab="developer">
                     <i class="fas fa-code"></i> Developer
                 </button>
+                <button class="settings-tab" data-tab="downloader">
+                    <i class="fas fa-download"></i> Downloader
+                </button>
             </div>
             
             <div class="settings-modal-body">
@@ -1024,6 +1027,153 @@
                                 <div class="shortcut"><kbd>Shift</kbd> + <kbd>←</kbd> Previous track</div>
                                 <div class="shortcut"><kbd>Shift</kbd> + <kbd>S</kbd> Toggle shuffle</div>
                                 <div class="shortcut"><kbd>Shift</kbd> + <kbd>R</kbd> Toggle repeat</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Downloader Tab -->
+                <div class="settings-tab-content" id="downloader-tab">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-download"></i> Music Downloader</h3>
+                        
+                        <!-- Download Method Selection -->
+                        <div class="download-methods">
+                            <button class="download-method-btn active" id="downloadFromListBtn">
+                                <i class="fas fa-list"></i> Download from List
+                            </button>
+                            <button class="download-method-btn" id="downloadFromUrlBtn">
+                                <i class="fas fa-link"></i> Download from URL
+                            </button>
+                        </div>
+                        
+                        <!-- Download from List -->
+                        <div class="download-method-content active" id="downloadFromList">
+                            <div class="settings-input-group">
+                                <label>Search for songs to download</label>
+                                <div class="download-search">
+                                    <input type="text" class="settings-input" id="downloadSearchInput" placeholder="Search for songs...">
+                                    <button class="download-search-btn" id="downloadSearchBtn">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="download-track-list" id="downloadTrackList">
+                                <div class="download-empty-state">
+                                    <i class="fas fa-music"></i>
+                                    <p>Search for songs to see download options</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Download from URL -->
+                        <div class="download-method-content" id="downloadFromUrl">
+                            <div class="settings-input-group">
+                                <label>Direct Song URL</label>
+                                <input type="text" class="settings-input" id="directDownloadUrl" placeholder="https://example.com/song.mp3">
+                                <small class="settings-note">Enter a direct URL to an audio file</small>
+                            </div>
+                            
+                            <div class="settings-input-group">
+                                <label>Song Information (Optional)</label>
+                                <input type="text" class="settings-input" id="directDownloadTitle" placeholder="Song title">
+                                <input type="text" class="settings-input" id="directDownloadArtist" placeholder="Artist name">
+                            </div>
+                            
+                            <button class="download-btn" id="directDownloadBtn">
+                                <i class="fas fa-download"></i> Download from URL
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Download Settings -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-cog"></i> Download Settings</h3>
+                        
+                        <div class="settings-input-group">
+                            <label>Download Location</label>
+                            <div class="download-location">
+                                <input type="text" class="settings-input" id="downloadLocation" placeholder="Default download folder" readonly>
+                                <button class="download-location-btn" id="selectDownloadFolder">
+                                    <i class="fas fa-folder-open"></i> Browse
+                                </button>
+                            </div>
+                            <small class="settings-note">Note: Browser security limits download location to default Downloads folder</small>
+                        </div>
+                        
+                        <div class="settings-input-group">
+                            <label>File Format</label>
+                            <select class="settings-select" id="downloadFormat">
+                                <option value="mp3">MP3 (Recommended)</option>
+                                <option value="wav">WAV (High Quality)</option>
+                                <option value="m4a">M4A (AAC)</option>
+                                <option value="original">Original Format</option>
+                            </select>
+                        </div>
+                        
+                        <div class="settings-input-group">
+                            <label>Audio Quality</label>
+                            <select class="settings-select" id="downloadQuality">
+                                <option value="highest">Highest Quality</option>
+                                <option value="high">High (320kbps)</option>
+                                <option value="medium" selected>Medium (192kbps)</option>
+                                <option value="low">Low (128kbps)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="settings-input-group">
+                            <label>Overwrite Behavior</label>
+                            <select class="settings-select" id="overwriteBehavior">
+                                <option value="ask">Ask if file exists</option>
+                                <option value="overwrite">Overwrite existing files</option>
+                                <option value="skip">Skip if file exists</option>
+                                <option value="rename">Auto-rename (add number)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="downloadMetadata" checked>
+                                <span>Download metadata (title, artist, album)</span>
+                            </label>
+                        </div>
+                        
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="downloadCoverArt" checked>
+                                <span>Download cover art</span>
+                            </label>
+                        </div>
+                        
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="autoOrganize">
+                                <span>Auto-organize by artist/album</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Download Queue -->
+                    <div class="settings-section">
+                        <h3><i class="fas fa-list-ol"></i> Download Queue</h3>
+                        
+                        <div class="download-queue-controls">
+                            <button class="download-queue-btn" id="startAllDownloads">
+                                <i class="fas fa-play"></i> Start All
+                            </button>
+                            <button class="download-queue-btn" id="pauseDownloads">
+                                <i class="fas fa-pause"></i> Pause
+                            </button>
+                            <button class="download-queue-btn danger" id="clearDownloadQueue">
+                                <i class="fas fa-trash"></i> Clear Queue
+                            </button>
+                        </div>
+                        
+                        <div class="download-queue" id="downloadQueue">
+                            <div class="download-queue-empty">
+                                <i class="fas fa-download"></i>
+                                <p>No downloads in queue</p>
                             </div>
                         </div>
                     </div>
@@ -1582,6 +1732,351 @@
         
         .audio-visualizer.active {
             opacity: 0.6;
+        }
+        
+        /* Downloader Styles */
+        .download-methods {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .download-method-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-hover);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .download-method-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .download-method-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .download-method-content {
+            display: none;
+        }
+        
+        .download-method-content.active {
+            display: block;
+        }
+        
+        .download-search {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .download-search .settings-input {
+            flex: 1;
+        }
+        
+        .download-search-btn {
+            padding: 12px 16px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .download-search-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .download-track-list {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+        
+        .download-empty-state {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .download-empty-state i {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+        }
+        
+        .download-track-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+        
+        .download-track-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .download-track-item:last-child {
+            border-bottom: none;
+        }
+        
+        .download-track-info {
+            flex: 1;
+        }
+        
+        .download-track-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .download-track-artist {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .download-track-source {
+            font-size: 11px;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+        
+        .download-track-btn {
+            padding: 8px 12px;
+            background: var(--primary);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .download-track-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .download-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            margin-top: 16px;
+        }
+        
+        .download-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .download-location {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .download-location .settings-input {
+            flex: 1;
+        }
+        
+        .download-location-btn {
+            padding: 12px 16px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .download-location-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .download-queue-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .download-queue-btn {
+            padding: 10px 16px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .download-queue-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .download-queue-btn.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        
+        .download-queue-btn.danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .download-queue {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .download-queue-empty {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .download-queue-empty i {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+        }
+        
+        .download-queue-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .download-queue-item:last-child {
+            border-bottom: none;
+        }
+        
+        .download-queue-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-hover);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+        
+        .download-queue-info {
+            flex: 1;
+        }
+        
+        .download-queue-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .download-queue-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .download-queue-progress {
+            width: 150px;
+            height: 6px;
+            background: var(--bg-hover);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .download-queue-progress-bar {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .download-queue-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .download-queue-action {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .download-queue-action:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .download-queue-action.danger:hover {
+            background: #ef4444;
+        }
+        
+        .download-status-completed {
+            color: #10b981;
+        }
+        
+        .download-status-error {
+            color: #ef4444;
+        }
+        
+        .download-status-downloading {
+            color: var(--primary);
         }
         
         /* Additional Form Elements */
@@ -2320,6 +2815,14 @@
             const corsProxy = document.getElementById('corsProxy');
             const enablePerformanceProfiling = document.getElementById('enablePerformanceProfiling');
             
+            // Download settings
+            const downloadFormat = document.getElementById('downloadFormat');
+            const downloadQuality = document.getElementById('downloadQuality');
+            const overwriteBehavior = document.getElementById('overwriteBehavior');
+            const downloadMetadata = document.getElementById('downloadMetadata');
+            const downloadCoverArt = document.getElementById('downloadCoverArt');
+            const autoOrganize = document.getElementById('autoOrganize');
+            
             // Settings tabs functionality
             const settingsTabs = document.querySelectorAll('.settings-tab');
             const settingsTabContents = document.querySelectorAll('.settings-tab-content');
@@ -2378,6 +2881,14 @@
                 if (settings.apiRetryAttempts) apiRetryAttempts.value = settings.apiRetryAttempts;
                 if (settings.corsProxy) corsProxy.value = settings.corsProxy;
                 if (settings.enablePerformanceProfiling !== undefined) enablePerformanceProfiling.checked = settings.enablePerformanceProfiling;
+                
+                // Download Settings
+                if (settings.downloadFormat) downloadFormat.value = settings.downloadFormat;
+                if (settings.downloadQuality) downloadQuality.value = settings.downloadQuality;
+                if (settings.overwriteBehavior) overwriteBehavior.value = settings.overwriteBehavior;
+                if (settings.downloadMetadata !== undefined) downloadMetadata.checked = settings.downloadMetadata;
+                if (settings.downloadCoverArt !== undefined) downloadCoverArt.checked = settings.downloadCoverArt;
+                if (settings.autoOrganize !== undefined) autoOrganize.checked = settings.autoOrganize;
                 
                 // Load playlists
                 updatePlaylistUI();
@@ -2463,7 +2974,13 @@
                     apiTimeout: apiTimeout.value,
                     apiRetryAttempts: apiRetryAttempts.value,
                     corsProxy: corsProxy.value,
-                    enablePerformanceProfiling: enablePerformanceProfiling.checked
+                    enablePerformanceProfiling: enablePerformanceProfiling.checked,
+                    downloadFormat: downloadFormat.value,
+                    downloadQuality: downloadQuality.value,
+                    overwriteBehavior: overwriteBehavior.value,
+                    downloadMetadata: downloadMetadata.checked,
+                    downloadCoverArt: downloadCoverArt.checked,
+                    autoOrganize: autoOrganize.checked
                 };
                 
                 localStorage.setItem('spotfuckSettings', JSON.stringify(settings));
@@ -2654,6 +3171,120 @@
                     if (typeof window.clearAllData === 'function') {
                         window.clearAllData();
                     }
+                });
+            }
+            
+            // Download functionality
+            const downloadFromListBtn = document.getElementById('downloadFromListBtn');
+            const downloadFromUrlBtn = document.getElementById('downloadFromUrlBtn');
+            const downloadSearchInput = document.getElementById('downloadSearchInput');
+            const downloadSearchBtn = document.getElementById('downloadSearchBtn');
+            const directDownloadUrl = document.getElementById('directDownloadUrl');
+            const directDownloadBtn = document.getElementById('directDownloadBtn');
+            const startAllDownloads = document.getElementById('startAllDownloads');
+            const pauseDownloads = document.getElementById('pauseDownloads');
+            const clearDownloadQueue = document.getElementById('clearDownloadQueue');
+            
+            // Download method tabs
+            if (downloadFromListBtn && downloadFromUrlBtn) {
+                downloadFromListBtn.addEventListener('click', () => {
+                    downloadFromListBtn.classList.add('active');
+                    downloadFromUrlBtn.classList.remove('active');
+                    document.getElementById('downloadFromList').classList.add('active');
+                    document.getElementById('downloadFromUrl').classList.remove('active');
+                });
+                
+                downloadFromUrlBtn.addEventListener('click', () => {
+                    downloadFromUrlBtn.classList.add('active');
+                    downloadFromListBtn.classList.remove('active');
+                    document.getElementById('downloadFromUrl').classList.add('active');
+                    document.getElementById('downloadFromList').classList.remove('active');
+                });
+            }
+            
+            // Download search
+            if (downloadSearchBtn && downloadSearchInput) {
+                downloadSearchBtn.addEventListener('click', () => {
+                    if (typeof window.searchForDownloads === 'function') {
+                        window.searchForDownloads(downloadSearchInput.value);
+                    }
+                });
+                
+                downloadSearchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && typeof window.searchForDownloads === 'function') {
+                        window.searchForDownloads(downloadSearchInput.value);
+                    }
+                });
+            }
+            
+            // Direct URL download
+            if (directDownloadBtn) {
+                directDownloadBtn.addEventListener('click', () => {
+                    if (typeof window.downloadFromDirectUrl === 'function') {
+                        window.downloadFromDirectUrl();
+                    }
+                });
+            }
+            
+            // Download queue controls
+            if (startAllDownloads) {
+                startAllDownloads.addEventListener('click', () => {
+                    if (typeof window.startAllDownloads === 'function') {
+                        window.startAllDownloads();
+                    }
+                });
+            }
+            
+            if (pauseDownloads) {
+                pauseDownloads.addEventListener('click', () => {
+                    if (typeof window.pauseDownloads === 'function') {
+                        window.pauseDownloads();
+                    }
+                });
+            }
+            
+            if (clearDownloadQueue) {
+                clearDownloadQueue.addEventListener('click', () => {
+                    if (typeof window.clearDownloadQueue === 'function') {
+                        window.clearDownloadQueue();
+                    }
+                });
+            }
+            
+            // Download settings change handlers
+            if (downloadFormat) {
+                downloadFormat.addEventListener('change', (e) => {
+                    downloadSettings.format = e.target.value;
+                });
+            }
+            
+            if (downloadQuality) {
+                downloadQuality.addEventListener('change', (e) => {
+                    downloadSettings.quality = e.target.value;
+                });
+            }
+            
+            if (overwriteBehavior) {
+                overwriteBehavior.addEventListener('change', (e) => {
+                    downloadSettings.overwriteBehavior = e.target.value;
+                });
+            }
+            
+            if (downloadMetadata) {
+                downloadMetadata.addEventListener('change', (e) => {
+                    downloadSettings.downloadMetadata = e.target.checked;
+                });
+            }
+            
+            if (downloadCoverArt) {
+                downloadCoverArt.addEventListener('change', (e) => {
+                    downloadSettings.downloadCoverArt = e.target.checked;
+                });
+            }
+            
+            if (autoOrganize) {
+                autoOrganize.addEventListener('change', (e) => {
+                    downloadSettings.autoOrganize = e.target.checked;
                 });
             }
 

@@ -19,6 +19,17 @@ let apiStats = {
     spotify: { requests: 0, errors: 0 }
 };
 
+// Download Management
+let downloadQueue = [];
+let downloadSettings = {
+    format: 'mp3',
+    quality: 'medium',
+    overwriteBehavior: 'ask',
+    downloadMetadata: true,
+    downloadCoverArt: true,
+    autoOrganize: false
+};
+
 // DOM Elements (will be initialized after DOM is loaded)
 let audioPlayer, playPauseBtn, playPauseIcon, prevBtn, nextBtn, shuffleBtn, repeatBtn;
 let progressBar, progressFill, currentTimeEl, durationEl;
@@ -113,6 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Don't load recommendations yet - wait for app to be shown after PIN entry
     setupEventListeners();
     setupKeyboardShortcuts();
+    
+    // Load download settings
+    loadDownloadSettings();
 });
 
 // Show Security Modal - handled by N3K0.html
@@ -2184,3 +2198,452 @@ window.showPlaylistMenu = showPlaylistMenu;
 window.displayPlaylists = displayPlaylists;
 window.toggleVisualizer = toggleVisualizer;
 window.initAudioContext = initAudioContext;
+
+// Download Functions
+function searchForDownloads(query) {
+    addDebugLog('Downloader', `Searching for download: "${query}"`, 'info');
+    
+    const downloadSearchInput = document.getElementById('downloadSearchInput');
+    const downloadTrackList = document.getElementById('downloadTrackList');
+    
+    if (!query) {
+        downloadTrackList.innerHTML = `
+            <div class="download-empty-state">
+                <i class="fas fa-music"></i>
+                <p>Enter a search term to find songs</p>
+            </div>
+        `;
+        return;
+    }
+    
+    downloadTrackList.innerHTML = `
+        <div class="download-empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Searching...</p>
+        </div>
+    `;
+    
+    // Update download settings from UI before searching
+    updateDownloadSettingsFromUI();
+    
+    // Search all available sources
+    searchAllSources(query).then(results => {
+        if (results.length === 0) {
+            downloadTrackList.innerHTML = `
+                <div class="download-empty-state">
+                    <i class="fas fa-search"></i>
+                    <p>No results found for "${query}"</p>
+                </div>
+            `;
+            return;
+        }
+        
+        displayDownloadResults(results);
+        addDebugLog('Downloader', `Found ${results.length} songs for download`, 'success');
+    }).catch(error => {
+        downloadTrackList.innerHTML = `
+            <div class="download-empty-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error searching: ${error.message}</p>
+            </div>
+        `;
+        addDebugLog('Downloader', `Search error: ${error.message}`, 'error');
+    });
+}
+
+function displayDownloadResults(results) {
+    const downloadTrackList = document.getElementById('downloadTrackList');
+    
+    downloadTrackList.innerHTML = results.map((track, index) => `
+        <div class="download-track-item">
+            <div class="download-track-info">
+                <div class="download-track-title">${track.title}</div>
+                <div class="download-track-artist">${track.artist}</div>
+                <div class="download-track-source">Source: ${track.source}</div>
+            </div>
+            <button class="download-track-btn" onclick="queueDownload(${index})">
+                <i class="fas fa-download"></i> Add to Queue
+            </button>
+        </div>
+    `).join('');
+    
+    // Store results for download queuing
+    window.currentDownloadResults = results;
+}
+
+function queueDownload(index) {
+    const track = window.currentDownloadResults[index];
+    if (!track) return;
+    
+    // Update download settings from UI before queuing
+    updateDownloadSettingsFromUI();
+    
+    const downloadItem = {
+        id: 'download_' + Date.now(),
+        track: track,
+        status: 'pending',
+        progress: 0,
+        error: null,
+        settings: { ...downloadSettings }
+    };
+    
+    downloadQueue.push(downloadItem);
+    updateDownloadQueueUI();
+    addDebugLog('Downloader', `Added to queue: ${track.title}`, 'success');
+}
+
+function downloadFromDirectUrl() {
+    const url = document.getElementById('directDownloadUrl').value.trim();
+    const title = document.getElementById('directDownloadTitle').value.trim();
+    const artist = document.getElementById('directDownloadArtist').value.trim();
+    
+    if (!url) {
+        alert('Please enter a URL');
+        return;
+    }
+    
+    // Validate URL
+    try {
+        new URL(url);
+    } catch (e) {
+        alert('Please enter a valid URL');
+        return;
+    }
+    
+    // Update download settings from UI before downloading
+    updateDownloadSettingsFromUI();
+    
+    const downloadItem = {
+        id: 'download_' + Date.now(),
+        track: {
+            title: title || 'Unknown Title',
+            artist: artist || 'Unknown Artist',
+            audioUrl: url,
+            source: 'Direct URL',
+            artwork: null
+        },
+        status: 'pending',
+        progress: 0,
+        error: null,
+        settings: { ...downloadSettings }
+    };
+    
+    downloadQueue.push(downloadItem);
+    updateDownloadQueueUI();
+    addDebugLog('Downloader', `Added direct URL download: ${url}`, 'success');
+    
+    // Clear inputs
+    document.getElementById('directDownloadUrl').value = '';
+    document.getElementById('directDownloadTitle').value = '';
+    document.getElementById('directDownloadArtist').value = '';
+}
+
+async function startDownload(downloadItem) {
+    downloadItem.status = 'downloading';
+    downloadItem.progress = 0;
+    updateDownloadQueueUI();
+    
+    try {
+        const track = downloadItem.track;
+        const audioUrl = track.audioUrl || track.previewUrl;
+        
+        if (!audioUrl) {
+            throw new Error('No audio URL available');
+        }
+        
+        addDebugLog('Downloader', `Starting download: ${track.title}`, 'info');
+        
+        // Check if URL is valid
+        try {
+            new URL(audioUrl);
+        } catch (e) {
+            throw new Error('Invalid audio URL');
+        }
+        
+        // Fetch the audio file with timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const response = await fetch(audioUrl, { 
+            signal: controller.signal,
+            mode: 'cors'
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+        }
+        
+        const contentLength = response.headers.get('content-length');
+        const total = parseInt(contentLength, 10);
+        let loaded = 0;
+        
+        const reader = response.body.getReader();
+        const chunks = [];
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) break;
+            
+            chunks.push(value);
+            loaded += value.length;
+            
+            if (total) {
+                downloadItem.progress = Math.round((loaded / total) * 100);
+            } else {
+                downloadItem.progress = Math.min(loaded / 1000000 * 100, 90); // Estimated progress
+            }
+            
+            updateDownloadQueueUI();
+        }
+        
+        // Combine chunks
+        const blob = new Blob(chunks, { type: 'audio/mpeg' });
+        
+        // Generate filename
+        const filename = generateFilename(track, downloadItem.settings);
+        
+        // Create download link
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+        
+        downloadItem.status = 'completed';
+        downloadItem.progress = 100;
+        addDebugLog('Downloader', `Download completed: ${track.title}`, 'success');
+        
+        // Show notification if enabled
+        const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+        if (settings.showNotifications && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification('Download Complete', {
+                body: `${track.title} - ${track.artist}`,
+                icon: track.artwork || null
+            });
+        }
+        
+    } catch (error) {
+        downloadItem.status = 'error';
+        downloadItem.error = error.message;
+        addDebugLog('Downloader', `Download failed: ${error.message}`, 'error');
+        
+        // Show error notification
+        const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+        if (settings.showNotifications && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification('Download Failed', {
+                body: `${downloadItem.track.title}: ${error.message}`,
+                icon: null
+            });
+        }
+    }
+    
+    updateDownloadQueueUI();
+}
+
+function generateFilename(track, settings) {
+    let filename = '';
+    
+    if (settings.autoOrganize) {
+        // Artist/Album structure
+        const artist = sanitizeFilename(track.artist || 'Unknown Artist');
+        const album = sanitizeFilename(track.album || 'Unknown Album');
+        const title = sanitizeFilename(track.title || 'Unknown Title');
+        filename = `${artist}/${album}/${title}`;
+    } else {
+        // Simple filename
+        const title = sanitizeFilename(track.title || 'Unknown Title');
+        const artist = sanitizeFilename(track.artist || 'Unknown Artist');
+        filename = `${artist} - ${title}`;
+    }
+    
+    // Add extension based on format
+    const extension = settings.format === 'original' ? '.mp3' : `.${settings.format}`;
+    filename += extension;
+    
+    return filename;
+}
+
+function sanitizeFilename(name) {
+    return name
+        .replace(/[<>:"/\\|?*]/g, '') // Remove invalid characters
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .substring(0, 100); // Limit length
+}
+
+function updateDownloadQueueUI() {
+    const downloadQueueEl = document.getElementById('downloadQueue');
+    if (!downloadQueueEl) return;
+    
+    if (downloadQueue.length === 0) {
+        downloadQueueEl.innerHTML = `
+            <div class="download-queue-empty">
+                <i class="fas fa-download"></i>
+                <p>No downloads in queue</p>
+            </div>
+        `;
+        return;
+    }
+    
+    downloadQueueEl.innerHTML = downloadQueue.map(item => {
+        const statusClass = item.status === 'completed' ? 'download-status-completed' :
+                           item.status === 'error' ? 'download-status-error' :
+                           item.status === 'downloading' ? 'download-status-downloading' : '';
+        
+        const icon = item.status === 'completed' ? 'fa-check' :
+                     item.status === 'error' ? 'fa-times' :
+                     item.status === 'downloading' ? 'fa-spinner fa-spin' : 'fa-clock';
+        
+        return `
+            <div class="download-queue-item">
+                <div class="download-queue-icon">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <div class="download-queue-info">
+                    <div class="download-queue-title">${item.track.title}</div>
+                    <div class="download-queue-status ${statusClass}">
+                        ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                        ${item.error ? `: ${item.error}` : ''}
+                        ${item.progress > 0 && item.status === 'downloading' ? ` (${item.progress}%)` : ''}
+                    </div>
+                </div>
+                <div class="download-queue-progress">
+                    <div class="download-queue-progress-bar" style="width: ${item.progress}%"></div>
+                </div>
+                <div class="download-queue-actions">
+                    <button class="download-queue-action" onclick="retryDownload('${item.id}')" title="Retry">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button class="download-queue-action danger" onclick="removeFromDownloadQueue('${item.id}')" title="Remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function retryDownload(downloadId) {
+    const item = downloadQueue.find(d => d.id === downloadId);
+    if (item) {
+        item.status = 'pending';
+        item.progress = 0;
+        item.error = null;
+        updateDownloadQueueUI();
+        processDownloadQueue();
+    }
+}
+
+function removeFromDownloadQueue(downloadId) {
+    downloadQueue = downloadQueue.filter(d => d.id !== downloadId);
+    updateDownloadQueueUI();
+}
+
+function clearDownloadQueue() {
+    if (confirm('Are you sure you want to clear the download queue?')) {
+        downloadQueue = [];
+        updateDownloadQueueUI();
+        addDebugLog('Downloader', 'Download queue cleared', 'info');
+    }
+}
+
+let isProcessingDownloads = false;
+
+async function processDownloadQueue() {
+    if (isProcessingDownloads) return;
+    
+    const pendingDownloads = downloadQueue.filter(d => d.status === 'pending');
+    
+    if (pendingDownloads.length === 0) {
+        isProcessingDownloads = false;
+        return;
+    }
+    
+    isProcessingDownloads = true;
+    
+    for (const download of pendingDownloads) {
+        await startDownload(download);
+    }
+    
+    isProcessingDownloads = false;
+}
+
+function startAllDownloads() {
+    addDebugLog('Downloader', 'Starting all downloads', 'info');
+    processDownloadQueue();
+}
+
+function pauseDownloads() {
+    // For simplicity, we'll just stop processing new downloads
+    isProcessingDownloads = false;
+    addDebugLog('Downloader', 'Downloads paused', 'info');
+}
+
+// Load download settings
+function loadDownloadSettings() {
+    const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+    
+    const downloadFormat = document.getElementById('downloadFormat');
+    const downloadQuality = document.getElementById('downloadQuality');
+    const overwriteBehavior = document.getElementById('overwriteBehavior');
+    const downloadMetadata = document.getElementById('downloadMetadata');
+    const downloadCoverArt = document.getElementById('downloadCoverArt');
+    const autoOrganize = document.getElementById('autoOrganize');
+    
+    if (downloadFormat && settings.downloadFormat) {
+        downloadFormat.value = settings.downloadFormat;
+        downloadSettings.format = settings.downloadFormat;
+    }
+    if (downloadQuality && settings.downloadQuality) {
+        downloadQuality.value = settings.downloadQuality;
+        downloadSettings.quality = settings.downloadQuality;
+    }
+    if (overwriteBehavior && settings.overwriteBehavior) {
+        overwriteBehavior.value = settings.overwriteBehavior;
+        downloadSettings.overwriteBehavior = settings.overwriteBehavior;
+    }
+    if (downloadMetadata && settings.downloadMetadata !== undefined) {
+        downloadMetadata.checked = settings.downloadMetadata;
+        downloadSettings.downloadMetadata = settings.downloadMetadata;
+    }
+    if (downloadCoverArt && settings.downloadCoverArt !== undefined) {
+        downloadCoverArt.checked = settings.downloadCoverArt;
+        downloadSettings.downloadCoverArt = settings.downloadCoverArt;
+    }
+    if (autoOrganize && settings.autoOrganize !== undefined) {
+        autoOrganize.checked = settings.autoOrganize;
+        downloadSettings.autoOrganize = settings.autoOrganize;
+    }
+}
+
+// Update download settings from UI
+function updateDownloadSettingsFromUI() {
+    const downloadFormat = document.getElementById('downloadFormat');
+    const downloadQuality = document.getElementById('downloadQuality');
+    const overwriteBehavior = document.getElementById('overwriteBehavior');
+    const downloadMetadata = document.getElementById('downloadMetadata');
+    const downloadCoverArt = document.getElementById('downloadCoverArt');
+    const autoOrganize = document.getElementById('autoOrganize');
+    
+    if (downloadFormat) downloadSettings.format = downloadFormat.value;
+    if (downloadQuality) downloadSettings.quality = downloadQuality.value;
+    if (overwriteBehavior) downloadSettings.overwriteBehavior = overwriteBehavior.value;
+    if (downloadMetadata) downloadSettings.downloadMetadata = downloadMetadata.checked;
+    if (downloadCoverArt) downloadSettings.downloadCoverArt = downloadCoverArt.checked;
+    if (autoOrganize) downloadSettings.autoOrganize = autoOrganize.checked;
+}
+
+// Make download functions available globally
+window.searchForDownloads = searchForDownloads;
+window.queueDownload = queueDownload;
+window.downloadFromDirectUrl = downloadFromDirectUrl;
+window.startAllDownloads = startAllDownloads;
+window.pauseDownloads = pauseDownloads;
+window.clearDownloadQueue = clearDownloadQueue;
+window.retryDownload = retryDownload;
+window.removeFromDownloadQueue = removeFromDownloadQueue;

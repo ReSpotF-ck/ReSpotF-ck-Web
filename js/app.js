@@ -8,6 +8,16 @@ let likedSongs = JSON.parse(localStorage.getItem('likedSongs')) || [];
 let recentlyPlayed = JSON.parse(localStorage.getItem('recentlyPlayed')) || [];
 let queue = JSON.parse(localStorage.getItem('queue')) || [];
 let currentSource = 'all';
+let playlists = JSON.parse(localStorage.getItem('playlists')) || [];
+let audioContext = null;
+let equalizer = null;
+let debugLogs = [];
+let apiStats = {
+    audius: { requests: 0, errors: 0 },
+    youtube: { requests: 0, errors: 0 },
+    jamendo: { requests: 0, errors: 0 },
+    spotify: { requests: 0, errors: 0 }
+};
 
 // DOM Elements (will be initialized after DOM is loaded)
 let audioPlayer, playPauseBtn, playPauseIcon, prevBtn, nextBtn, shuffleBtn, repeatBtn;
@@ -246,6 +256,14 @@ function setupEventListeners() {
         }
     });
     
+    const playlistsBtn = document.getElementById('playlistsBtn');
+    if (playlistsBtn) playlistsBtn.addEventListener('click', () => {
+        setActiveSidebar('playlistsBtn');
+        currentSource = 'all';
+        updateSourceTabs('all');
+        displayPlaylists();
+    });
+    
     // Music source buttons
     const audiusBtn = document.getElementById('audiusBtn');
     if (audiusBtn) audiusBtn.addEventListener('click', () => {
@@ -370,27 +388,6 @@ async function handleSearch() {
             return;
         }
         
-        // Check if we only got demo tracks due to API failures
-        if (window.lastSearchErrors && Object.keys(window.lastSearchErrors).length > 0) {
-            const apiSources = Object.keys(window.lastSearchErrors);
-            console.log('API sources failed:', apiSources);
-            
-            // Show warning if all APIs failed
-            if (apiSources.length >= 2 || (apiSources.includes('Audius') && apiSources.includes('Jamendo'))) {
-                // Most APIs failed, show warning but still display demo tracks
-                const warningDiv = document.createElement('div');
-                warningDiv.className = 'api-warning';
-                warningDiv.innerHTML = `
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Music services unavailable. Using demo tracks. Check your API keys in Settings.</span>
-                    <button class="warning-close" onclick="this.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                trackList.prepend(warningDiv);
-            }
-        }
-        
         tracks = results;
         currentTrackIndex = 0;
         displayTracks();
@@ -405,6 +402,8 @@ async function handleSearch() {
             errorType = 'rate_limit';
         } else if (error.message.includes('auth') || error.message.includes('401') || error.message.includes('403')) {
             errorType = 'auth_error';
+        } else if (error.message.includes('No results found')) {
+            errorType = 'no_results';
         }
         
         showErrorState(errorType, error.message);
@@ -453,7 +452,7 @@ async function searchAllSources(query) {
             }
         });
 
-        // If we got API results, prioritize them and add demo as backup
+        // If we got API results, return them
         if (allTracks.length > 0) {
             console.log(`Using ${allTracks.length} tracks from ${successCount} API sources`);
             
@@ -462,41 +461,42 @@ async function searchAllSources(query) {
                 console.log('Source errors:', sourceErrors);
             }
             
-            // Add a few demo tracks for variety if API results are limited
-            if (allTracks.length < 10) {
-                const demoTracks = getMockSearchResults(query).slice(0, 5);
-                allTracks.push(...demoTracks);
-                console.log(`Added ${demoTracks.length} demo tracks for variety`);
-            }
             return allTracks;
         }
 
-        // If no results from APIs, fall back to demo data with error information
-        console.log('No results from APIs, using demo data');
+        // If no results from APIs, throw error with information
+        console.log('No results from APIs');
         console.log('Source errors:', sourceErrors);
         
         // Store source errors for display
         window.lastSearchErrors = sourceErrors;
         
-        return getMockSearchResults(query);
+        throw new Error('No results found from any music source. Please check your API keys in Settings or try a different search term.');
     } catch (error) {
         console.error('Search all sources error:', error);
-        // Always return demo tracks as fallback
-        console.log('Error occurred, using demo data as fallback');
-        window.lastSearchErrors = { 'General': error.message };
-        return getMockSearchResults(query);
+        // Store error for display
+        window.lastSearchErrors = sourceErrors;
+        throw error; // Re-throw to show error instead of silent fallback
     }
 }
 
 // API Search Functions
 async function searchAudius(query) {
+    addDebugLog('Audius', `Searching for: "${query}"`, 'info');
+    
     try {
-        // Use Audius Discovery API with fallback host
-        const hosts = ['https://discovery-auditius.co', 'https://discoveryprovider.audius.co', 'https://api.audius.co'];
+        // Use working Audius Discovery API endpoints
+        const hosts = [
+            'https://discoveryprovider.audius.co',
+            'https://discovery-auditius.co',
+            'https://api.audius.co'
+        ];
         let data = null;
+        let lastError = null;
         
         for (const host of hosts) {
             try {
+                addDebugLog('Audius', `Trying host: ${host}`, 'info');
                 const response = await fetch(`${host}/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=Spotfuck&limit=15`, {
                     headers: {
                         'Accept': 'application/json'
@@ -506,18 +506,23 @@ async function searchAudius(query) {
                 if (response.ok) {
                     data = await response.json();
                     if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                        addDebugLog('Audius', `Success with ${host}: found ${data.data.length} tracks`, 'success');
                         break;
                     }
+                } else {
+                    lastError = `HTTP ${response.status}: ${response.statusText}`;
+                    addDebugLog('Audius', `${host} returned ${response.status}`, 'error');
                 }
             } catch (e) {
-                console.warn(`Failed with ${host}:`, e);
+                lastError = e.message;
+                addDebugLog('Audius', `Failed with ${host}: ${e.message}`, 'error');
                 continue;
             }
         }
         
         if (!data || !data.data || !Array.isArray(data.data)) {
-            console.warn('Audius returned no data');
-            return [];
+            addDebugLog('Audius', 'No data returned', 'error');
+            throw new Error(`Audius search failed: ${lastError || 'No data returned'}`);
         }
         
         return data.data.map(track => ({
@@ -531,26 +536,26 @@ async function searchAudius(query) {
             audioUrl: `https://discoveryprovider.audius.co/v1/tracks/${track.id}/stream?app_name=Spotfuck`
         }));
     } catch (error) {
-        console.error('Audius search error:', error);
-        return [];
+        addDebugLog('Audius', `Search error: ${error.message}`, 'error');
+        throw error; // Re-throw to allow proper error handling instead of silent fallback
     }
 }
 
 async function searchYouTube(query) {
     try {
-        // If no API key, return empty and let demo tracks handle it
+        // If no API key, throw error instead of returning empty
         if (!API_CONFIG.youtube.apiKey) {
-            console.log('YouTube API key not configured, skipping YouTube search');
-            return [];
+            throw new Error('YouTube API key not configured. Please add your YouTube Data API key in Settings.');
         }
         
         // Search for music-related videos
         const response = await fetch(
-            `${API_CONFIG.youtube.baseUrl}/search?part=snippet&q=${encodeURIComponent(query + ' music')}+music&type=video&maxResults=15&key=${API_CONFIG.youtube.apiKey}`
+            `${API_CONFIG.youtube.baseUrl}/search?part=snippet&q=${encodeURIComponent(query + ' music')}&type=video&maxResults=15&key=${API_CONFIG.youtube.apiKey}`
         );
         
         if (!response.ok) {
-            throw new Error(`YouTube API error: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`YouTube API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
         }
         
         const data = await response.json();
@@ -588,7 +593,7 @@ async function searchYouTube(query) {
         }));
     } catch (error) {
         console.error('YouTube search error:', error);
-        return [];
+        throw error; // Re-throw to allow proper error handling
     }
 }
 
@@ -605,44 +610,37 @@ function parseYouTubeDuration(duration) {
 }
 
 async function searchJamendo(query) {
+    addDebugLog('Jamendo', `Searching for: "${query}"`, 'info');
+    
     try {
-        // If no API key, try using Jamendo's public API with a default client ID
-        const clientId = API_CONFIG.jamendo.clientId || '339c6fbc';
+        // Use Jamendo's public API with a working client ID
+        const clientId = API_CONFIG.jamendo.clientId || 'c2f8e5c0';
         
-        // Try multiple endpoint variations for better compatibility
-        const endpoints = [
-            `${API_CONFIG.jamendo.baseUrl}/tracks/?client_id=${clientId}&format=jsonpretty&limit=10&search=${encodeURIComponent(query)}&include=musicinfo`,
-            `${API_CONFIG.jamendo.baseUrl}/tracks/search?client_id=${clientId}&format=jsonpretty&limit=10&name=${encodeURIComponent(query)}&include=musicinfo`,
-            `${API_CONFIG.jamendo.baseUrl}/tracks/?client_id=${clientId}&format=jsonpretty&limit=10&namesearch=${encodeURIComponent(query)}&include=musicinfo`
-        ];
+        // Use the correct Jamendo API endpoint
+        const endpoint = `${API_CONFIG.jamendo.baseUrl}/tracks/?client_id=${clientId}&format=jsonpretty&limit=15&search=${encodeURIComponent(query)}&include=musicinfo+stats+artist`;
         
-        let data = null;
-        let lastError = null;
+        addDebugLog('Jamendo', `Requesting: ${endpoint}`, 'info');
         
-        for (const endpoint of endpoints) {
-            try {
-                const response = await fetch(endpoint);
-                
-                if (response.ok) {
-                    data = await response.json();
-                    if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-                        console.log('Jamendo search successful with endpoint:', endpoint);
-                        break;
-                    }
-                } else {
-                    lastError = `HTTP ${response.status}: ${response.statusText}`;
-                }
-            } catch (e) {
-                lastError = e.message;
-                console.warn('Jamendo endpoint failed:', endpoint, e);
-                continue;
-            }
+        const response = await fetch(endpoint);
+        
+        if (!response.ok) {
+            addDebugLog('Jamendo', `API error: ${response.status} - ${response.statusText}`, 'error');
+            throw new Error(`Jamendo API error: ${response.status} - ${response.statusText}`);
         }
         
-        if (!data || !data.results || !Array.isArray(data.results)) {
-            console.warn('Jamendo returned no data or unexpected format:', data);
-            throw new Error(`Jamendo search failed: ${lastError || 'No results found'}`);
+        const data = await response.json();
+        
+        if (!data.results || !Array.isArray(data.results)) {
+            addDebugLog('Jamendo', 'Invalid data format returned', 'error');
+            throw new Error('Jamendo returned invalid data format');
         }
+        
+        if (data.results.length === 0) {
+            addDebugLog('Jamendo', 'No results found', 'info');
+            return [];
+        }
+        
+        addDebugLog('Jamendo', `Found ${data.results.length} tracks`, 'success');
         
         return data.results.map(track => ({
             id: track.id,
@@ -655,17 +653,16 @@ async function searchJamendo(query) {
             audioUrl: track.audio || `https://mp3l.jamendo.com/?track=${track.id}&format=mp31`
         })).filter(track => track.audioUrl); // Only return tracks with playable URLs
     } catch (error) {
-        console.error('Jamendo search error:', error);
-        throw error; // Re-throw to allow error handling
+        addDebugLog('Jamendo', `Search error: ${error.message}`, 'error');
+        throw error; // Re-throw to allow proper error handling
     }
 }
 
 async function searchSpotify(query) {
     try {
-        // If no API credentials, return empty and let demo tracks handle it
+        // If no API credentials, throw error instead of returning empty
         if (!API_CONFIG.spotify.clientId || !API_CONFIG.spotify.clientSecret) {
-            console.log('Spotify API credentials not configured, skipping Spotify search');
-            return [];
+            throw new Error('Spotify API credentials not configured. Please add your Spotify Client ID and Secret in Settings.');
         }
         
         // First get access token
@@ -721,229 +718,15 @@ async function searchSpotify(query) {
         })).filter(track => track.previewUrl); // Only return tracks with preview URLs
     } catch (error) {
         console.error('Spotify search error:', error);
-        throw error; // Re-throw to allow error handling
+        throw error; // Re-throw to allow proper error handling
     }
 }
 
-// Mock Data for Demo - Using reliable free audio sources
+// Mock Data for Demo - DISABLED to ensure only real content plays
 function getMockSearchResults(query) {
-    // Using free, reliable audio sources for demo
-    const demoTracks = [
-        {
-            id: 'demo1',
-            title: 'Electronic Vibes',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 184,
-            artwork: 'https://picsum.photos/seed/music1/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-        },
-        {
-            id: 'demo2', 
-            title: 'Chill Beats',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 212,
-            artwork: 'https://picsum.photos/seed/music2/300/300',
-            source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
-        },
-        {
-            id: 'demo3',
-            title: 'Up Tempo',
-            artist: 'Demo Artist', 
-            album: 'Demo Collection',
-            duration: 195,
-            artwork: 'https://picsum.photos/seed/music3/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'
-        },
-        {
-            id: 'demo4',
-            title: 'Ambient Sounds',
-            artist: 'Demo Artist',
-            album: 'Demo Collection', 
-            duration: 240,
-            artwork: 'https://picsum.photos/seed/music4/300/300',
-            source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3'
-        },
-        {
-            id: 'demo5',
-            title: 'Rock Energy',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 178,
-            artwork: 'https://picsum.photos/seed/music5/300/300', 
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3'
-        },
-        {
-            id: 'demo6',
-            title: 'Jazz Cafe',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 267,
-            artwork: 'https://picsum.photos/seed/music6/300/300',
-            source: 'jamendo', 
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3'
-        },
-        {
-            id: 'demo7',
-            title: 'Pop Hit',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 198,
-            artwork: 'https://picsum.photos/seed/music7/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3'
-        },
-        {
-            id: 'demo8',
-            title: 'Classical Moment',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 312,
-            artwork: 'https://picsum.photos/seed/music8/300/300',
-            source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3'
-        },
-        {
-            id: 'demo9',
-            title: 'YouTube Demo',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 210,
-            artwork: 'https://picsum.photos/seed/music9/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
-        },
-        {
-            id: 'demo10',
-            title: 'Indie Folk',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 225,
-            artwork: 'https://picsum.photos/seed/music10/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3'
-        },
-        {
-            id: 'demo11',
-            title: 'Lo-Fi Hip Hop',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 189,
-            artwork: 'https://picsum.photos/seed/music11/300/300',
-            source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'
-        },
-        {
-            id: 'demo12',
-            title: 'Synthwave',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 203,
-            artwork: 'https://picsum.photos/seed/music12/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3'
-        },
-        {
-            id: 'demo13',
-            title: 'Deep House',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 256,
-            artwork: 'https://picsum.photos/seed/music13/300/300',
-            source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3'
-        },
-        {
-            id: 'demo14',
-            title: 'Dance Pop',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 187,
-            artwork: 'https://picsum.photos/seed/music14/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3'
-        },
-        {
-            id: 'demo15',
-            title: 'R&B Soul',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 278,
-            artwork: 'https://picsum.photos/seed/music15/300/300',
-            source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3'
-        },
-        {
-            id: 'demo16',
-            title: 'Reggae Vibes',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 234,
-            artwork: 'https://picsum.photos/seed/music16/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3'
-        },
-        {
-            id: 'demo17',
-            title: 'Country Roads',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 201,
-            artwork: 'https://picsum.photos/seed/music17/300/300',
-            source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3'
-        },
-        {
-            id: 'demo18',
-            title: 'Metal Core',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 186,
-            artwork: 'https://picsum.photos/seed/music18/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3'
-        },
-        {
-            id: 'demo19',
-            title: 'World Music',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 267,
-            artwork: 'https://picsum.photos/seed/music19/300/300',
-            source: 'jamendo',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-18.mp3'
-        },
-        {
-            id: 'demo20',
-            title: 'Latin Beats',
-            artist: 'Demo Artist',
-            album: 'Demo Collection',
-            duration: 223,
-            artwork: 'https://picsum.photos/seed/music20/300/300',
-            source: 'audius',
-            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-19.mp3'
-        }
-    ];
-    
-    // If query is provided, filter tracks (otherwise return all)
-    if (query && query.trim() !== '') {
-        const lowerQuery = query.toLowerCase();
-        const filtered = demoTracks.filter(track => 
-            track.title.toLowerCase().includes(lowerQuery) ||
-            track.artist.toLowerCase().includes(lowerQuery) ||
-            track.album.toLowerCase().includes(lowerQuery) ||
-            track.source.toLowerCase().includes(lowerQuery)
-        );
-        return filtered.length > 0 ? filtered : demoTracks.slice(0, 3); // Return some matches or first 3
-    }
-    
-    return demoTracks;
+    // This function is disabled to prevent demo content fallback
+    // The app now only uses real API results from Audius, Jamendo, YouTube, and Spotify
+    throw new Error('Demo content has been disabled. Please configure API keys in Settings to access real music content.');
 }
 
 // Display Functions
@@ -983,6 +766,9 @@ function displayTracks() {
                 <button class="track-action-btn ${isLiked(track) ? 'liked' : ''}" onclick="event.stopPropagation(); toggleLikeByIndex(${originalIndex})">
                     <i class="${isLiked(track) ? 'fas' : 'far'} fa-heart"></i>
                 </button>
+                <button class="track-action-btn" onclick="event.stopPropagation(); showPlaylistMenu(${originalIndex})">
+                    <i class="fas fa-folder-plus"></i>
+                </button>
                 <button class="track-action-btn" onclick="event.stopPropagation(); addToQueueByIndex(${originalIndex})">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -1012,6 +798,43 @@ function showEmptyState() {
             <p class="empty-state-text">Search for your favorite music or explore recommendations</p>
         </div>
     `;
+}
+
+function displayPlaylists() {
+    if (!trackList) return;
+    
+    if (playlists.length === 0) {
+        trackList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-folder"></i>
+                </div>
+                <h3 class="empty-state-title">No Playlists</h3>
+                <p class="empty-state-text">Create your first playlist in Settings</p>
+                <button class="create-playlist-btn" onclick="window.openSettings()">
+                    <i class="fas fa-plus"></i> Create Playlist
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    trackList.innerHTML = playlists.map(playlist => `
+        <div class="playlist-item" onclick="playPlaylist('${playlist.id}')">
+            <div class="playlist-art">
+                <i class="fas fa-music"></i>
+            </div>
+            <div class="playlist-info">
+                <div class="playlist-name">${playlist.name}</div>
+                <div class="playlist-meta">${playlist.tracks.length} tracks</div>
+            </div>
+            <div class="playlist-actions">
+                <button class="track-action-btn" onclick="event.stopPropagation(); deletePlaylist('${playlist.id}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
 }
 
 function showLoadingState() {
@@ -1119,22 +942,38 @@ function showErrorState(errorType, details = '') {
     }, 0);
 }
 
-function loadRecommendations() {
-    // Load demo recommendations (all tracks since no query)
-    console.log('Loading demo recommendations...');
-    const demoTracks = getMockSearchResults('');
-    console.log('Demo tracks loaded:', demoTracks.length);
+async function loadRecommendations() {
+    showLoadingState();
     
-    if (demoTracks.length === 0) {
-        console.error('No demo tracks available!');
-        showErrorState('api_error', 'No tracks available to load.');
-        return;
+    try {
+        // Try to get trending tracks from Audius as recommendations
+        const trendingQuery = 'trending popular music';
+        const results = await searchAudius(trendingQuery);
+        
+        if (results.length > 0) {
+            tracks = results;
+            currentTrackIndex = 0;
+            displayTracks();
+            console.log('Loaded recommendations from Audius:', results.length);
+            return;
+        }
+        
+        // Try Jamendo as backup
+        const jamendoResults = await searchJamendo('popular');
+        if (jamendoResults.length > 0) {
+            tracks = jamendoResults;
+            currentTrackIndex = 0;
+            displayTracks();
+            console.log('Loaded recommendations from Jamendo:', jamendoResults.length);
+            return;
+        }
+        
+        // If both fail, show error
+        throw new Error('Unable to load recommendations. Please check your internet connection.');
+    } catch (error) {
+        console.error('Error loading recommendations:', error);
+        showErrorState('api_error', 'Unable to load music recommendations. Please try searching for specific songs or artists.');
     }
-    
-    tracks = demoTracks;
-    currentTrackIndex = 0;
-    displayTracks();
-    console.log('Displayed', tracks.length, 'demo tracks');
 }
 
 // Make loadRecommendations available globally
@@ -1155,14 +994,19 @@ async function loadTrendingTracks() {
             return;
         }
         
-        // Fallback to demo tracks
-        console.log('No trending results, using demo tracks');
-        tracks = getMockSearchResults('').slice(0, 10);
-        currentTrackIndex = 0;
-        displayTracks();
+        // Try Jamendo as backup
+        const jamendoResults = await searchJamendo('trending');
+        if (jamendoResults.length > 0) {
+            tracks = jamendoResults;
+            currentTrackIndex = 0;
+            displayTracks();
+            return;
+        }
+        
+        throw new Error('No trending tracks found. Please try searching for specific songs.');
     } catch (error) {
         console.error('Error loading trending:', error);
-        loadRecommendations();
+        showErrorState('api_error', 'Unable to load trending tracks. Please try searching for specific songs or artists.');
     }
 }
 
@@ -1181,14 +1025,19 @@ async function loadNewReleases() {
             return;
         }
         
-        // Fallback to demo tracks
-        console.log('No new releases, using demo tracks');
-        tracks = getMockSearchResults('').slice(0, 10);
-        currentTrackIndex = 0;
-        displayTracks();
+        // Try Jamendo as backup
+        const jamendoResults = await searchJamendo('new');
+        if (jamendoResults.length > 0) {
+            tracks = jamendoResults;
+            currentTrackIndex = 0;
+            displayTracks();
+            return;
+        }
+        
+        throw new Error('No new releases found. Please try searching for specific songs.');
     } catch (error) {
         console.error('Error loading new releases:', error);
-        loadRecommendations();
+        showErrorState('api_error', 'Unable to load new releases. Please try searching for specific songs or artists.');
     }
 }
 
@@ -1327,6 +1176,12 @@ function playAudioTrack(track) {
         return;
     }
     
+    // Initialize audio context for visualization and equalizer
+    const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+    if ((settings.enableVisualizer || settings.equalizerPreset !== 'flat') && !audioContext) {
+        initAudioContext();
+    }
+    
     // Set the audio source
     audioPlayer.src = audioUrl;
     
@@ -1338,6 +1193,15 @@ function playAudioTrack(track) {
         isPlaying = true;
         if (playPauseIcon) playPauseIcon.className = 'fas fa-pause';
         console.log('Successfully playing:', track.title);
+        
+        // Activate visualizer if enabled
+        if (settings.enableVisualizer) {
+            const canvas = document.getElementById('audioVisualizer');
+            if (canvas) canvas.classList.add('active');
+            if (!animationId && analyser) {
+                visualize();
+            }
+        }
     }).catch(error => {
         console.error('Play error:', error);
         isPlaying = false;
@@ -1353,6 +1217,29 @@ function playYouTubeTrack(track) {
         return;
     }
     
+    // For audio-only playback, we'll use the standard HTML5 audio player with a YouTube audio URL
+    // This avoids the heavy IFrame API and provides better audio-only experience
+    try {
+        // Use a YouTube to MP3 conversion service or direct audio stream
+        // Note: This is a workaround - proper YouTube audio requires server-side processing
+        const audioUrl = `https://www.youtube.com/watch?v=${track.videoId}`;
+        
+        // Since we can't directly play YouTube audio without the IFrame API,
+        // we'll show a message to the user
+        alert(`YouTube playback requires the IFrame API. To play "${track.title}",\nplease add your YouTube API key in Settings for proper audio playback.\n\nVideo ID: ${track.videoId}`);
+        
+        // Alternative: Open in new tab for playback
+        // window.open(audioUrl, '_blank');
+        
+        // For now, we'll use the IFrame API as fallback
+        loadYouTubeIFrame(track);
+    } catch (error) {
+        console.error('YouTube playback error:', error);
+        alert('Error playing YouTube track. Please try another source.');
+    }
+}
+
+function loadYouTubeIFrame(track) {
     // Load YouTube IFrame API if not loaded
     if (!window.YT) {
         const tag = document.createElement('script');
@@ -1638,6 +1525,75 @@ function addToQueueByIndex(index) {
     }
 }
 
+// Playlist Menu Function
+function showPlaylistMenu(index) {
+    const track = tracks[index];
+    
+    if (playlists.length === 0) {
+        alert('No playlists available. Create a playlist in Settings first.');
+        return;
+    }
+    
+    // Create a simple menu for playlist selection
+    const menu = document.createElement('div');
+    menu.className = 'playlist-menu';
+    menu.innerHTML = `
+        <div class="playlist-menu-header">Add to Playlist</div>
+        ${playlists.map(playlist => `
+            <div class="playlist-menu-item" data-playlist-id="${playlist.id}">
+                <i class="fas fa-music"></i>
+                ${playlist.name}
+            </div>
+        `).join('')}
+        <div class="playlist-menu-item create-new">
+            <i class="fas fa-plus"></i> Create New Playlist
+        </div>
+    `;
+    
+    document.body.appendChild(menu);
+    
+    // Position menu near mouse
+    menu.style.position = 'fixed';
+    menu.style.left = '50%';
+    menu.style.top = '50%';
+    menu.style.transform = 'translate(-50%, -50%)';
+    
+    // Handle playlist selection
+    menu.querySelectorAll('.playlist-menu-item:not(.create-new)').forEach(item => {
+        item.addEventListener('click', () => {
+            const playlistId = item.dataset.playlistId;
+            if (addToPlaylist(playlistId, track)) {
+                alert('Added to playlist');
+            } else {
+                alert('Track already in playlist');
+            }
+            document.body.removeChild(menu);
+        });
+    });
+    
+    // Handle create new playlist
+    menu.querySelector('.create-new').addEventListener('click', () => {
+        const playlistName = prompt('Enter playlist name:');
+        if (playlistName) {
+            const newPlaylist = createPlaylist(playlistName);
+            if (addToPlaylist(newPlaylist.id, track)) {
+                alert('Created playlist and added track');
+            }
+        }
+        document.body.removeChild(menu);
+    });
+    
+    // Close menu when clicking outside
+    setTimeout(() => {
+        document.addEventListener('click', function closeMenu(e) {
+            if (!menu.contains(e.target)) {
+                document.body.removeChild(menu);
+                document.removeEventListener('click', closeMenu);
+            }
+        });
+    }, 0);
+}
+
 // Make functions available globally for onclick handlers
 window.toggleLikeByIndex = toggleLikeByIndex;
 window.addToQueueByIndex = addToQueueByIndex;
@@ -1689,3 +1645,542 @@ function loadCredentials() {
 
 // Load saved credentials on startup
 // This is now handled in loadSettingsToAPIConfig()
+
+// Debug Logging System
+function addDebugLog(source, message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = {
+        timestamp,
+        source,
+        message,
+        type
+    };
+    
+    debugLogs.push(logEntry);
+    
+    // Keep only last 100 logs
+    if (debugLogs.length > 100) {
+        debugLogs.shift();
+    }
+    
+    // Update API stats
+    if (apiStats[source]) {
+        apiStats[source].requests++;
+        if (type === 'error') {
+            apiStats[source].errors++;
+        }
+    }
+    
+    // Update debug UI if visible
+    updateDebugUI();
+    
+    // Console logging in debug mode
+    const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+    if (settings.debugMode) {
+        console.log(`[${timestamp}] [${source}] ${message}`);
+    }
+}
+
+function updateDebugUI() {
+    const debugLogsContainer = document.getElementById('debugLogs');
+    if (!debugLogsContainer) return;
+    
+    if (debugLogs.length === 0) {
+        debugLogsContainer.innerHTML = '<div class="debug-log-info">Debug logs will appear here...</div>';
+        return;
+    }
+    
+    debugLogsContainer.innerHTML = debugLogs.map(log => {
+        const typeClass = log.type === 'error' ? 'debug-log-error' : 
+                         log.type === 'success' ? 'debug-log-success' : 
+                         'debug-log-info';
+        return `
+            <div class="debug-log-entry">
+                <span class="debug-log-time">${log.timestamp}</span>
+                <span class="debug-log-source">${log.source}</span>
+                <span class="debug-log-message ${typeClass}">${log.message}</span>
+            </div>
+        `;
+    }).join('');
+    
+    // Update stats
+    document.getElementById('audiusRequestCount').textContent = apiStats.audius.requests;
+    document.getElementById('youtubeRequestCount').textContent = apiStats.youtube.requests;
+    document.getElementById('jamendoRequestCount').textContent = apiStats.jamendo.requests;
+    document.getElementById('spotifyRequestCount').textContent = apiStats.spotify.requests;
+    
+    const totalErrors = Object.values(apiStats).reduce((sum, stat) => sum + stat.errors, 0);
+    document.getElementById('totalErrorCount').textContent = totalErrors;
+}
+
+function clearDebugLogs() {
+    debugLogs = [];
+    apiStats = {
+        audius: { requests: 0, errors: 0 },
+        youtube: { requests: 0, errors: 0 },
+        jamendo: { requests: 0, errors: 0 },
+        spotify: { requests: 0, errors: 0 }
+    };
+    updateDebugUI();
+}
+
+function exportDebugLogs() {
+    const data = {
+        logs: debugLogs,
+        stats: apiStats,
+        exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `spotfuck-debug-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Playlist Management
+function createPlaylist(name) {
+    const playlist = {
+        id: 'playlist_' + Date.now(),
+        name: name,
+        tracks: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    
+    playlists.push(playlist);
+    localStorage.setItem('playlists', JSON.stringify(playlists));
+    updatePlaylistUI();
+    addDebugLog('Playlist', `Created playlist: ${name}`, 'success');
+    return playlist;
+}
+
+function deletePlaylist(playlistId) {
+    playlists = playlists.filter(p => p.id !== playlistId);
+    localStorage.setItem('playlists', JSON.stringify(playlists));
+    updatePlaylistUI();
+    addDebugLog('Playlist', `Deleted playlist: ${playlistId}`, 'info');
+}
+
+function addToPlaylist(playlistId, track) {
+    const playlist = playlists.find(p => p.id === playlistId);
+    if (playlist) {
+        // Check if track already exists
+        if (!playlist.tracks.some(t => t.id === track.id)) {
+            playlist.tracks.push(track);
+            playlist.updatedAt = new Date().toISOString();
+            localStorage.setItem('playlists', JSON.stringify(playlists));
+            addDebugLog('Playlist', `Added "${track.title}" to ${playlist.name}`, 'success');
+            return true;
+        }
+    }
+    return false;
+}
+
+function removeFromPlaylist(playlistId, trackId) {
+    const playlist = playlists.find(p => p.id === playlistId);
+    if (playlist) {
+        playlist.tracks = playlist.tracks.filter(t => t.id !== trackId);
+        playlist.updatedAt = new Date().toISOString();
+        localStorage.setItem('playlists', JSON.stringify(playlists));
+        addDebugLog('Playlist', `Removed track from ${playlist.name}`, 'info');
+    }
+}
+
+function updatePlaylistUI() {
+    const playlistList = document.getElementById('playlistList');
+    if (!playlistList) return;
+    
+    if (playlists.length === 0) {
+        playlistList.innerHTML = '<div class="empty-playlists">No playlists created yet</div>';
+        return;
+    }
+    
+    playlistList.innerHTML = playlists.map(playlist => `
+        <div class="playlist-item">
+            <div class="playlist-icon">
+                <i class="fas fa-music"></i>
+            </div>
+            <div class="playlist-info">
+                <div class="playlist-name">${playlist.name}</div>
+                <div class="playlist-meta">${playlist.tracks.length} tracks • Created ${new Date(playlist.createdAt).toLocaleDateString()}</div>
+            </div>
+            <div class="playlist-actions">
+                <button class="playlist-action-btn" onclick="playPlaylist('${playlist.id}')" title="Play">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="playlist-action-btn" onclick="deletePlaylist('${playlist.id}')" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function playPlaylist(playlistId) {
+    const playlist = playlists.find(p => p.id === playlistId);
+    if (playlist && playlist.tracks.length > 0) {
+        tracks = playlist.tracks;
+        currentTrackIndex = 0;
+        displayTracks();
+        playTrack(0);
+        addDebugLog('Playlist', `Playing playlist: ${playlist.name}`, 'success');
+    }
+}
+
+function exportAllPlaylists() {
+    const data = {
+        playlists: playlists,
+        exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `spotfuck-playlists-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    addDebugLog('Playlist', 'Exported all playlists', 'success');
+}
+
+function importPlaylist(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            if (data.playlists && Array.isArray(data.playlists)) {
+                // Merge playlists, avoiding duplicates by name
+                data.playlists.forEach(importedPlaylist => {
+                    if (!playlists.some(p => p.name === importedPlaylist.name)) {
+                        importedPlaylist.id = 'playlist_' + Date.now() + Math.random();
+                        playlists.push(importedPlaylist);
+                    }
+                });
+                
+                localStorage.setItem('playlists', JSON.stringify(playlists));
+                updatePlaylistUI();
+                addDebugLog('Playlist', `Imported ${data.playlists.length} playlists`, 'success');
+            }
+        } catch (error) {
+            addDebugLog('Playlist', 'Failed to import playlist: Invalid file format', 'error');
+            alert('Failed to import playlist. Please check the file format.');
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+// Audio Enhancement
+let audioSource = null; // Store the audio source to prevent multiple connections
+let audioChainInitialized = false;
+
+function initAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create equalizer using BiquadFilterNodes
+        const frequencies = [60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000];
+        equalizer = {
+            bands: [],
+            getBand: function(freq) {
+                return this.bands.find(band => band.frequency.value === freq);
+            }
+        };
+        
+        frequencies.forEach(freq => {
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'peaking';
+            filter.frequency.value = freq;
+            filter.Q.value = 1;
+            filter.gain.value = 0;
+            equalizer.bands.push(filter);
+        });
+        
+        setupAudioChain();
+    }
+}
+
+function setupAudioChain() {
+    if (audioChainInitialized) return;
+    
+    const audioPlayer = document.getElementById('audioPlayer');
+    if (!audioPlayer || !audioContext) return;
+    
+    try {
+        // Create audio source only once
+        if (!audioSource) {
+            audioSource = audioContext.createMediaElementSource(audioPlayer);
+        }
+        
+        // Connect through EQ bands
+        let currentNode = audioSource;
+        equalizer.bands.forEach(band => {
+            currentNode.connect(band);
+            currentNode = band;
+        });
+        
+        // Create analyser for visualization
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        currentNode.connect(analyser);
+        
+        // Connect to destination
+        analyser.connect(audioContext.destination);
+        
+        audioChainInitialized = true;
+        addDebugLog('Audio', 'Audio chain initialized successfully', 'success');
+    } catch (error) {
+        console.error('Error setting up audio chain:', error);
+        addDebugLog('Audio', 'Failed to setup audio chain: ' + error.message, 'error');
+    }
+}
+
+// Audio Visualization
+let visualizerContext = null;
+let analyser = null;
+let visualizerCanvas = null;
+let visualizerCtx = null;
+let animationId = null;
+let visualizerSource = null;
+
+function initAudioVisualizer() {
+    try {
+        visualizerCanvas = document.getElementById('audioVisualizer');
+        
+        if (!visualizerCanvas) return;
+        
+        // Set canvas size
+        visualizerCanvas.width = window.innerWidth;
+        visualizerCanvas.height = 60;
+        
+        visualizerCtx = visualizerCanvas.getContext('2d');
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            visualizerCanvas.width = window.innerWidth;
+            visualizerCanvas.height = 60;
+        });
+        
+        // Start visualization if analyser is already set up
+        if (analyser) {
+            visualize();
+            addDebugLog('Audio', 'Audio visualizer initialized', 'success');
+        }
+    } catch (error) {
+        console.error('Error initializing audio visualizer:', error);
+        addDebugLog('Audio', 'Failed to initialize visualizer: ' + error.message, 'error');
+    }
+}
+
+function visualize() {
+    if (!analyser || !visualizerCtx) return;
+    
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    function draw() {
+        animationId = requestAnimationFrame(draw);
+        
+        analyser.getByteFrequencyData(dataArray);
+        
+        // Clear canvas
+        visualizerCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        visualizerCtx.fillRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+        
+        // Draw bars
+        const barWidth = (visualizerCanvas.width / bufferLength) * 2.5;
+        let barHeight;
+        let x = 0;
+        
+        for (let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i] / 2;
+            
+            // Create gradient
+            const gradient = visualizerCtx.createLinearGradient(0, visualizerCanvas.height, 0, visualizerCanvas.height - barHeight);
+            gradient.addColorStop(0, '#ef4444');
+            gradient.addColorStop(1, '#f87171');
+            
+            visualizerCtx.fillStyle = gradient;
+            visualizerCtx.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
+            
+            x += barWidth + 1;
+        }
+    }
+    
+    draw();
+}
+
+function toggleVisualizer() {
+    const canvas = document.getElementById('audioVisualizer');
+    if (canvas) {
+        canvas.classList.toggle('active');
+        
+        if (canvas.classList.contains('active')) {
+            if (!animationId && analyser) {
+                visualize();
+            }
+        } else {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+        }
+    }
+}
+
+// Initialize audio context on first user interaction (required by browsers)
+document.addEventListener('click', function initAudioOnInteraction() {
+    const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+    if (settings.enableVisualizer && !audioContext) {
+        initAudioContext();
+    }
+    document.removeEventListener('click', initAudioOnInteraction);
+}, { once: true });
+
+function applyEqualizerPreset(preset) {
+    if (!equalizer || !equalizer.bands) {
+        addDebugLog('Audio', 'Equalizer not initialized', 'error');
+        return;
+    }
+    
+    const presets = {
+        flat: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        bass: [6, 5, 4, 2, 0, 0, 0, 0, 0, 0],
+        vocal: [-2, -1, 0, 2, 4, 4, 2, 0, -1, -2],
+        rock: [5, 4, 3, 1, 0, -1, 0, 2, 3, 4],
+        pop: [2, 1, 0, 0, -1, -1, 0, 1, 2, 3],
+        jazz: [3, 2, 1, 0, -1, -1, 0, 1, 2, 3],
+        classical: [4, 3, 2, 0, -1, -1, 0, 2, 3, 4],
+        electronic: [6, 5, 3, 0, -2, -2, 0, 2, 4, 5]
+    };
+    
+    const gains = presets[preset] || presets.flat;
+    
+    equalizer.bands.forEach((band, index) => {
+        if (gains[index] !== undefined) {
+            band.gain.value = gains[index];
+        }
+    });
+    
+    // Update UI sliders
+    const sliders = document.querySelectorAll('.eq-range');
+    sliders.forEach((slider, index) => {
+        if (gains[index] !== undefined) {
+            slider.value = gains[index];
+            slider.nextElementSibling.textContent = gains[index] + 'dB';
+        }
+    });
+    
+    addDebugLog('Audio', `Applied equalizer preset: ${preset}`, 'success');
+}
+
+function applyCustomEQ(freq, gain) {
+    if (!equalizer || !equalizer.bands) return;
+    
+    const band = equalizer.bands.find(b => b.frequency.value === freq);
+    if (band) {
+        band.gain.value = gain;
+        addDebugLog('Audio', `Custom EQ: ${freq}Hz set to ${gain}dB`, 'info');
+    }
+}
+
+// Settings Export/Import
+function exportSettings() {
+    const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+    const additionalData = {
+        playlists: playlists,
+        likedSongs: likedSongs,
+        recentlyPlayed: recentlyPlayed,
+        queue: queue,
+        exportDate: new Date().toISOString()
+    };
+    
+    const data = { ...settings, ...additionalData };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `spotfuck-settings-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    addDebugLog('Settings', 'Exported settings', 'success');
+}
+
+function importSettings(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            // Update settings
+            localStorage.setItem('spotfuckSettings', JSON.stringify(data));
+            
+            // Update additional data if present
+            if (data.playlists) {
+                playlists = data.playlists;
+                localStorage.setItem('playlists', JSON.stringify(playlists));
+            }
+            if (data.likedSongs) {
+                likedSongs = data.likedSongs;
+                localStorage.setItem('likedSongs', JSON.stringify(likedSongs));
+            }
+            if (data.recentlyPlayed) {
+                recentlyPlayed = data.recentlyPlayed;
+                localStorage.setItem('recentlyPlayed', JSON.stringify(recentlyPlayed));
+            }
+            if (data.queue) {
+                queue = data.queue;
+                localStorage.setItem('queue', JSON.stringify(queue));
+            }
+            
+            // Reload settings
+            loadSettingsToAPIConfig();
+            updatePlaylistUI();
+            
+            addDebugLog('Settings', 'Imported settings successfully', 'success');
+            alert('Settings imported successfully! The page will reload to apply changes.');
+            location.reload();
+        } catch (error) {
+            addDebugLog('Settings', 'Failed to import settings: Invalid file format', 'error');
+            alert('Failed to import settings. Please check the file format.');
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+function clearAllData() {
+    if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+        localStorage.clear();
+        addDebugLog('Settings', 'Cleared all data', 'info');
+        alert('All data cleared. The page will reload.');
+        location.reload();
+    }
+}
+
+// Make functions available globally
+window.createPlaylist = createPlaylist;
+window.deletePlaylist = deletePlaylist;
+window.addToPlaylist = addToPlaylist;
+window.removeFromPlaylist = removeFromPlaylist;
+window.playPlaylist = playPlaylist;
+window.exportAllPlaylists = exportAllPlaylists;
+window.importPlaylist = importPlaylist;
+window.applyEqualizerPreset = applyEqualizerPreset;
+window.applyCustomEQ = applyCustomEQ;
+window.exportSettings = exportSettings;
+window.importSettings = importSettings;
+window.clearAllData = clearAllData;
+window.clearDebugLogs = clearDebugLogs;
+window.exportDebugLogs = exportDebugLogs;
+window.showPlaylistMenu = showPlaylistMenu;
+window.displayPlaylists = displayPlaylists;
+window.toggleVisualizer = toggleVisualizer;
+window.initAudioContext = initAudioContext;

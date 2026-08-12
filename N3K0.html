@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ef4444">
 </head>
 <body>
     <!-- Beta/Alpha Warning Banner -->
@@ -110,6 +112,9 @@
                     </div>
                     <div class="sidebar-item" id="queueBtn">
                         <i class="fas fa-list"></i> Queue
+                    </div>
+                    <div class="sidebar-item" id="playlistsBtn">
+                        <i class="fas fa-folder"></i> Playlists
                     </div>
                 </div>
                 
@@ -562,6 +567,9 @@
     
     <!-- Audio Player -->
     <audio id="audioPlayer"></audio>
+    
+    <!-- Audio Visualization Canvas -->
+    <canvas id="audioVisualizer" class="audio-visualizer"></canvas>
 
     <!-- Security Modal -->
     <div class="security-modal" id="securityModal">
@@ -686,78 +694,342 @@
                 <div class="settings-icon">
                     <i class="fas fa-cog"></i>
                 </div>
-                <h2>API Settings</h2>
+                <h2>Settings</h2>
                 <button class="settings-close-btn" id="settingsCloseBtn">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+            
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-tab="api">
+                    <i class="fas fa-key"></i> API Keys
+                </button>
+                <button class="settings-tab" data-tab="playback">
+                    <i class="fas fa-play"></i> Playback
+                </button>
+                <button class="settings-tab" data-tab="debug">
+                    <i class="fas fa-bug"></i> Debug
+                </button>
+                <button class="settings-tab" data-tab="playlists">
+                    <i class="fas fa-list"></i> Playlists
+                </button>
+                <button class="settings-tab" data-tab="audio">
+                    <i class="fas fa-sliders-h"></i> Audio
+                </button>
+                <button class="settings-tab" data-tab="developer">
+                    <i class="fas fa-code"></i> Developer
+                </button>
+            </div>
+            
             <div class="settings-modal-body">
-                <div class="settings-section">
-                    <h3><i class="fas fa-audio-description"></i> Audius API</h3>
-                    <div class="settings-input-group">
-                        <label>API Key (Optional)</label>
-                        <input type="text" class="settings-input" id="audiusApiKey" placeholder="Enter your Audius API key">
-                        <small class="settings-note">Leave empty to use demo mode</small>
+                <!-- API Keys Tab -->
+                <div class="settings-tab-content active" id="api-tab">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-audio-description"></i> Audius API</h3>
+                        <div class="settings-input-group">
+                            <label>API Key (Optional)</label>
+                            <input type="text" class="settings-input" id="audiusApiKey" placeholder="Enter your Audius API key">
+                            <small class="settings-note">Leave empty to use public API</small>
+                        </div>
+                        <p class="settings-help">Get your API key from <a href="https://developers.audius.co/" target="_blank">Audius Developers</a></p>
                     </div>
-                    <p class="settings-help">Get your API key from <a href="https://developers.audius.co/" target="_blank">Audius Developers</a></p>
+                    
+                    <div class="settings-section">
+                        <h3><i class="fab fa-youtube"></i> YouTube API</h3>
+                        <div class="settings-input-group">
+                            <label>API Key (Optional)</label>
+                            <input type="text" class="settings-input" id="youtubeApiKey" placeholder="Enter your YouTube API key">
+                            <small class="settings-note">Required for YouTube playback</small>
+                        </div>
+                        <p class="settings-help">Get your API key from <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></p>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3><i class="fas fa-music"></i> Jamendo API</h3>
+                        <div class="settings-input-group">
+                            <label>Client ID (Optional)</label>
+                            <input type="text" class="settings-input" id="jamendoClientId" placeholder="Enter your Jamendo Client ID">
+                            <small class="settings-note">Leave empty to use default ID</small>
+                        </div>
+                        <p class="settings-help">Get your Client ID from <a href="https://developer.jamendo.com/v3.0/" target="_blank">Jamendo Developers</a></p>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3><i class="fab fa-spotify"></i> Spotify API</h3>
+                        <div class="settings-input-group">
+                            <label>Client ID (Optional)</label>
+                            <input type="text" class="settings-input" id="spotifyClientId" placeholder="Enter your Spotify Client ID">
+                            <small class="settings-note">Required for Spotify previews</small>
+                        </div>
+                        <div class="settings-input-group">
+                            <label>Client Secret (Optional)</label>
+                            <input type="password" class="settings-input" id="spotifyClientSecret" placeholder="Enter your Spotify Client Secret">
+                            <small class="settings-note">Required if Client ID is provided</small>
+                        </div>
+                        <p class="settings-help">Get your credentials from <a href="https://developer.spotify.com/dashboard/" target="_blank">Spotify Developer Dashboard</a></p>
+                    </div>
                 </div>
                 
-                <div class="settings-section">
-                    <h3><i class="fab fa-youtube"></i> YouTube API</h3>
-                    <div class="settings-input-group">
-                        <label>API Key (Optional)</label>
-                        <input type="text" class="settings-input" id="youtubeApiKey" placeholder="Enter your YouTube API key">
-                        <small class="settings-note">Leave empty to use demo mode</small>
+                <!-- Playback Tab -->
+                <div class="settings-tab-content" id="playback-tab">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-sliders-h"></i> Playback Settings</h3>
+                        <div class="settings-input-group">
+                            <label>Default Volume</label>
+                            <input type="range" class="settings-range" id="defaultVolume" min="0" max="100" value="100">
+                            <span class="range-value" id="volumeValue">100%</span>
+                        </div>
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="autoPlayNext">
+                                <span>Auto-play next track</span>
+                            </label>
+                        </div>
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="showNotifications">
+                                <span>Show playback notifications</span>
+                            </label>
+                        </div>
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="crossfadeEnabled">
+                                <span>Enable crossfade</span>
+                            </label>
+                        </div>
+                        <div class="settings-input-group">
+                            <label>Crossfade duration (seconds)</label>
+                            <input type="number" class="settings-input" id="crossfadeDuration" min="0" max="10" value="2">
+                        </div>
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="gaplessPlayback">
+                                <span>Gapless playback</span>
+                            </label>
+                        </div>
+                        <div class="settings-input-group">
+                            <label>Playback speed</label>
+                            <select class="settings-select" id="playbackSpeed">
+                                <option value="0.5">0.5x</option>
+                                <option value="0.75">0.75x</option>
+                                <option value="1" selected>1x (Normal)</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                                <option value="2">2x</option>
+                            </select>
+                        </div>
                     </div>
-                    <p class="settings-help">Get your API key from <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></p>
                 </div>
                 
-                <div class="settings-section">
-                    <h3><i class="fas fa-music"></i> Jamendo API</h3>
-                    <div class="settings-input-group">
-                        <label>Client ID (Optional)</label>
-                        <input type="text" class="settings-input" id="jamendoClientId" placeholder="Enter your Jamendo Client ID">
-                        <small class="settings-note">Leave empty to use demo mode</small>
+                <!-- Debug Tab -->
+                <div class="settings-tab-content" id="debug-tab">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-bug"></i> API Debugging Dashboard</h3>
+                        <div class="debug-dashboard">
+                            <div class="debug-controls">
+                                <button class="debug-btn" id="clearDebugLogs">
+                                    <i class="fas fa-trash"></i> Clear Logs
+                                </button>
+                                <button class="debug-btn" id="exportDebugLogs">
+                                    <i class="fas fa-download"></i> Export Logs
+                                </button>
+                                <div class="debug-toggle">
+                                    <label class="settings-checkbox">
+                                        <input type="checkbox" id="debugMode">
+                                        <span>Debug Mode (Verbose)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="debug-stats">
+                                <div class="debug-stat">
+                                    <div class="debug-stat-label">Audius Requests</div>
+                                    <div class="debug-stat-value" id="audiusRequestCount">0</div>
+                                </div>
+                                <div class="debug-stat">
+                                    <div class="debug-stat-label">YouTube Requests</div>
+                                    <div class="debug-stat-value" id="youtubeRequestCount">0</div>
+                                </div>
+                                <div class="debug-stat">
+                                    <div class="debug-stat-label">Jamendo Requests</div>
+                                    <div class="debug-stat-value" id="jamendoRequestCount">0</div>
+                                </div>
+                                <div class="debug-stat">
+                                    <div class="debug-stat-label">Spotify Requests</div>
+                                    <div class="debug-stat-value" id="spotifyRequestCount">0</div>
+                                </div>
+                                <div class="debug-stat">
+                                    <div class="debug-stat-label">Total Errors</div>
+                                    <div class="debug-stat-value error" id="totalErrorCount">0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="debug-logs" id="debugLogs">
+                                <div class="debug-log-info">Debug logs will appear here...</div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="settings-help">Get your Client ID from <a href="https://developer.jamendo.com/v3.0/" target="_blank">Jamendo Developers</a></p>
                 </div>
                 
-                <div class="settings-section">
-                    <h3><i class="fab fa-spotify"></i> Spotify API</h3>
-                    <div class="settings-input-group">
-                        <label>Client ID (Optional)</label>
-                        <input type="text" class="settings-input" id="spotifyClientId" placeholder="Enter your Spotify Client ID">
-                        <small class="settings-note">Leave empty to use demo mode</small>
+                <!-- Playlists Tab -->
+                <div class="settings-tab-content" id="playlists-tab">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-list"></i> Playlist Management</h3>
+                        <div class="playlist-controls">
+                            <button class="playlist-btn" id="createPlaylistBtn">
+                                <i class="fas fa-plus"></i> Create Playlist
+                            </button>
+                            <button class="playlist-btn" id="importPlaylistBtn">
+                                <i class="fas fa-upload"></i> Import Playlist
+                            </button>
+                            <button class="playlist-btn" id="exportAllPlaylistsBtn">
+                                <i class="fas fa-download"></i> Export All
+                            </button>
+                        </div>
+                        
+                        <div class="playlist-list" id="playlistList">
+                            <div class="empty-playlists">No playlists created yet</div>
+                        </div>
                     </div>
-                    <div class="settings-input-group">
-                        <label>Client Secret (Optional)</label>
-                        <input type="password" class="settings-input" id="spotifyClientSecret" placeholder="Enter your Spotify Client Secret">
-                        <small class="settings-note">Required if Client ID is provided</small>
-                    </div>
-                    <p class="settings-help">Get your credentials from <a href="https://developer.spotify.com/dashboard/" target="_blank">Spotify Developer Dashboard</a></p>
                 </div>
                 
-                <div class="settings-section">
-                    <h3><i class="fas fa-sliders-h"></i> Playback Settings</h3>
-                    <div class="settings-input-group">
-                        <label>Default Volume</label>
-                        <input type="range" class="settings-range" id="defaultVolume" min="0" max="100" value="100">
-                        <span class="range-value" id="volumeValue">100%</span>
+                <!-- Audio Tab -->
+                <div class="settings-tab-content" id="audio-tab">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-sliders-h"></i> Audio Enhancement</h3>
+                        <div class="settings-input-group">
+                            <label>Equalizer Preset</label>
+                            <select class="settings-select" id="equalizerPreset">
+                                <option value="flat">Flat</option>
+                                <option value="bass">Bass Boost</option>
+                                <option value="vocal">Vocal</option>
+                                <option value="rock">Rock</option>
+                                <option value="pop">Pop</option>
+                                <option value="jazz">Jazz</option>
+                                <option value="classical">Classical</option>
+                                <option value="electronic">Electronic</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        
+                        <div class="equalizer-sliders" id="equalizerSliders">
+                            <div class="eq-slider">
+                                <label>60Hz</label>
+                                <input type="range" class="eq-range" data-frequency="60" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>170Hz</label>
+                                <input type="range" class="eq-range" data-frequency="170" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>310Hz</label>
+                                <input type="range" class="eq-range" data-frequency="310" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>600Hz</label>
+                                <input type="range" class="eq-range" data-frequency="600" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>1kHz</label>
+                                <input type="range" class="eq-range" data-frequency="1000" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>3kHz</label>
+                                <input type="range" class="eq-range" data-frequency="3000" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>6kHz</label>
+                                <input type="range" class="eq-range" data-frequency="6000" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>12kHz</label>
+                                <input type="range" class="eq-range" data-frequency="12000" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>14kHz</label>
+                                <input type="range" class="eq-range" data-frequency="14000" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                            <div class="eq-slider">
+                                <label>16kHz</label>
+                                <input type="range" class="eq-range" data-frequency="16000" min="-12" max="12" value="0">
+                                <span class="eq-value">0dB</span>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="volumeNormalization">
+                                <span>Volume normalization</span>
+                            </label>
+                        </div>
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="enableVisualizer">
+                                <span>Enable audio visualization</span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="settings-checkbox-group">
-                        <label class="settings-checkbox">
-                            <input type="checkbox" id="autoPlayNext">
-                            <span>Auto-play next track</span>
-                        </label>
-                    </div>
-                    <div class="settings-checkbox-group">
-                        <label class="settings-checkbox">
-                            <input type="checkbox" id="showNotifications">
-                            <span>Show playback notifications</span>
-                        </label>
+                </div>
+                
+                <!-- Developer Tab -->
+                <div class="settings-tab-content" id="developer-tab">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-code"></i> Developer Configuration</h3>
+                        <div class="settings-input-group">
+                            <label>API Request Timeout (ms)</label>
+                            <input type="number" class="settings-input" id="apiTimeout" min="1000" max="30000" value="10000">
+                        </div>
+                        <div class="settings-input-group">
+                            <label>API Retry Attempts</label>
+                            <input type="number" class="settings-input" id="apiRetryAttempts" min="0" max="5" value="3">
+                        </div>
+                        <div class="settings-input-group">
+                            <label>Custom CORS Proxy (Optional)</label>
+                            <input type="text" class="settings-input" id="corsProxy" placeholder="https://cors.example.com/">
+                        </div>
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="enablePerformanceProfiling">
+                                <span>Enable performance profiling</span>
+                            </label>
+                        </div>
+                        
+                        <div class="developer-actions">
+                            <button class="developer-btn" id="exportSettingsBtn">
+                                <i class="fas fa-download"></i> Export Settings
+                            </button>
+                            <button class="developer-btn" id="importSettingsBtn">
+                                <i class="fas fa-upload"></i> Import Settings
+                            </button>
+                            <button class="developer-btn danger" id="clearAllDataBtn">
+                                <i class="fas fa-trash"></i> Clear All Data
+                            </button>
+                        </div>
+                        
+                        <div class="developer-info">
+                            <h4>Keyboard Shortcuts</h4>
+                            <div class="shortcut-list">
+                                <div class="shortcut"><kbd>Space</kbd> Play/Pause</div>
+                                <div class="shortcut"><kbd>Shift</kbd> + <kbd>→</kbd> Next track</div>
+                                <div class="shortcut"><kbd>Shift</kbd> + <kbd>←</kbd> Previous track</div>
+                                <div class="shortcut"><kbd>Shift</kbd> + <kbd>S</kbd> Toggle shuffle</div>
+                                <div class="shortcut"><kbd>Shift</kbd> + <kbd>R</kbd> Toggle repeat</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            
             <div class="settings-modal-footer">
                 <button class="settings-reset-btn" id="settingsResetBtn">
                     <i class="fas fa-undo"></i> Reset to Defaults
@@ -770,6 +1042,566 @@
     </div>
 
     <style>
+        /* Settings Tabs */
+        .settings-tabs {
+            display: flex;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        
+        .settings-tab {
+            padding: 16px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .settings-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+        
+        .settings-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .settings-tab-content {
+            display: none;
+            padding: 24px;
+        }
+        
+        .settings-tab-content.active {
+            display: block;
+        }
+        
+        /* Debug Dashboard */
+        .debug-dashboard {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .debug-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .debug-btn {
+            padding: 10px 16px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .debug-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .debug-toggle {
+            margin-left: auto;
+        }
+        
+        .debug-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .debug-stat {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .debug-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .debug-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .debug-stat-value.error {
+            color: #ef4444;
+        }
+        
+        .debug-logs {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .debug-log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+        }
+        
+        .debug-log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .debug-log-time {
+            color: var(--text-muted);
+            min-width: 80px;
+        }
+        
+        .debug-log-source {
+            color: var(--primary);
+            min-width: 80px;
+            font-weight: 600;
+        }
+        
+        .debug-log-message {
+            color: var(--text-primary);
+            flex: 1;
+        }
+        
+        .debug-log-error {
+            color: #ef4444;
+        }
+        
+        .debug-log-success {
+            color: #10b981;
+        }
+        
+        .debug-log-info {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Playlist Management */
+        .playlist-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .playlist-btn {
+            padding: 10px 16px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .playlist-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .playlist-list {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s ease;
+        }
+        
+        .playlist-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .playlist-item:last-child {
+            border-bottom: none;
+        }
+        
+        .playlist-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .playlist-info {
+            flex: 1;
+        }
+        
+        .playlist-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .playlist-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .playlist-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .playlist-action-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .playlist-action-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .empty-playlists {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        /* Equalizer */
+        .equalizer-sliders {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .eq-slider {
+            text-align: center;
+        }
+        
+        .eq-slider label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .eq-range {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .eq-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .eq-range::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+        
+        .eq-range::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .eq-value {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        
+        /* Developer Options */
+        .developer-actions {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .developer-btn {
+            padding: 10px 16px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .developer-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .developer-btn.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        
+        .developer-btn.danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .developer-info {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .developer-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+        
+        .shortcut-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .shortcut {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        
+        .shortcut kbd {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--text-primary);
+        }
+        
+        /* Playlist Menu */
+        .playlist-menu {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            min-width: 250px;
+            max-width: 350px;
+            z-index: 2000;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .playlist-menu-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .playlist-menu-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .playlist-menu-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .playlist-menu-item.create-new {
+            border-top: 1px solid var(--border);
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .playlist-menu-item i {
+            color: var(--text-secondary);
+        }
+        
+        .playlist-menu-item.create-new i {
+            color: var(--primary);
+        }
+        
+        /* Create Playlist Button in Empty State */
+        .create-playlist-btn {
+            margin-top: 16px;
+            padding: 12px 24px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .create-playlist-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        /* Playlist Items in Track List */
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .playlist-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .playlist-art {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .playlist-info {
+            flex: 1;
+        }
+        
+        .playlist-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .playlist-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        /* Audio Visualizer */
+        .audio-visualizer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        
+        .audio-visualizer.active {
+            opacity: 0.6;
+        }
+        
+        /* Additional Form Elements */
+        .settings-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .settings-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
         .dmca-modal {
             display: none;
             position: fixed;
@@ -999,11 +1831,13 @@
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 16px;
-            max-width: 600px;
-            max-height: 80vh;
+            max-width: 900px;
+            max-height: 85vh;
             overflow-y: auto;
             animation: slideUp 0.3s ease;
             margin: 20px;
+            display: flex;
+            flex-direction: column;
         }
         
         .settings-modal-header {
@@ -1266,6 +2100,19 @@
     </style>
 
     <script>
+        // Service Worker Registration for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+        
         // PIN Entry System
         document.addEventListener('DOMContentLoaded', function() {
             // Security Modal Handler
@@ -1460,22 +2307,80 @@
             const volumeValue = document.getElementById('volumeValue');
             const autoPlayNext = document.getElementById('autoPlayNext');
             const showNotifications = document.getElementById('showNotifications');
+            const crossfadeEnabled = document.getElementById('crossfadeEnabled');
+            const crossfadeDuration = document.getElementById('crossfadeDuration');
+            const gaplessPlayback = document.getElementById('gaplessPlayback');
+            const playbackSpeed = document.getElementById('playbackSpeed');
+            const equalizerPreset = document.getElementById('equalizerPreset');
+            const volumeNormalization = document.getElementById('volumeNormalization');
+            const enableVisualizer = document.getElementById('enableVisualizer');
+            const debugMode = document.getElementById('debugMode');
+            const apiTimeout = document.getElementById('apiTimeout');
+            const apiRetryAttempts = document.getElementById('apiRetryAttempts');
+            const corsProxy = document.getElementById('corsProxy');
+            const enablePerformanceProfiling = document.getElementById('enablePerformanceProfiling');
+            
+            // Settings tabs functionality
+            const settingsTabs = document.querySelectorAll('.settings-tab');
+            const settingsTabContents = document.querySelectorAll('.settings-tab-content');
+            
+            settingsTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+                    
+                    // Update tab buttons
+                    settingsTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Update tab content
+                    settingsTabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${targetTab}-tab`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
             
             // Load saved settings
             function loadSettings() {
                 const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
                 
+                // API Keys
                 if (settings.audiusApiKey) audiusApiKey.value = settings.audiusApiKey;
                 if (settings.youtubeApiKey) youtubeApiKey.value = settings.youtubeApiKey;
                 if (settings.jamendoClientId) jamendoClientId.value = settings.jamendoClientId;
                 if (settings.spotifyClientId) spotifyClientId.value = settings.spotifyClientId;
                 if (settings.spotifyClientSecret) spotifyClientSecret.value = settings.spotifyClientSecret;
+                
+                // Playback Settings
                 if (settings.defaultVolume) {
                     defaultVolume.value = settings.defaultVolume;
                     volumeValue.textContent = settings.defaultVolume + '%';
                 }
                 if (settings.autoPlayNext !== undefined) autoPlayNext.checked = settings.autoPlayNext;
                 if (settings.showNotifications !== undefined) showNotifications.checked = settings.showNotifications;
+                if (settings.crossfadeEnabled !== undefined) crossfadeEnabled.checked = settings.crossfadeEnabled;
+                if (settings.crossfadeDuration) crossfadeDuration.value = settings.crossfadeDuration;
+                if (settings.gaplessPlayback !== undefined) gaplessPlayback.checked = settings.gaplessPlayback;
+                if (settings.playbackSpeed) playbackSpeed.value = settings.playbackSpeed;
+                
+                // Audio Settings
+                if (settings.equalizerPreset) equalizerPreset.value = settings.equalizerPreset;
+                if (settings.volumeNormalization !== undefined) volumeNormalization.checked = settings.volumeNormalization;
+                if (settings.enableVisualizer !== undefined) enableVisualizer.checked = settings.enableVisualizer;
+                
+                // Debug Settings
+                if (settings.debugMode !== undefined) debugMode.checked = settings.debugMode;
+                
+                // Developer Settings
+                if (settings.apiTimeout) apiTimeout.value = settings.apiTimeout;
+                if (settings.apiRetryAttempts) apiRetryAttempts.value = settings.apiRetryAttempts;
+                if (settings.corsProxy) corsProxy.value = settings.corsProxy;
+                if (settings.enablePerformanceProfiling !== undefined) enablePerformanceProfiling.checked = settings.enablePerformanceProfiling;
+                
+                // Load playlists
+                updatePlaylistUI();
             }
             
             // Validate API key format
@@ -1546,7 +2451,19 @@
                     spotifyClientSecret: spotifySecret,
                     defaultVolume: defaultVolume.value,
                     autoPlayNext: autoPlayNext.checked,
-                    showNotifications: showNotifications.checked
+                    showNotifications: showNotifications.checked,
+                    crossfadeEnabled: crossfadeEnabled.checked,
+                    crossfadeDuration: crossfadeDuration.value,
+                    gaplessPlayback: gaplessPlayback.checked,
+                    playbackSpeed: playbackSpeed.value,
+                    equalizerPreset: equalizerPreset.value,
+                    volumeNormalization: volumeNormalization.checked,
+                    enableVisualizer: enableVisualizer.checked,
+                    debugMode: debugMode.checked,
+                    apiTimeout: apiTimeout.value,
+                    apiRetryAttempts: apiRetryAttempts.value,
+                    corsProxy: corsProxy.value,
+                    enablePerformanceProfiling: enablePerformanceProfiling.checked
                 };
                 
                 localStorage.setItem('spotfuckSettings', JSON.stringify(settings));
@@ -1620,6 +2537,122 @@
                 settingsModal.addEventListener('click', (e) => {
                     if (e.target === settingsModal) {
                         settingsModal.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Debug Dashboard functionality
+            const clearDebugLogsBtn = document.getElementById('clearDebugLogs');
+            const exportDebugLogsBtn = document.getElementById('exportDebugLogs');
+            
+            if (clearDebugLogsBtn) {
+                clearDebugLogsBtn.addEventListener('click', () => {
+                    if (typeof window.clearDebugLogs === 'function') {
+                        window.clearDebugLogs();
+                    }
+                });
+            }
+            
+            if (exportDebugLogsBtn) {
+                exportDebugLogsBtn.addEventListener('click', () => {
+                    if (typeof window.exportDebugLogs === 'function') {
+                        window.exportDebugLogs();
+                    }
+                });
+            }
+            
+            // Playlist functionality
+            const createPlaylistBtn = document.getElementById('createPlaylistBtn');
+            const importPlaylistBtn = document.getElementById('importPlaylistBtn');
+            const exportAllPlaylistsBtn = document.getElementById('exportAllPlaylistsBtn');
+            
+            if (createPlaylistBtn) {
+                createPlaylistBtn.addEventListener('click', () => {
+                    const playlistName = prompt('Enter playlist name:');
+                    if (playlistName && typeof window.createPlaylist === 'function') {
+                        window.createPlaylist(playlistName);
+                    }
+                });
+            }
+            
+            if (importPlaylistBtn) {
+                importPlaylistBtn.addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    input.onchange = (e) => {
+                        if (e.target.files.length > 0 && typeof window.importPlaylist === 'function') {
+                            window.importPlaylist(e.target.files[0]);
+                        }
+                    };
+                    input.click();
+                });
+            }
+            
+            if (exportAllPlaylistsBtn) {
+                exportAllPlaylistsBtn.addEventListener('click', () => {
+                    if (typeof window.exportAllPlaylists === 'function') {
+                        window.exportAllPlaylists();
+                    }
+                });
+            }
+            
+            // Equalizer functionality
+            const equalizerPresetSelect = document.getElementById('equalizerPreset');
+            if (equalizerPresetSelect) {
+                equalizerPresetSelect.addEventListener('change', (e) => {
+                    if (typeof window.applyEqualizerPreset === 'function') {
+                        window.applyEqualizerPreset(e.target.value);
+                    }
+                });
+            }
+            
+            // EQ sliders
+            const eqSliders = document.querySelectorAll('.eq-range');
+            eqSliders.forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    e.target.nextElementSibling.textContent = e.target.value + 'dB';
+                    
+                    // Apply custom EQ if in custom mode
+                    if (equalizerPreset.value === 'custom' && typeof window.applyCustomEQ === 'function') {
+                        const freq = parseInt(e.target.dataset.frequency);
+                        const gain = parseFloat(e.target.value);
+                        window.applyCustomEQ(freq, gain);
+                    }
+                });
+            });
+            
+            // Developer functionality
+            const exportSettingsBtn = document.getElementById('exportSettingsBtn');
+            const importSettingsBtn = document.getElementById('importSettingsBtn');
+            const clearAllDataBtn = document.getElementById('clearAllDataBtn');
+            
+            if (exportSettingsBtn) {
+                exportSettingsBtn.addEventListener('click', () => {
+                    if (typeof window.exportSettings === 'function') {
+                        window.exportSettings();
+                    }
+                });
+            }
+            
+            if (importSettingsBtn) {
+                importSettingsBtn.addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    input.onchange = (e) => {
+                        if (e.target.files.length > 0 && typeof window.importSettings === 'function') {
+                            window.importSettings(e.target.files[0]);
+                        }
+                    };
+                    input.click();
+                });
+            }
+            
+            if (clearAllDataBtn) {
+                clearAllDataBtn.addEventListener('click', () => {
+                    if (typeof window.clearAllData === 'function') {
+                        window.clearAllData();
                     }
                 });
             }

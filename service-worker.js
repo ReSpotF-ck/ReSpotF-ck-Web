@@ -1,4 +1,4 @@
-const CACHE_NAME = 'spotfuck-v1';
+const CACHE_NAME = 'spotfuck-v2';
 const urlsToCache = [
     './',
     './index.html',

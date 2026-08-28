@@ -1049,7 +1049,7 @@ async function loadTrendingTracks() {
     
     try {
         // Try to get trending from Audius (no API key needed)
-        const trendingQuery = 'trending popular hits';
+        const trendingQuery = 'trending music';
         const results = await searchAudius(trendingQuery);
         
         if (results.length > 0) {
@@ -1080,7 +1080,7 @@ async function loadNewReleases() {
     
     try {
         // Try to get new releases from Audius (no API key needed)
-        const newReleasesQuery = 'new releases latest songs';
+        const newReleasesQuery = 'new music';
         const results = await searchAudius(newReleasesQuery);
         
         if (results.length > 0) {

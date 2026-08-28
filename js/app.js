@@ -60,7 +60,7 @@ let audioPlayer, playPauseBtn, playPauseIcon, prevBtn, nextBtn, shuffleBtn, repe
 let progressBar, progressFill, currentTimeEl, durationEl;
 let volumeSlider, volumeBtn, volumeIcon;
 let trackTitle, trackArtist, trackArt, likeBtn, likeIcon;
-let searchInput, searchBtn, trackList, sourceTabs;
+let searchInput, searchBtn, trackList, sourceTabs, contentTitleEl;
 
 // API Configuration
 const API_CONFIG = {
@@ -138,6 +138,18 @@ function initializeDOMElements() {
     searchBtn = document.getElementById('searchBtn');
     trackList = document.getElementById('trackList');
     sourceTabs = document.querySelectorAll('.source-tab');
+    contentTitleEl = document.getElementById('contentTitle');
+}
+
+// Update the active section/source title
+function updateContentTitle(title) {
+    if (contentTitleEl) {
+        contentTitleEl.textContent = title;
+        contentTitleEl.style.opacity = '0';
+        contentTitleEl.style.animation = 'none';
+        contentTitleEl.offsetHeight; // trigger reflow
+        contentTitleEl.style.animation = 'fadeIn 0.4s ease forwards';
+    }
 }
 
 // Initialize Application
@@ -214,6 +226,8 @@ function setupEventListeners() {
                 sourceTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 currentSource = tab.dataset.source;
+                const sourceTitle = currentSource === 'all' ? 'All Sources' : currentSource.charAt(0).toUpperCase() + currentSource.slice(1);
+                updateContentTitle(sourceTitle);
                 if (tracks.length > 0) {
                     displayTracks();
                 }
@@ -394,6 +408,22 @@ function setActiveSidebar(activeId) {
     });
     const activeElement = document.getElementById(activeId);
     if (activeElement) activeElement.classList.add('active');
+    
+    const titleMap = {
+        'homeBtn': 'Home',
+        'likedSongsBtn': 'Liked Songs',
+        'recentlyPlayedBtn': 'Recently Played',
+        'queueBtn': 'Queue',
+        'playlistsBtn': 'Playlists',
+        'audiusBtn': 'Audius',
+        'youtubeBtn': 'YouTube',
+        'jamendoBtn': 'Jamendo',
+        'spotifyBtn': 'Spotify',
+        'trendingBtn': 'Trending',
+        'newReleasesBtn': 'New Releases',
+        'genresBtn': 'Browse Genres'
+    };
+    if (titleMap[activeId]) updateContentTitle(titleMap[activeId]);
 }
 
 // Update Source Tabs
@@ -442,6 +472,7 @@ async function handleSearch() {
         
         tracks = results;
         currentTrackIndex = 0;
+        updateContentTitle(`Search: "${query}"`);
         displayTracks();
         addDebugLog('Search', `Found ${results.length} tracks`, 'success');
     } catch (error) {
@@ -867,6 +898,7 @@ function showEmptyState() {
 
 function displayPlaylists() {
     if (!trackList) return;
+    updateContentTitle('Playlists');
     
     if (playlists.length === 0) {
         trackList.innerHTML = `
@@ -1018,6 +1050,7 @@ async function loadRecommendations() {
         if (results.length > 0) {
             tracks = results;
             currentTrackIndex = 0;
+            updateContentTitle('Home');
             displayTracks();
             console.log('Loaded recommendations from Audius:', results.length);
             return;
@@ -1055,6 +1088,7 @@ async function loadTrendingTracks() {
         if (results.length > 0) {
             tracks = results;
             currentTrackIndex = 0;
+            updateContentTitle('Trending');
             displayTracks();
             return;
         }
@@ -1086,6 +1120,7 @@ async function loadNewReleases() {
         if (results.length > 0) {
             tracks = results;
             currentTrackIndex = 0;
+            updateContentTitle('New Releases');
             displayTracks();
             return;
         }
@@ -1108,6 +1143,7 @@ async function loadNewReleases() {
 
 function loadGenres() {
     // Show genre selection UI
+    updateContentTitle('Browse Genres');
     const genres = [
         { name: 'Electronic', icon: 'fa-bolt', query: 'electronic music' },
         { name: 'Rock', icon: 'fa-guitar', query: 'rock music' },
@@ -1122,7 +1158,7 @@ function loadGenres() {
     trackList.innerHTML = `
         <div class="genres-grid">
             ${genres.map(genre => `
-                <div class="genre-card" onclick="searchByGenre('${genre.query}')">
+                <div class="genre-card" onclick="searchByGenre('${genre.query}', '${genre.name}')">
                     <div class="genre-icon">
                         <i class="fas ${genre.icon}"></i>
                     </div>
@@ -1133,7 +1169,7 @@ function loadGenres() {
     `;
 }
 
-async function searchByGenre(query) {
+async function searchByGenre(query, name = 'Genre') {
     showLoadingState();
     
     try {
@@ -1146,6 +1182,7 @@ async function searchByGenre(query) {
         
         tracks = results;
         currentTrackIndex = 0;
+        updateContentTitle(name);
         displayTracks();
     } catch (error) {
         console.error('Genre search error:', error);

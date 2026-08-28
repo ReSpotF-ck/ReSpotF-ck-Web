@@ -368,6 +368,18 @@ audio {
     background: var(--primary-dark);
 }
 
+/* Section Title */
+.content-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    padding: 0 4px;
+    flex-shrink: 0;
+    opacity: 0;
+    animation: fadeIn 0.4s ease forwards;
+}
+
 /* Track List */
 .track-list {
     display: grid;

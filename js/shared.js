@@ -23,31 +23,44 @@ function setupSecurityModal() {
     const securityModal = document.getElementById('securityModal');
     const securityAccepted = localStorage.getItem('securityAccepted');
     
-    if (!securityAccepted && securityModal) {
-        securityModal.style.display = 'flex';
+    if (securityModal) {
+        securityModal.style.display = securityAccepted ? 'none' : 'flex';
         
         const securityAcceptBtn = document.getElementById('securityAcceptBtn');
         const securityCloseBtn = document.getElementById('securityCloseBtn');
         
-        if (securityAcceptBtn) {
-            // Remove any existing listeners first
-            const newBtn = securityAcceptBtn.cloneNode(true);
-            securityAcceptBtn.parentNode.replaceChild(newBtn, securityAcceptBtn);
-            
-            newBtn.addEventListener('click', function(e) {
+        if (securityAcceptBtn && !securityAcceptBtn.dataset.bound) {
+            securityAcceptBtn.dataset.bound = 'true';
+            securityAcceptBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
                 console.log('Security button clicked!');
                 localStorage.setItem('securityAccepted', 'true');
                 securityModal.style.display = 'none';
             });
         }
         
-        if (securityCloseBtn) {
+        if (securityCloseBtn && !securityCloseBtn.dataset.bound) {
+            securityCloseBtn.dataset.bound = 'true';
             securityCloseBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
                 securityModal.style.display = 'none';
             });
         }
-    } else if (securityModal) {
-        securityModal.style.display = 'none';
+        
+        if (!securityModal.dataset.backdropBound) {
+            securityModal.dataset.backdropBound = 'true';
+            securityModal.addEventListener('click', function(e) {
+                if (e.target === securityModal) {
+                    securityModal.style.display = 'none';
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && securityModal.style.display === 'flex') {
+                    securityModal.style.display = 'none';
+                }
+            });
+        }
     }
 }
 
@@ -96,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./service-worker.js')
+            navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' })
                 .then(registration => {
                     console.log('ServiceWorker registration successful with scope: ', registration.scope);
                 })

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'spotfuck-v2';
+const CACHE_NAME = 'spotfuck-v3';
 const urlsToCache = [
     './',
     './index.html',
@@ -12,6 +12,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(urlsToCache))
@@ -20,17 +21,23 @@ self.addEventListener('install', event => {
 
 self.addEventListener('fetch', event => {
     event.respondWith(
-        caches.match(event.request)
+        fetch(event.request)
             .then(response => {
-                if (response) {
-                    return response;
+                // Update cache with latest network response when valid
+                if (response && response.status === 200) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
                 }
-                return fetch(event.request);
+                return response;
+            })
+            .catch(() => {
+                return caches.match(event.request);
             })
     );
 });
 
 self.addEventListener('activate', event => {
+    event.waitUntil(self.clients.claim());
     const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then(cacheNames => {

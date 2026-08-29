@@ -24,7 +24,7 @@ function setupSecurityModal() {
     const securityAccepted = localStorage.getItem('securityAccepted');
     
     if (securityModal) {
-        securityModal.style.display = securityAccepted ? 'none' : 'flex';
+        securityModal.style.display = 'none';
         
         const securityAcceptBtn = document.getElementById('securityAcceptBtn');
         const securityCloseBtn = document.getElementById('securityCloseBtn');
@@ -86,7 +86,6 @@ function setupDMCAModal() {
             dmcaAcknowledgeBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation();
                 localStorage.setItem('dmcaAcknowledged', 'true');
                 dmcaModal.classList.remove('active');
             });

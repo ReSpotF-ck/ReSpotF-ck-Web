@@ -1,4 +1,4 @@
-# Spotfuck - Free Music Streaming
+# ReSpotiF*ck - Free Music Streaming
 
 A modern, completely redesigned music streaming application that aggregates music from multiple free and legal APIs including Audius, YouTube, Spotify, and Jamendo.
 
@@ -44,21 +44,21 @@ For the best experience, serve the files through a local web server:
 
 #### Using Python
 ```bash
-cd ReSpotFuck-Web
+cd ReSpotiF*ck-Web
 python -m http.server 8000
 ```
 Then open http://localhost:8000/index.html for landing page or http://localhost:8000/N3K0.html for the music player.
 
 #### Using Node.js
 ```bash
-cd ReSpotFuck-Web
+cd ReSpotiF*ck-Web
 npx http-server -p 8000
 ```
 Then open http://localhost:8000/index.html for landing page or http://localhost:8000/N3K0.html for the music player.
 
 #### Using PowerShell (Windows)
 ```powershell
-cd ReSpotFuck-Web
+cd ReSpotiF*ck-Web
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add('http://localhost:8000/')
 $listener.Start()
@@ -191,7 +191,7 @@ To access real music from the platforms, configure API keys via the Settings pan
 ## Project Structure
 
 ```
-ReSpotFuck-Web/
+ReSpotiF*ck-Web/
 ├── index.html          # Landing page with special access
 ├── signin.html         # Sign-in page with community links
 ├── N3K0.html           # Main music streaming application
@@ -263,7 +263,7 @@ This project is open source and available under the MIT License.
 
 ## Credits
 
-- Original concept: ReSpotF-ck
+- Original concept: ReSpotiF*ck
 - Icons: Font Awesome
 - Fonts: Google Fonts (Inter)
 - APIs: Audius, YouTube, Jamendo, Spotify

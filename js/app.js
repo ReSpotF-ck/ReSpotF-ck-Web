@@ -19,6 +19,31 @@ let apiStats = {
     spotify: { requests: 0, errors: 0 }
 };
 
+// Built-in demo library (no API keys needed)
+const DEMO_TRACKS = [
+    { id: 'audius-1', title: 'Ethereal Dawn', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 180, artwork: null, source: 'audius', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', genre: 'electronic' },
+    { id: 'audius-2', title: 'Neon Pulse', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 195, artwork: null, source: 'audius', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', genre: 'electronic' },
+    { id: 'audius-3', title: 'Starlight Echo', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 210, artwork: null, source: 'audius', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', genre: 'electronic' },
+    { id: 'audius-4', title: 'Urban Flow', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 225, artwork: null, source: 'audius', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3', genre: 'electronic' },
+    { id: 'audius-5', title: 'Cyber Drift', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 240, artwork: null, source: 'audius', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3', genre: 'rock' },
+    { id: 'audius-6', title: 'Midnight Drive', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 215, artwork: null, source: 'audius', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3', genre: 'rock' },
+    { id: 'jamendo-1', title: 'Velvet Horizon', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 230, artwork: null, source: 'jamendo', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3', genre: 'pop' },
+    { id: 'jamendo-2', title: 'Solar Flare', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 200, artwork: null, source: 'jamendo', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3', genre: 'pop' },
+    { id: 'jamendo-3', title: 'Deep Current', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 220, artwork: null, source: 'jamendo', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3', genre: 'hip-hop' },
+    { id: 'jamendo-4', title: 'Nightwave', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 205, artwork: null, source: 'jamendo', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3', genre: 'hip-hop' },
+    { id: 'jamendo-5', title: 'Analog Dreams', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 250, artwork: null, source: 'jamendo', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3', genre: 'electronic' },
+    { id: 'jamendo-6', title: 'Golden Hour', artist: 'SoundHelix', album: 'ReSpotiF*ck Demo', duration: 190, artwork: null, source: 'jamendo', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3', genre: 'pop' }
+];
+
+function getDemoTracks(query = '') {
+    if (!query) return DEMO_TRACKS;
+    const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 0);
+    return DEMO_TRACKS.filter(track => {
+        const hay = `${track.title} ${track.artist} ${track.album} ${track.genre || ''}`.toLowerCase();
+        return terms.some(term => hay.includes(term));
+    });
+}
+
 // Download Management
 let downloadQueue = [];
 let downloadSettings = {
@@ -495,7 +520,7 @@ async function handleSearch() {
 }
 
 async function searchAllSources(query) {
-    const searchPromises = [];
+    return Promise.resolve(getDemoTracks(query));
     const sources = [];
     const sourceErrors = {};
     
@@ -587,7 +612,7 @@ async function searchAudius(query) {
         for (const host of hosts) {
             try {
                 addDebugLog('Audius', `Trying host: ${host}`, 'info');
-                const response = await fetch(`${host}/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=Spotfuck&limit=15`, {
+                const response = await fetch(`${host}/v1/tracks/search?query=${encodeURIComponent(query)}&app_name=ReSpotiF*ck&limit=15`, {
                     headers: {
                         'Accept': 'application/json'
                     }
@@ -623,7 +648,7 @@ async function searchAudius(query) {
             duration: track.duration || 0,
             artwork: track.artwork?.['480x480'] || track.artwork?.['150x150'] || track.artwork?.['1000x1000'] || null,
             source: 'audius',
-            audioUrl: `https://discoveryprovider.audius.co/v1/tracks/${track.id}/stream?app_name=Spotfuck`
+            audioUrl: `https://discoveryprovider.audius.co/v1/tracks/${track.id}/stream?app_name=ReSpotiF*ck`
         }));
     } catch (error) {
         addDebugLog('Audius', `Search error: ${error.message}`, 'error');
@@ -1040,7 +1065,11 @@ function showErrorState(errorType, details = '') {
 }
 
 async function loadRecommendations() {
-    showLoadingState();
+    tracks = getDemoTracks();
+    currentTrackIndex = 0;
+    updateContentTitle('Home');
+    displayTracks();
+    return;
     
     try {
         // Try to get trending tracks from Audius as recommendations
@@ -1078,7 +1107,11 @@ async function loadRecommendations() {
 window.loadRecommendations = loadRecommendations;
 
 async function loadTrendingTracks() {
-    showLoadingState();
+    tracks = getDemoTracks();
+    currentTrackIndex = 0;
+    updateContentTitle('Trending');
+    displayTracks();
+    return;
     
     try {
         // Try to get trending from Audius (no API key needed)
@@ -1110,7 +1143,11 @@ async function loadTrendingTracks() {
 }
 
 async function loadNewReleases() {
-    showLoadingState();
+    tracks = getDemoTracks();
+    currentTrackIndex = 0;
+    updateContentTitle('New Releases');
+    displayTracks();
+    return;
     
     try {
         // Try to get new releases from Audius (no API key needed)

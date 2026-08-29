@@ -1,6 +1,6 @@
 {
-  "name": "Spotfuck - Free Music Streaming",
-  "short_name": "Spotfuck",
+  "name": "ReSpotiF*ck - Free Music Streaming",
+  "short_name": "ReSpotiF*ck",
   "description": "Free music streaming from multiple sources including Audius, YouTube, Jamendo, and Spotify",
   "start_url": "./index.html",
   "display": "standalone",

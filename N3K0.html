@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotfuck - Free Music Streaming</title>
+    <title>ReSpotiF*ck - Free Music Streaming</title>
     <meta name="description" content="Free music streaming from multiple sources including Audius, YouTube, Jamendo, and Spotify">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23ef4444'/><polygon points='35,25 35,75 80,50' fill='white' stroke='white' stroke-width='2'/></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23ef4444'/><polygon points='35,25 35,75 80,50' fill='white' stroke='white' stroke-width='2'/></svg>">
@@ -42,14 +42,12 @@
             <div class="pin-icon">
                 <i class="fas fa-lock"></i>
             </div>
-            <h1 class="pin-title">Restricted Access</h1>
-            <p class="pin-subtitle">Enter PIN to access Spotfuck</p>
+            <h1 class="pin-title">Quick Check</h1>
+            <p class="pin-subtitle">Solve the puzzle to continue</p>
+            <p class="pin-subtitle" style="font-size: 22px; font-weight: 800; color: var(--text-primary);">What is 5 + 3?</p>
             
             <div class="pin-input-container">
-                <input type="password" class="pin-input" id="pinInput" placeholder="Enter PIN" maxlength="8">
-                <button class="pin-toggle-btn" id="pinToggleBtn">
-                    <i class="fas fa-eye"></i>
-                </button>
+                <input type="text" class="pin-input" id="pinInput" placeholder="Your answer" maxlength="8">
             </div>
             
             <button class="pin-submit-btn" id="pinSubmitBtn">
@@ -58,18 +56,10 @@
             
             <div class="pin-error" id="pinError">
                 <i class="fas fa-times-circle"></i>
-                <span>Incorrect PIN. Access denied.</span>
+                <span>Incorrect answer. Try again.</span>
             </div>
             
-            <div class="pin-hint">
-                <p>Hint: The PIN is the name of this file (N3K0)</p>
-            </div>
-            
-            <div class="pin-bypass">
-                <button class="bypass-btn" id="bypassBtn">
-                    <i class="fas fa-key"></i> Bypass (Admin)
-                </button>
-            </div>
+
         </div>
     </div>
 
@@ -80,7 +70,7 @@
                 <div class="logo-icon">
                     <i class="fas fa-music"></i>
                 </div>
-                <div class="logo-text">Spotfuck</div>
+                <div class="logo-text">ReSpotiF*ck</div>
             </div>
             <div class="header-actions">
                 <button class="header-btn" id="dmcaBtn">
@@ -2787,46 +2777,37 @@
             const pinOverlay = document.getElementById('pinOverlay');
             const pinInput = document.getElementById('pinInput');
             const pinSubmitBtn = document.getElementById('pinSubmitBtn');
-            const pinToggleBtn = document.getElementById('pinToggleBtn');
             const pinError = document.getElementById('pinError');
-            const bypassBtn = document.getElementById('bypassBtn');
             const appContainer = document.getElementById('appContainer');
             
-            const CORRECT_PIN = 'N3K0';
-            const BYPASS_CODE = 'ADMIN';
+            const PUZZLE_ANSWER = '8';
             
-            // Check if already authenticated
-            if (localStorage.getItem('pinAuthenticated') === 'true') {
-                showApp();
+            // Skip if the user has completed the puzzle twice, or used a bypass
+            const puzzleCompletions = parseInt(localStorage.getItem('puzzleCompletions') || '0');
+            const bypassPuzzle = localStorage.getItem('bypassPuzzle') === 'true';
+            const urlBypass = new URLSearchParams(window.location.search).get('bypass') === '1';
+
+            if (puzzleCompletions >= 2 || bypassPuzzle || urlBypass) {
+                if (urlBypass) localStorage.setItem('bypassPuzzle', 'true');
+                finishEntry();
+            } else {
+                pinInput.focus();
             }
             
-            // PIN Toggle (show/hide)
-            pinToggleBtn.addEventListener('click', () => {
-                const type = pinInput.type === 'password' ? 'text' : 'password';
-                pinInput.type = type;
-                pinToggleBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-            });
+            // No password-style toggle needed (plaintext answer)
             
-            // PIN Submission
-            pinSubmitBtn.addEventListener('click', validatePIN);
+            // Puzzle Submission
+            pinSubmitBtn.addEventListener('click', validatePuzzle);
             pinInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') validatePIN();
+                if (e.key === 'Enter') validatePuzzle();
             });
             
-            function validatePIN() {
-                const enteredPin = pinInput.value.trim().toUpperCase();
+            function validatePuzzle() {
+                const answer = pinInput.value.trim().toLowerCase();
                 
-                if (enteredPin === CORRECT_PIN) {
-                    // Correct PIN
-                    localStorage.setItem('pinAuthenticated', 'true');
-                    showApp();
-                } else if (enteredPin === BYPASS_CODE) {
-                    // Admin bypass
-                    localStorage.setItem('pinAuthenticated', 'true');
-                    localStorage.setItem('adminBypass', 'true');
-                    showApp();
+                if (answer === PUZZLE_ANSWER) {
+                    showDMCA();
                 } else {
-                    // Incorrect PIN
                     showError();
                     pinInput.value = '';
                     pinInput.focus();
@@ -2840,50 +2821,33 @@
                 }, 3000);
             }
             
-            function showApp() {
+            function showDMCA() {
+                pinOverlay.classList.add('hidden');
+                const dmcaModal = document.getElementById('dmcaModal');
+                if (dmcaModal) {
+                    dmcaModal.classList.add('active');
+                }
+            }
+            
+            function finishEntry() {
                 pinOverlay.classList.add('hidden');
                 appContainer.style.display = 'flex';
                 
-                // Load recommendations after app is shown
                 if (typeof loadRecommendations === 'function') {
                     setTimeout(() => {
                         loadRecommendations();
                     }, 100);
                 }
-                
-                // Trigger DMCA modal if not acknowledged
-                setTimeout(() => {
-                    const dmcaModal = document.getElementById('dmcaModal');
-                    if (dmcaModal && !localStorage.getItem('dmcaAcknowledged')) {
-                        dmcaModal.classList.add('active');
-                    }
-                }, 500);
             }
             
-            // Bypass button
-            bypassBtn.addEventListener('click', () => {
-                const confirmBypass = confirm('Admin bypass: Are you sure you want to skip PIN verification?');
-                if (confirmBypass) {
-                    localStorage.setItem('pinAuthenticated', 'true');
-                    localStorage.setItem('adminBypass', 'true');
-                    showApp();
-                }
-            });
-            
-            // Keyboard shortcut for bypass (Ctrl+Shift+B)
+            // Hidden user bypasses: Shift+B or ?bypass=1 (no visible hints)
             document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.shiftKey && e.key === 'B') {
+                if (e.shiftKey && e.key === 'B') {
                     e.preventDefault();
-                    localStorage.setItem('pinAuthenticated', 'true');
-                    localStorage.setItem('adminBypass', 'true');
-                    showApp();
+                    localStorage.setItem('bypassPuzzle', 'true');
+                    finishEntry();
                 }
             });
-            
-            // Focus PIN input on load
-            if (!localStorage.getItem('pinAuthenticated')) {
-                pinInput.focus();
-            }
             
             // DMCA Modal functionality
             const dmcaBtn = document.getElementById('dmcaBtn');
@@ -2910,7 +2874,9 @@
                     e.stopImmediatePropagation();
                     localStorage.setItem('dmcaAcknowledged', 'true');
                     dmcaModal.classList.remove('active');
-                    console.log('DMCA acknowledged');
+                    const count = parseInt(localStorage.getItem('puzzleCompletions') || '0') + 1;
+                    localStorage.setItem('puzzleCompletions', count);
+                    finishEntry();
                 });
             }
             

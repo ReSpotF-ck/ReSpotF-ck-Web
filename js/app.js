@@ -347,50 +347,62 @@ function setupEventListeners() {
     
     // Music source buttons
     const audiusBtn = document.getElementById('audiusBtn');
-    if (audiusBtn) audiusBtn.addEventListener('click', () => {
+    if (audiusBtn) audiusBtn.addEventListener('click', async () => {
         setActiveSidebar('audiusBtn');
         currentSource = 'audius';
         updateSourceTabs('audius');
         if (tracks.length > 0) {
             displayTracks();
         } else {
-            loadRecommendations();
+            showLoadingState();
+            tracks = await searchAllSources('trending audius');
+            currentTrackIndex = 0;
+            displayTracks();
         }
     });
     
     const youtubeBtn = document.getElementById('youtubeBtn');
-    if (youtubeBtn) youtubeBtn.addEventListener('click', () => {
+    if (youtubeBtn) youtubeBtn.addEventListener('click', async () => {
         setActiveSidebar('youtubeBtn');
         currentSource = 'youtube';
         updateSourceTabs('youtube');
         if (tracks.length > 0) {
             displayTracks();
         } else {
-            loadRecommendations();
+            showLoadingState();
+            tracks = await searchAllSources('trending youtube');
+            currentTrackIndex = 0;
+            displayTracks();
         }
     });
     
     const jamendoBtn = document.getElementById('jamendoBtn');
-    if (jamendoBtn) jamendoBtn.addEventListener('click', () => {
+    if (jamendoBtn) jamendoBtn.addEventListener('click', async () => {
         setActiveSidebar('jamendoBtn');
         currentSource = 'jamendo';
         updateSourceTabs('jamendo');
         if (tracks.length > 0) {
             displayTracks();
         } else {
-            loadRecommendations();
+            showLoadingState();
+            tracks = await searchAllSources('trending jamendo');
+            currentTrackIndex = 0;
+            displayTracks();
         }
     });
     
     const spotifyBtn = document.getElementById('spotifyBtn');
-    if (spotifyBtn) spotifyBtn.addEventListener('click', () => {
+    if (spotifyBtn) spotifyBtn.addEventListener('click', async () => {
         setActiveSidebar('spotifyBtn');
         currentSource = 'spotify';
         updateSourceTabs('spotify');
         if (tracks.length > 0) {
             displayTracks();
         } else {
-            loadRecommendations();
+            showLoadingState();
+            tracks = await searchAllSources('trending spotify');
+            currentTrackIndex = 0;
+            displayTracks();
         }
     });
     

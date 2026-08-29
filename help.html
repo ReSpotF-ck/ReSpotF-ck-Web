@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & FAQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <!-- Beta/Alpha Warning Banner -->
+    <div class="beta-banner" id="betaBanner">
+        <div class="beta-banner-content">
+            <div class="beta-banner-icon"><i class="fas fa-flask"></i></div>
+            <div class="beta-banner-text">
+                <div class="beta-banner-title">Alpha/Beta Version</div>
+                <div class="beta-banner-info">This application is still in development. Some features may not work as expected.</div>
+            </div>
+            <button class="beta-banner-close" id="betaBannerClose"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <main class="page-container left">
+        <div class="page-card wide">
+            <h1 class="page-title">Help & FAQ</h1>
+
+            <div class="page-section">
+                <h3>How do I access the music player?</h3>
+                <p>Open <a href="h0m3.html" style="color: var(--primary)">h0m3.html</a> and solve the puzzle. The current answer is the result of the displayed math question. Press <strong>Shift+B</strong> or open <code>h0m3.html?bypass=1</code> for the admin bypass.</p>
+            </div>
+
+            <div class="page-section">
+                <h3>Why is no music showing?</h3>
+                <p>Make sure you are running the site through a local server (e.g., <code>python -m http.server 8080</code>) rather than opening the HTML file directly. Audius is searched by default and does not require a key. You can also add API keys in the player Settings for Jamendo, YouTube, and Spotify.</p>
+            </div>
+
+            <div class="page-section">
+                <h3>How do I add API keys?</h3>
+                <p>Click the <strong>Settings</strong> (cog) icon in the top right of the player, go to the <strong>API Keys</strong> tab, and enter your credentials. Jamendo, YouTube, and Spotify require valid Client IDs and/or API keys. Audius works without configuration.</p>
+            </div>
+
+            <div class="page-section">
+                <h3>Can I customize the look?</h3>
+                <p>Yes. Open the player settings and select the <strong>Theme</strong> tab. You can switch between Default Dark and AMOLED modes, change the accent color, and enable a compact player bar.</p>
+            </div>
+
+            <div class="page-section">
+                <h3>Can I download music?</h3>
+                <p>The downloader can attempt to save tracks when the source provides a direct audio URL. Some sources are restricted by CORS or require special permissions. Demo tracks can usually be downloaded directly.</p>
+            </div>
+
+            <div class="page-section">
+                <h3>Where is my data stored?</h3>
+                <p>All of your settings, liked songs, playlists, and queues are saved in your browser's LocalStorage. No data is sent to our servers. Clearing your browser data will remove your saved content.</p>
+            </div>
+
+            <div class="page-actions">
+                <a href="index.html" class="page-btn"><i class="fas fa-home"></i> Go Home</a>
+                <a href="h0m3.html" class="page-btn secondary"><i class="fas fa-music"></i> Open Player</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/shared.js"></script>
+</body>
+</html>

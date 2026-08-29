@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <!-- Beta/Alpha Warning Banner -->
+    <div class="beta-banner" id="betaBanner">
+        <div class="beta-banner-content">
+            <div class="beta-banner-icon"><i class="fas fa-flask"></i></div>
+            <div class="beta-banner-text">
+                <div class="beta-banner-title">Alpha/Beta Version</div>
+                <div class="beta-banner-info">This application is still in development. Some features may not work as expected.</div>
+            </div>
+            <button class="beta-banner-close" id="betaBannerClose"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <main class="page-container left">
+        <div class="page-card wide">
+            <h1 class="page-title">Privacy Policy</h1>
+
+            <div class="page-section">
+                <h3>Local Data Only</h3>
+                <p>All personal data, settings, liked songs, playlists, recently played tracks, and queue information are stored locally in your browser using LocalStorage. We do not collect, store, or transmit this information to any external server.</p>
+            </div>
+
+            <div class="page-section">
+                <h3>Third-Party APIs</h3>
+                <p>When you use the music player, search queries and playback requests are sent directly from your browser to the third-party music services you configure or that are enabled by default (Audius, Jamendo, YouTube, Spotify). Those services may log your requests according to their own privacy policies. We do not act as an intermediary or collect that data.</p>
+            </div>
+
+            <div class="page-section">
+                <h3>API Keys</h3>
+                <p>Any API keys or credentials you enter in the settings panel are saved only in your browser's LocalStorage. They are not sent to our servers or shared with anyone. You are responsible for keeping your credentials secure.</p>
+            </div>
+
+            <div class="page-section">
+                <h3>Cookies & Tracking</h3>
+                <p>This application does not use tracking cookies or analytics. The only cookies or cached data are those required by the service worker to allow the app to work offline as a Progressive Web App (PWA).</p>
+            </div>
+
+            <div class="page-section">
+                <h3>Data Control</h3>
+                <p>You can clear all saved data at any time by using the "Reset All Settings" button in the player settings or by clearing your browser's LocalStorage for this origin.</p>
+            </div>
+
+            <div class="page-actions">
+                <a href="index.html" class="page-btn"><i class="fas fa-home"></i> Go Home</a>
+                <a href="h0m3.html" class="page-btn secondary"><i class="fas fa-music"></i> Open Player</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/shared.js"></script>
+</body>
+</html>

@@ -136,6 +136,47 @@
                         <i class="fas fa-list"></i> Browse Genres
                     </div>
                 </div>
+
+                <div class="sidebar-section" id="sitemapSection">
+                    <div class="sidebar-title">Site Map</div>
+                    <a href="index.html" class="sidebar-item" target="_blank">
+                        <i class="fas fa-rocket"></i> Landing Page
+                    </a>
+                    <a href="signin.html" class="sidebar-item" target="_blank">
+                        <i class="fas fa-user"></i> Sign In
+                    </a>
+                    <a href="h0m3.html" class="sidebar-item">
+                        <i class="fas fa-music"></i> Music Player
+                    </a>
+                    <a href="dmca.html" class="sidebar-item" target="_blank">
+                        <i class="fas fa-exclamation-triangle"></i> DMCA Notice
+                    </a>
+                    <a href="updates.html" class="sidebar-item" target="_blank">
+                        <i class="fas fa-bullhorn"></i> Updates
+                    </a>
+                    <a href="notice.html" class="sidebar-item" target="_blank">
+                        <i class="fas fa-info-circle"></i> Notice
+                    </a>
+                    <a href="help.html" class="sidebar-item" target="_blank">
+                        <i class="fas fa-question-circle"></i> Help / FAQ
+                    </a>
+                    <a href="privacy.html" class="sidebar-item" target="_blank">
+                        <i class="fas fa-shield-alt"></i> Privacy
+                    </a>
+                </div>
+
+                <div class="sidebar-section" id="toolsSection">
+                    <div class="sidebar-title">Tools</div>
+                    <div class="sidebar-item" id="apiStatusBtn">
+                        <i class="fas fa-chart-line"></i> API Status
+                    </div>
+                    <div class="sidebar-item" id="errorLogBtn">
+                        <i class="fas fa-bug"></i> View Errors
+                    </div>
+                    <div class="sidebar-item" id="clearDebugSidebarBtn">
+                        <i class="fas fa-trash"></i> Clear Debug Data
+                    </div>
+                </div>
             </aside>
 
             <!-- Content Area -->
@@ -684,6 +725,9 @@
                 <button class="settings-tab" data-tab="audio">
                     <i class="fas fa-sliders-h"></i> Audio
                 </button>
+                <button class="settings-tab" data-tab="theme">
+                    <i class="fas fa-palette"></i> Theme
+                </button>
                 <button class="settings-tab" data-tab="developer">
                     <i class="fas fa-code"></i> Developer
                 </button>
@@ -872,6 +916,13 @@
                             <div class="debug-logs" id="debugLogs">
                                 <div class="debug-log-info">Debug logs will appear here...</div>
                             </div>
+
+                            <div class="debug-errors" id="debugErrors">
+                                <h4><i class="fas fa-exclamation-circle"></i> Last Search Source Errors</h4>
+                                <div id="lastSearchErrors">
+                                    <div class="debug-log-info">No source errors recorded.</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -980,6 +1031,40 @@
                             <label class="settings-checkbox">
                                 <input type="checkbox" id="enableVisualizer">
                                 <span>Enable audio visualization</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Theme Tab -->
+                <div class="settings-tab-content" id="theme-tab">
+                    <div class="settings-section">
+                        <h3><i class="fas fa-palette"></i> Appearance</h3>
+                        
+                        <div class="settings-input-group">
+                            <label>Theme Mode</label>
+                            <select class="settings-select" id="themeMode">
+                                <option value="dark">Default Dark</option>
+                                <option value="amoled">AMOLED (Pure Black)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="settings-input-group">
+                            <label>Accent Color</label>
+                            <select class="settings-select" id="accentColor">
+                                <option value="red">Red</option>
+                                <option value="blue">Blue</option>
+                                <option value="green">Green</option>
+                                <option value="purple">Purple</option>
+                                <option value="orange">Orange</option>
+                                <option value="pink">Pink</option>
+                            </select>
+                        </div>
+                        
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox">
+                                <input type="checkbox" id="compactPlayer">
+                                <span>Compact player bar</span>
                             </label>
                         </div>
                     </div>
@@ -1354,6 +1439,50 @@
         .debug-log-info {
             color: var(--text-secondary);
             font-style: italic;
+        }
+        
+        .debug-errors {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        
+        .debug-errors h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .debug-errors h4 i {
+            color: var(--primary);
+        }
+        
+        .debug-error-item {
+            padding: 8px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            color: #ef4444;
+            font-size: 13px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .debug-error-source {
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 80px;
+        }
+        
+        .debug-error-message {
+            color: var(--text-secondary);
         }
         
         /* Playlist Management */
@@ -2730,6 +2859,15 @@
                 if (downloadCoverArt && settings.downloadCoverArt !== undefined) downloadCoverArt.checked = settings.downloadCoverArt;
                 if (autoOrganize && settings.autoOrganize !== undefined) autoOrganize.checked = settings.autoOrganize;
 
+                // Theme Settings
+                const themeMode = document.getElementById('themeMode');
+                const accentColor = document.getElementById('accentColor');
+                const compactPlayer = document.getElementById('compactPlayer');
+
+                if (themeMode && settings.themeMode) themeMode.value = settings.themeMode;
+                if (accentColor && settings.accentColor) accentColor.value = settings.accentColor;
+                if (compactPlayer && settings.compactPlayer !== undefined) compactPlayer.checked = settings.compactPlayer;
+
                 // Load playlists if function exists
                 if (typeof window.updatePlaylistUI === 'function') {
                     window.updatePlaylistUI();
@@ -2737,6 +2875,51 @@
 
                 console.log('Settings loaded');
             };
+
+            // Apply saved theme / appearance
+            window.applyTheme = function() {
+                const settings = JSON.parse(localStorage.getItem('spotfuckSettings') || '{}');
+                const root = document.documentElement;
+                
+                // Theme mode
+                const themeMode = settings.themeMode || 'dark';
+                if (themeMode === 'amoled') {
+                    root.style.setProperty('--bg-dark', '#000000');
+                    root.style.setProperty('--bg-card', '#000000');
+                    root.style.setProperty('--bg-hover', '#0a0a0a');
+                    root.style.setProperty('--border', 'rgba(255,255,255,0.06)');
+                } else {
+                    root.style.removeProperty('--bg-dark');
+                    root.style.removeProperty('--bg-card');
+                    root.style.removeProperty('--bg-hover');
+                    root.style.removeProperty('--border');
+                }
+                
+                // Accent color
+                const accent = settings.accentColor || 'red';
+                const accentMap = {
+                    red:    { primary: '#ef4444', dark: '#dc2626', light: '#f87171' },
+                    blue:   { primary: '#3b82f6', dark: '#2563eb', light: '#60a5fa' },
+                    green:  { primary: '#22c55e', dark: '#16a34a', light: '#4ade80' },
+                    purple: { primary: '#a855f7', dark: '#7e22ce', light: '#c084fc' },
+                    orange: { primary: '#f97316', dark: '#ea580c', light: '#fb923c' },
+                    pink:   { primary: '#ec4899', dark: '#db2777', light: '#f472b6' }
+                };
+                const a = accentMap[accent] || accentMap.red;
+                root.style.setProperty('--primary', a.primary);
+                root.style.setProperty('--primary-dark', a.dark);
+                root.style.setProperty('--primary-light', a.light);
+                document.querySelector('meta[name="theme-color"]')?.setAttribute('content', a.primary);
+                
+                // Compact player
+                const player = document.querySelector('.player');
+                if (player) {
+                    player.classList.toggle('compact', settings.compactPlayer === true);
+                }
+            };
+
+            // Apply theme on page load
+            window.applyTheme();
 
             // Security Modal Handler
             const securityModal = document.getElementById('securityModal');
@@ -3006,6 +3189,9 @@
                 const downloadMetadata = document.getElementById('downloadMetadata');
                 const downloadCoverArt = document.getElementById('downloadCoverArt');
                 const autoOrganize = document.getElementById('autoOrganize');
+                const themeMode = document.getElementById('themeMode');
+                const accentColor = document.getElementById('accentColor');
+                const compactPlayer = document.getElementById('compactPlayer');
 
                 if (!audiusApiKey || !youtubeApiKey || !jamendoClientId || !spotifyClientId || !spotifyClientSecret) {
                     alert('Error: Required settings elements not found');
@@ -3068,7 +3254,10 @@
                     overwriteBehavior: overwriteBehavior ? overwriteBehavior.value : 'ask',
                     downloadMetadata: downloadMetadata ? downloadMetadata.checked : true,
                     downloadCoverArt: downloadCoverArt ? downloadCoverArt.checked : true,
-                    autoOrganize: autoOrganize ? autoOrganize.checked : false
+                    autoOrganize: autoOrganize ? autoOrganize.checked : false,
+                    themeMode: themeMode ? themeMode.value : 'dark',
+                    accentColor: accentColor ? accentColor.value : 'red',
+                    compactPlayer: compactPlayer ? compactPlayer.checked : false
                 };
                 
                 localStorage.setItem('spotfuckSettings', JSON.stringify(settings));
@@ -3076,6 +3265,11 @@
                 // Update app.js API config if it exists
                 if (typeof window.updateAPIConfig === 'function') {
                     window.updateAPIConfig(settings);
+                }
+                
+                // Apply theme immediately
+                if (typeof window.applyTheme === 'function') {
+                    window.applyTheme();
                 }
                 
                 // Show success feedback
@@ -3095,6 +3289,9 @@
                     localStorage.removeItem('spotfuckSettings');
                     if (typeof window.loadSettings === 'function') {
                         window.loadSettings();
+                    }
+                    if (typeof window.applyTheme === 'function') {
+                        window.applyTheme();
                     }
                     
                     // Show feedback
@@ -3427,9 +3624,48 @@
                 settingsModal.classList.add('active');
             };
             
+            window.openSettingsTab = function(tabName) {
+                loadSettings();
+                settingsModal.classList.add('active');
+                settingsTabs.forEach(t => t.classList.remove('active'));
+                settingsTabContents.forEach(c => c.classList.remove('active'));
+                const tab = document.querySelector(`.settings-tab[data-tab="${tabName}"]`);
+                const content = document.getElementById(`${tabName}-tab`);
+                if (tab) tab.classList.add('active');
+                if (content) content.classList.add('active');
+            };
+            
             window.closeSettings = function() {
                 settingsModal.classList.remove('active');
             };
+            
+            // Sidebar tool buttons
+            const apiStatusBtn = document.getElementById('apiStatusBtn');
+            const errorLogBtn = document.getElementById('errorLogBtn');
+            const clearDebugSidebarBtn = document.getElementById('clearDebugSidebarBtn');
+            
+            if (apiStatusBtn) {
+                apiStatusBtn.addEventListener('click', () => {
+                    window.openSettingsTab('debug');
+                });
+            }
+            
+            if (errorLogBtn) {
+                errorLogBtn.addEventListener('click', () => {
+                    window.openSettingsTab('debug');
+                });
+            }
+            
+            if (clearDebugSidebarBtn) {
+                clearDebugSidebarBtn.addEventListener('click', () => {
+                    if (typeof window.clearDebugLogs === 'function') {
+                        if (confirm('Clear all debug logs and API stats?')) {
+                            window.clearDebugLogs();
+                            window.openSettingsTab('debug');
+                        }
+                    }
+                });
+            }
         });
     </script>
 

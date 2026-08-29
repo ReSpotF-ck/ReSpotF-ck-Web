@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Updates & Changelog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <!-- Beta/Alpha Warning Banner -->
+    <div class="beta-banner" id="betaBanner">
+        <div class="beta-banner-content">
+            <div class="beta-banner-icon"><i class="fas fa-flask"></i></div>
+            <div class="beta-banner-text">
+                <div class="beta-banner-title">Alpha/Beta Version</div>
+                <div class="beta-banner-info">This application is still in development. Some features may not work as expected.</div>
+            </div>
+            <button class="beta-banner-close" id="betaBannerClose"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <main class="page-container left">
+        <div class="page-card wide">
+            <h1 class="page-title">Updates & Changelog</h1>
+
+            <div class="page-section">
+                <h3>Latest Changes</h3>
+                <ul class="page-list">
+                    <li>Renamed main player page from <code>N3K0.html</code> to <code>h0m3.html</code>.</li>
+                    <li>Fixed real music display by enabling Audius, Jamendo, YouTube, and Spotify searches with demo fallback.</li>
+                    <li>Added a Theme settings tab: Default Dark, AMOLED, accent colors, and compact player.</li>
+                    <li>Improved mobile and desktop flex layout so the player no longer gets cut off.</li>
+                    <li>Added new info pages: DMCA, Notice, Privacy, Help/FAQ, and Updates.</li>
+                    <li>Added a sitemap section to the music player sidebar.</li>
+                    <li>Added new 404 page with quick links back to the app.</li>
+                </ul>
+            </div>
+
+            <div class="page-section">
+                <h3>Known Issues</h3>
+                <ul class="page-list">
+                    <li>Jamendo requires a valid Client ID configured in Settings.</li>
+                    <li>YouTube and Spotify playback require your own API credentials.</li>
+                    <li>Some downloads may fail due to CORS restrictions from third-party sources.</li>
+                    <li>Visualizer is hidden while the player is visible; this will be addressed in a future update.</li>
+                </ul>
+            </div>
+
+            <div class="page-section">
+                <h3>Coming Soon</h3>
+                <ul class="page-list">
+                    <li>Light theme option.</li>
+                    <li>More detailed player visualization.</li>
+                    <li>Improved playlist import/export and sync options.</li>
+                    <li>Custom background patterns and more theme customization.</li>
+                </ul>
+            </div>
+
+            <div class="page-actions">
+                <a href="index.html" class="page-btn"><i class="fas fa-home"></i> Go Home</a>
+                <a href="h0m3.html" class="page-btn secondary"><i class="fas fa-music"></i> Open Player</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/shared.js"></script>
+</body>
+</html>

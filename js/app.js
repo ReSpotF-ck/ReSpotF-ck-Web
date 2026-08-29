@@ -574,6 +574,10 @@ async function searchAllSources(query) {
                 console.log('Source errors:', sourceErrors);
             }
             
+            // Store source errors and update debug UI
+            window.lastSearchErrors = sourceErrors;
+            updateDebugUI();
+            
             return allTracks;
         }
 
@@ -1995,10 +1999,27 @@ function updateDebugUI() {
     
     const totalErrors = Object.values(apiStats).reduce((sum, stat) => sum + stat.errors, 0);
     document.getElementById('totalErrorCount').textContent = totalErrors;
+    
+    // Update last source errors
+    const lastSearchErrorsContainer = document.getElementById('lastSearchErrors');
+    if (lastSearchErrorsContainer) {
+        const errors = window.lastSearchErrors;
+        if (errors && Object.keys(errors).length > 0) {
+            lastSearchErrorsContainer.innerHTML = Object.entries(errors).map(([source, message]) => `
+                <div class="debug-error-item">
+                    <span class="debug-error-source">${source}</span>
+                    <span class="debug-error-message">${message}</span>
+                </div>
+            `).join('');
+        } else {
+            lastSearchErrorsContainer.innerHTML = '<div class="debug-log-info">No source errors recorded.</div>';
+        }
+    }
 }
 
 function clearDebugLogs() {
     debugLogs = [];
+    window.lastSearchErrors = {};
     apiStats = {
         audius: { requests: 0, errors: 0 },
         youtube: { requests: 0, errors: 0 },

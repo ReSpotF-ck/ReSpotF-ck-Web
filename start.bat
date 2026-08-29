@@ -4,11 +4,11 @@ echo.
 echo Opening landing page in your default browser...
 start "" "index.html"
 echo.
-echo For the main music player, open: N3K0.html (PIN required: N3K0)
+echo For the main music player, open: h0m3.html (PIN required: solve the puzzle)
 echo For sign-in page, open: signin.html
 echo.
-echo PIN Entry for N3K0.html:
-echo - Correct PIN: N3K0
+echo PIN Entry for h0m3.html:
+echo - Correct PIN: 8 (answer to the puzzle)
 echo - Admin bypass: ADMIN (or Ctrl+Shift+B)
 echo.
 echo Recent improvements:

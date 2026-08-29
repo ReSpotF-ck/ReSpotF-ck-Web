@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeDOMElements();
     loadSettingsToAPIConfig();
     setupSecurityMeasures();
-    // Don't show security modal here - N3K0.html handles it
+    // Don't show security modal here - h0m3.html handles it
     // Don't load recommendations yet - wait for app to be shown after PIN entry
     setupEventListeners();
     setupKeyboardShortcuts();
@@ -191,11 +191,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDownloadSettings();
 });
 
-// Show Security Modal - handled by N3K0.html
+// Show Security Modal - handled by h0m3.html
 function showSecurityModal() {
-    // Security modal is now handled directly in N3K0.html
+    // Security modal is now handled directly in h0m3.html
     // This function is kept for compatibility but does nothing
-    console.log('Security modal handling delegated to N3K0.html');
+    console.log('Security modal handling delegated to h0m3.html');
 }
 
 // Basic security measures (minimal, non-intrusive)
@@ -520,9 +520,9 @@ async function handleSearch() {
 }
 
 async function searchAllSources(query) {
-    return Promise.resolve(getDemoTracks(query));
     const sources = [];
     const sourceErrors = {};
+    const searchPromises = [];
     
     // Always try Audius (no API key needed for public search)
     searchPromises.push(searchAudius(query));
@@ -577,21 +577,32 @@ async function searchAllSources(query) {
             return allTracks;
         }
 
-        // If no results from APIs, throw error with information
+        // If no results from APIs, fall back to demo tracks so the app always shows music
         console.log('No results from APIs');
         console.log('Source errors:', sourceErrors);
-        addDebugLog('Search', 'No results from any API source', 'error');
+        addDebugLog('Search', 'No results from any API source, using demo fallback', 'error');
         
         // Store source errors for display
         window.lastSearchErrors = sourceErrors;
         
-        throw new Error('No results found from any music source. Please check your API keys in Settings or try a different search term.');
+        let demoTracks = getDemoTracks(query);
+        if (demoTracks.length === 0) {
+            demoTracks = getDemoTracks();
+        }
+        addDebugLog('Search', `Falling back to ${demoTracks.length} demo tracks`, 'info');
+        return demoTracks;
     } catch (error) {
         console.error('Search all sources error:', error);
         addDebugLog('Search', `Search error: ${error.message}`, 'error');
         // Store error for display
         window.lastSearchErrors = sourceErrors;
-        throw error; // Re-throw to show error instead of silent fallback
+        // Always fall back to demo tracks instead of failing
+        let demoTracks = getDemoTracks(query);
+        if (demoTracks.length === 0) {
+            demoTracks = getDemoTracks();
+        }
+        addDebugLog('Search', `Falling back to ${demoTracks.length} demo tracks`, 'info');
+        return demoTracks;
     }
 }
 
@@ -603,7 +614,6 @@ async function searchAudius(query) {
         // Use working Audius Discovery API endpoints
         const hosts = [
             'https://discoveryprovider.audius.co',
-            'https://discovery-auditius.co',
             'https://api.audius.co'
         ];
         let data = null;
@@ -728,8 +738,11 @@ async function searchJamendo(query) {
     addDebugLog('Jamendo', `Searching for: "${query}"`, 'info');
     
     try {
-        // Use Jamendo's public API with a working client ID
-        const clientId = API_CONFIG.jamendo.clientId || 'c2f8e5c0';
+        // Use Jamendo's public API when a client ID is configured
+        const clientId = API_CONFIG.jamendo.clientId;
+        if (!clientId) {
+            throw new Error('Jamendo Client ID not configured. Add your Client ID in Settings to use Jamendo.');
+        }
         
         // Use the correct Jamendo API endpoint
         const endpoint = `${API_CONFIG.jamendo.baseUrl}/tracks/?client_id=${clientId}&format=jsonpretty&limit=15&search=${encodeURIComponent(query)}&include=musicinfo+stats+artist`;
@@ -1065,41 +1078,20 @@ function showErrorState(errorType, details = '') {
 }
 
 async function loadRecommendations() {
-    tracks = getDemoTracks();
-    currentTrackIndex = 0;
-    updateContentTitle('Home');
-    displayTracks();
-    return;
-    
     try {
-        // Try to get trending tracks from Audius as recommendations
-        const trendingQuery = 'trending popular music';
-        const results = await searchAudius(trendingQuery);
-        
-        if (results.length > 0) {
-            tracks = results;
-            currentTrackIndex = 0;
-            updateContentTitle('Home');
-            displayTracks();
-            console.log('Loaded recommendations from Audius:', results.length);
-            return;
-        }
-        
-        // Try Jamendo as backup
-        const jamendoResults = await searchJamendo('popular');
-        if (jamendoResults.length > 0) {
-            tracks = jamendoResults;
-            currentTrackIndex = 0;
-            displayTracks();
-            console.log('Loaded recommendations from Jamendo:', jamendoResults.length);
-            return;
-        }
-        
-        // If both fail, show error
-        throw new Error('Unable to load recommendations. Please check your internet connection.');
+        const results = await searchAllSources('trending popular music');
+        tracks = results;
+        currentTrackIndex = 0;
+        updateContentTitle('Home');
+        displayTracks();
+        console.log('Loaded recommendations:', results.length);
     } catch (error) {
         console.error('Error loading recommendations:', error);
-        showErrorState('api_error', 'Unable to load music recommendations. Please try searching for specific songs or artists.');
+        tracks = getDemoTracks();
+        currentTrackIndex = 0;
+        updateContentTitle('Home');
+        displayTracks();
+        addDebugLog('Search', 'Recommendations failed, showing demo tracks', 'error');
     }
 }
 
@@ -1107,74 +1099,38 @@ async function loadRecommendations() {
 window.loadRecommendations = loadRecommendations;
 
 async function loadTrendingTracks() {
-    tracks = getDemoTracks();
-    currentTrackIndex = 0;
-    updateContentTitle('Trending');
-    displayTracks();
-    return;
-    
     try {
-        // Try to get trending from Audius (no API key needed)
-        const trendingQuery = 'trending music';
-        const results = await searchAudius(trendingQuery);
-        
-        if (results.length > 0) {
-            tracks = results;
-            currentTrackIndex = 0;
-            updateContentTitle('Trending');
-            displayTracks();
-            return;
-        }
-        
-        // Try Jamendo as backup
-        const jamendoResults = await searchJamendo('trending');
-        if (jamendoResults.length > 0) {
-            tracks = jamendoResults;
-            currentTrackIndex = 0;
-            displayTracks();
-            return;
-        }
-        
-        throw new Error('No trending tracks found. Please try searching for specific songs.');
+        const results = await searchAllSources('trending music');
+        tracks = results;
+        currentTrackIndex = 0;
+        updateContentTitle('Trending');
+        displayTracks();
+        console.log('Loaded trending:', results.length);
     } catch (error) {
         console.error('Error loading trending:', error);
-        showErrorState('api_error', 'Unable to load trending tracks. Please try searching for specific songs or artists.');
+        tracks = getDemoTracks();
+        currentTrackIndex = 0;
+        updateContentTitle('Trending');
+        displayTracks();
+        addDebugLog('Search', 'Trending failed, showing demo tracks', 'error');
     }
 }
 
 async function loadNewReleases() {
-    tracks = getDemoTracks();
-    currentTrackIndex = 0;
-    updateContentTitle('New Releases');
-    displayTracks();
-    return;
-    
     try {
-        // Try to get new releases from Audius (no API key needed)
-        const newReleasesQuery = 'new music';
-        const results = await searchAudius(newReleasesQuery);
-        
-        if (results.length > 0) {
-            tracks = results;
-            currentTrackIndex = 0;
-            updateContentTitle('New Releases');
-            displayTracks();
-            return;
-        }
-        
-        // Try Jamendo as backup
-        const jamendoResults = await searchJamendo('new');
-        if (jamendoResults.length > 0) {
-            tracks = jamendoResults;
-            currentTrackIndex = 0;
-            displayTracks();
-            return;
-        }
-        
-        throw new Error('No new releases found. Please try searching for specific songs.');
+        const results = await searchAllSources('new music');
+        tracks = results;
+        currentTrackIndex = 0;
+        updateContentTitle('New Releases');
+        displayTracks();
+        console.log('Loaded new releases:', results.length);
     } catch (error) {
         console.error('Error loading new releases:', error);
-        showErrorState('api_error', 'Unable to load new releases. Please try searching for specific songs or artists.');
+        tracks = getDemoTracks();
+        currentTrackIndex = 0;
+        updateContentTitle('New Releases');
+        displayTracks();
+        addDebugLog('Search', 'New releases failed, showing demo tracks', 'error');
     }
 }
 

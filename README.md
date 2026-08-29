@@ -6,7 +6,7 @@ A modern, completely redesigned music streaming application that aggregates musi
 
 - **index.html** - Landing page with special access requirements
 - **signin.html** - Sign-in page with Discord, Telegram, and invite form
-- **N3K0.html** - Main music streaming application (requires access)
+- **h0m3.html** - Main music streaming application (requires access)
 - **css/shared.css** - Shared CSS components for all pages
 - **js/shared.js** - Shared JavaScript functionality for all pages
 
@@ -32,9 +32,9 @@ A modern, completely redesigned music streaming application that aggregates musi
 ### Option 1: Direct File Opening
 1. Open `index.html` to see the landing page
 2. Navigate to `signin.html` to sign in or request access
-3. Once you have access, open `N3K0.html` for the music player
-   - **PIN Required**: Enter `N3K0` to access the music player
-   - **Admin Bypass**: Enter `ADMIN` or use `Ctrl+Shift+B` keyboard shortcut
+3. Once you have access, open `h0m3.html` for the music player
+   - **PIN Required**: Enter `8` (the answer to "What is 5 + 3?") to access the music player
+   - **Admin Bypass**: Press `Shift+B` or open `h0m3.html?bypass=1`
 
 ### Option 2: Quick Start
 Run `start.bat` to open the landing page automatically.
@@ -47,14 +47,14 @@ For the best experience, serve the files through a local web server:
 cd ReSpotiF*ck-Web
 python -m http.server 8000
 ```
-Then open http://localhost:8000/index.html for landing page or http://localhost:8000/N3K0.html for the music player.
+Then open http://localhost:8000/index.html for landing page or http://localhost:8000/h0m3.html for the music player.
 
 #### Using Node.js
 ```bash
 cd ReSpotiF*ck-Web
 npx http-server -p 8000
 ```
-Then open http://localhost:8000/index.html for landing page or http://localhost:8000/N3K0.html for the music player.
+Then open http://localhost:8000/index.html for landing page or http://localhost:8000/h0m3.html for the music player.
 
 #### Using PowerShell (Windows)
 ```powershell
@@ -85,12 +85,11 @@ To customize the Discord and Telegram links in the sign-in page:
 
 ## PIN Security System
 
-The main music player (`N3K0.html`) is protected by a PIN entry system:
+The main music player (`h0m3.html`) is protected by a PIN entry system:
 
 ### Access Methods
-1. **Standard PIN**: Enter `N3K0` (case-insensitive)
-2. **Admin Bypass**: Enter `ADMIN` or use keyboard shortcut `Ctrl+Shift+B`
-3. **Bypass Button**: Click "Bypass (Admin)" button for confirmation dialog
+1. **Standard PIN**: Enter `8` (case-insensitive)
+2. **Admin Bypass**: Press `Shift+B` or open `h0m3.html?bypass=1`
 
 ### Features
 - **Persistent Session**: Once authenticated, the PIN is remembered in localStorage
@@ -194,7 +193,7 @@ To access real music from the platforms, configure API keys via the Settings pan
 ReSpotiF*ck-Web/
 ├── index.html          # Landing page with special access
 ├── signin.html         # Sign-in page with community links
-├── N3K0.html           # Main music streaming application
+├── h0m3.html           # Main music streaming application
 ├── css/
 │   └── styles.css      # All styling
 ├── js/

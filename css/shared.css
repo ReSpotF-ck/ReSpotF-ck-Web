@@ -553,3 +553,37 @@ body {
         font-size: 11px;
     }
 }
+
+/* Global micro-animations */
+body {
+    animation: fadeInBody 0.5s ease;
+}
+
+@keyframes fadeInBody {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+button, a, input, select, textarea, .source-tab, .sidebar-item, .track-item, .genre-card, .feature-item {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active, a:active, .source-tab:active, .sidebar-item:active, .play-btn:active, .track-item:active, .genre-card:active, .feature-item:active {
+    transform: scale(0.97);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}

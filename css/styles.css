@@ -12,6 +12,8 @@
     --text-muted: #666666;
     --border: rgba(255,255,255,0.08);
     --success: #10b981;
+    --header-bg: rgba(0, 0, 0, 0.8);
+    --player-bg: rgba(0, 0, 0, 0.95);
 }
 
 * {
@@ -84,7 +86,7 @@ audio {
     justify-content: space-between;
     align-items: center;
     padding: 10px 16px;
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--header-bg);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     position: sticky;
@@ -194,6 +196,33 @@ audio {
     flex-shrink: 0;
     height: 100%;
     max-height: 100%;
+}
+
+.sidebar.open {
+    display: block;
+    position: fixed;
+    top: 106px;
+    left: 0;
+    width: 260px;
+    height: calc(100vh - 106px);
+    z-index: 200;
+}
+
+.menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.menu-toggle:hover {
+    background: var(--bg-hover);
 }
 
 .sidebar-section {
@@ -747,7 +776,7 @@ audio {
     align-items: center;
     gap: 12px;
     padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.95);
+    background: var(--player-bg);
     backdrop-filter: blur(20px);
     border-top: 1px solid var(--border);
     position: relative;
@@ -992,6 +1021,17 @@ audio {
 @media (max-width: 768px) {
     .sidebar {
         display: none;
+    }
+    
+    .sidebar.open {
+        top: 108px;
+        height: calc(100vh - 108px);
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .menu-toggle {
+        display: block;
     }
     
     .header {
@@ -1660,4 +1700,43 @@ textarea:focus {
     width: 40px;
     height: 40px;
     font-size: 16px;
+}
+
+/* Large player */
+.player.player-size-large {
+    padding: 14px 18px;
+    height: 90px;
+    min-height: 90px;
+}
+
+.player.player-size-large .player-info .track-art {
+    width: 60px;
+    height: 60px;
+}
+
+.player.player-size-large .play-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 20px;
+}
+
+.player.player-size-large .control-btn {
+    font-size: 18px;
+    width: 40px;
+    height: 40px;
+}
+
+.player.player-size-large .player-info .track-title {
+    font-size: 15px;
+}
+
+.player.player-size-large .player-info .track-artist {
+    font-size: 13px;
+}
+
+/* Hide particles when disabled */
+.particles-disabled .particle-container,
+.particles-disabled .bg-particles,
+.particles-disabled #particles {
+    display: none !important;
 }

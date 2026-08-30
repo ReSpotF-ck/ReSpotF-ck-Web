@@ -286,158 +286,146 @@ function setupEventListeners() {
         });
     }
 
-    // Sidebar navigation
-    const homeBtn = document.getElementById('homeBtn');
-    if (homeBtn) homeBtn.addEventListener('click', () => {
-        setActiveSidebar('homeBtn');
-        currentSource = 'all';
-        updateSourceTabs('all');
-        loadRecommendations();
-    });
-
-    const likedSongsBtn = document.getElementById('likedSongsBtn');
-    if (likedSongsBtn) likedSongsBtn.addEventListener('click', () => {
-        setActiveSidebar('likedSongsBtn');
-        currentSource = 'all';
-        updateSourceTabs('all');
-        if (likedSongs.length > 0) {
-            tracks = likedSongs;
-            currentTrackIndex = 0;
-            displayTracks();
-        } else {
-            showEmptyState();
-        }
-    });
-
-    const recentlyPlayedBtn = document.getElementById('recentlyPlayedBtn');
-    if (recentlyPlayedBtn) recentlyPlayedBtn.addEventListener('click', () => {
-        setActiveSidebar('recentlyPlayedBtn');
-        currentSource = 'all';
-        updateSourceTabs('all');
-        if (recentlyPlayed.length > 0) {
-            tracks = recentlyPlayed;
-            currentTrackIndex = 0;
-            displayTracks();
-        } else {
-            showEmptyState();
-        }
-    });
-
-    const queueBtn = document.getElementById('queueBtn');
-    if (queueBtn) queueBtn.addEventListener('click', () => {
-        setActiveSidebar('queueBtn');
-        currentSource = 'all';
-        updateSourceTabs('all');
-        if (queue.length > 0) {
-            tracks = queue;
-            currentTrackIndex = 0;
-            displayTracks();
-        } else {
-            showEmptyState();
-        }
-    });
-    
-    const playlistsBtn = document.getElementById('playlistsBtn');
-    if (playlistsBtn) playlistsBtn.addEventListener('click', () => {
-        setActiveSidebar('playlistsBtn');
-        currentSource = 'all';
-        updateSourceTabs('all');
-        displayPlaylists();
-    });
-    
-    // Music source buttons
-    const audiusBtn = document.getElementById('audiusBtn');
-    if (audiusBtn) audiusBtn.addEventListener('click', async () => {
-        setActiveSidebar('audiusBtn');
-        currentSource = 'audius';
-        updateSourceTabs('audius');
-        if (tracks.length > 0) {
-            displayTracks();
-        } else {
-            showLoadingState();
-            tracks = await searchAllSources('trending audius');
-            currentTrackIndex = 0;
-            displayTracks();
-        }
-    });
-    
-    const youtubeBtn = document.getElementById('youtubeBtn');
-    if (youtubeBtn) youtubeBtn.addEventListener('click', async () => {
-        setActiveSidebar('youtubeBtn');
-        currentSource = 'youtube';
-        updateSourceTabs('youtube');
-        if (tracks.length > 0) {
-            displayTracks();
-        } else {
-            showLoadingState();
-            tracks = await searchAllSources('trending youtube');
-            currentTrackIndex = 0;
-            displayTracks();
-        }
-    });
-    
-    const jamendoBtn = document.getElementById('jamendoBtn');
-    if (jamendoBtn) jamendoBtn.addEventListener('click', async () => {
-        setActiveSidebar('jamendoBtn');
-        currentSource = 'jamendo';
-        updateSourceTabs('jamendo');
-        if (tracks.length > 0) {
-            displayTracks();
-        } else {
-            showLoadingState();
-            tracks = await searchAllSources('trending jamendo');
-            currentTrackIndex = 0;
-            displayTracks();
-        }
-    });
-    
-    const spotifyBtn = document.getElementById('spotifyBtn');
-    if (spotifyBtn) spotifyBtn.addEventListener('click', async () => {
-        setActiveSidebar('spotifyBtn');
-        currentSource = 'spotify';
-        updateSourceTabs('spotify');
-        if (tracks.length > 0) {
-            displayTracks();
-        } else {
-            showLoadingState();
-            tracks = await searchAllSources('trending spotify');
-            currentTrackIndex = 0;
-            displayTracks();
-        }
-    });
-    
-    // Discover buttons
-    const trendingBtn = document.getElementById('trendingBtn');
-    const newReleasesBtn = document.getElementById('newReleasesBtn');
-    const genresBtn = document.getElementById('genresBtn');
-    
-    if (trendingBtn) {
-        trendingBtn.addEventListener('click', () => {
-            setActiveSidebar('trendingBtn');
-            currentSource = 'all';
-            updateSourceTabs('all');
-            loadTrendingTracks();
+    // Sidebar navigation (event delegation so all sidebar buttons work on PC and mobile)
+    const mainSidebar = document.getElementById('mainSidebar');
+    if (mainSidebar) {
+        mainSidebar.addEventListener('click', async (e) => {
+            const item = e.target.closest('.sidebar-item');
+            if (!item || item.tagName === 'A') return;
+            
+            const id = item.id;
+            if (!id) return;
+            
+            // Close mobile sidebar
+            if (window.innerWidth <= 768) {
+                mainSidebar.classList.remove('open');
+            }
+            
+            switch (id) {
+                case 'homeBtn':
+                    setActiveSidebar('homeBtn');
+                    currentSource = 'all';
+                    updateSourceTabs('all');
+                    loadRecommendations();
+                    break;
+                case 'likedSongsBtn':
+                    setActiveSidebar('likedSongsBtn');
+                    currentSource = 'all';
+                    updateSourceTabs('all');
+                    if (likedSongs.length > 0) {
+                        tracks = likedSongs;
+                        currentTrackIndex = 0;
+                        displayTracks();
+                    } else {
+                        showEmptyState();
+                    }
+                    break;
+                case 'recentlyPlayedBtn':
+                    setActiveSidebar('recentlyPlayedBtn');
+                    currentSource = 'all';
+                    updateSourceTabs('all');
+                    if (recentlyPlayed.length > 0) {
+                        tracks = recentlyPlayed;
+                        currentTrackIndex = 0;
+                        displayTracks();
+                    } else {
+                        showEmptyState();
+                    }
+                    break;
+                case 'queueBtn':
+                    setActiveSidebar('queueBtn');
+                    currentSource = 'all';
+                    updateSourceTabs('all');
+                    if (queue.length > 0) {
+                        tracks = queue;
+                        currentTrackIndex = 0;
+                        displayTracks();
+                    } else {
+                        showEmptyState();
+                    }
+                    break;
+                case 'playlistsBtn':
+                    setActiveSidebar('playlistsBtn');
+                    currentSource = 'all';
+                    updateSourceTabs('all');
+                    displayPlaylists();
+                    break;
+                case 'audiusBtn':
+                    setActiveSidebar('audiusBtn');
+                    currentSource = 'audius';
+                    updateSourceTabs('audius');
+                    if (tracks.length > 0) {
+                        displayTracks();
+                    } else {
+                        showLoadingState();
+                        tracks = await searchAllSources('trending audius');
+                        currentTrackIndex = 0;
+                        displayTracks();
+                    }
+                    break;
+                case 'youtubeBtn':
+                    setActiveSidebar('youtubeBtn');
+                    currentSource = 'youtube';
+                    updateSourceTabs('youtube');
+                    if (tracks.length > 0) {
+                        displayTracks();
+                    } else {
+                        showLoadingState();
+                        tracks = await searchAllSources('trending youtube');
+                        currentTrackIndex = 0;
+                        displayTracks();
+                    }
+                    break;
+                case 'jamendoBtn':
+                    setActiveSidebar('jamendoBtn');
+                    currentSource = 'jamendo';
+                    updateSourceTabs('jamendo');
+                    if (tracks.length > 0) {
+                        displayTracks();
+                    } else {
+                        showLoadingState();
+                        tracks = await searchAllSources('trending jamendo');
+                        currentTrackIndex = 0;
+                        displayTracks();
+                    }
+                    break;
+                case 'spotifyBtn':
+                    setActiveSidebar('spotifyBtn');
+                    currentSource = 'spotify';
+                    updateSourceTabs('spotify');
+                    if (tracks.length > 0) {
+                        displayTracks();
+                    } else {
+                        showLoadingState();
+                        tracks = await searchAllSources('trending spotify');
+                        currentTrackIndex = 0;
+                        displayTracks();
+                    }
+                    break;
+                case 'trendingBtn':
+                    setActiveSidebar('trendingBtn');
+                    currentSource = 'all';
+                    updateSourceTabs('all');
+                    loadTrendingTracks();
+                    break;
+                case 'newReleasesBtn':
+                    setActiveSidebar('newReleasesBtn');
+                    currentSource = 'all';
+                    updateSourceTabs('all');
+                    loadNewReleases();
+                    break;
+                case 'genresBtn':
+                    setActiveSidebar('genresBtn');
+                    currentSource = 'all';
+                    updateSourceTabs('all');
+                    loadGenres();
+                    break;
+                default:
+                    // Allow other IDs (tools) to be handled by h0m3.html listeners
+                    break;
+            }
         });
     }
-    
-    if (newReleasesBtn) {
-        newReleasesBtn.addEventListener('click', () => {
-            setActiveSidebar('newReleasesBtn');
-            currentSource = 'all';
-            updateSourceTabs('all');
-            loadNewReleases();
-        });
-    }
-    
-    if (genresBtn) {
-        genresBtn.addEventListener('click', () => {
-            setActiveSidebar('genresBtn');
-            currentSource = 'all';
-            updateSourceTabs('all');
-            loadGenres();
-        });
-    }
-}
 
 function setActiveSidebar(activeId) {
     document.querySelectorAll('.sidebar-item').forEach(item => {

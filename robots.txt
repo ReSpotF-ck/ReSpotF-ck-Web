@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Update this with your real domain before deploying
+Sitemap: /sitemap.xml

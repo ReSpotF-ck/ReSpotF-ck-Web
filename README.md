@@ -13,6 +13,9 @@ A modern, completely redesigned music streaming application that aggregates musi
 - **privacy.html** - Privacy policy
 - **help.html** - Help and FAQ
 - **updates.html** - Changelog and update log
+- **favicon.svg** - Site favicon
+- **robots.txt** - Robots instructions (update domain before deploying)
+- **sitemap.xml** - Site map (update domain before deploying)
 - **css/shared.css** - Shared CSS components for all pages
 - **js/shared.js** - Shared JavaScript functionality for all pages
 

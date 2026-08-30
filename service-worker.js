@@ -10,6 +10,7 @@ const urlsToCache = [
     './privacy.html',
     './help.html',
     './updates.html',
+    './favicon.svg',
     './css/shared.css',
     './css/styles.css',
     './js/shared.js',

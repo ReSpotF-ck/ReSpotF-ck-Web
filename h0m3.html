@@ -14,6 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="css/shared.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="manifest" href="manifest.json">
@@ -66,6 +67,9 @@
     <div class="app-container" id="appContainer" style="display: none;">
         <!-- Header -->
         <header class="header">
+            <button class="menu-toggle" id="menuToggle" aria-label="Open menu">
+                <i class="fas fa-bars"></i>
+            </button>
             <div class="logo">
                 <div class="logo-icon">
                     <i class="fas fa-music"></i>
@@ -79,6 +83,9 @@
                 <button class="header-btn" id="settingsBtn">
                     <i class="fas fa-cog"></i> Settings
                 </button>
+                <button class="header-btn" id="apiDashboardBtn">
+                    <i class="fas fa-chart-line"></i> API
+                </button>
                 <a href="signin.html" class="header-btn primary" id="loginBtn">
                     <i class="fas fa-user"></i> Sign In
                 </a>
@@ -88,7 +95,7 @@
         <!-- Main Layout -->
         <div class="main-layout">
             <!-- Sidebar -->
-            <aside class="sidebar">
+            <aside class="sidebar" id="mainSidebar">
                 <div class="sidebar-section">
                     <div class="sidebar-title">Library</div>
                     <div class="sidebar-item active" id="homeBtn">
@@ -1046,6 +1053,7 @@
                             <select class="settings-select" id="themeMode">
                                 <option value="dark">Default Dark</option>
                                 <option value="amoled">AMOLED (Pure Black)</option>
+                                <option value="light">Light</option>
                             </select>
                         </div>
                         
@@ -1058,13 +1066,25 @@
                                 <option value="purple">Purple</option>
                                 <option value="orange">Orange</option>
                                 <option value="pink">Pink</option>
+                                <option value="teal">Teal</option>
+                                <option value="yellow">Yellow</option>
+                                <option value="cyan">Cyan</option>
+                            </select>
+                        </div>
+                        
+                        <div class="settings-input-group">
+                            <label>Player Size</label>
+                            <select class="settings-select" id="playerSize">
+                                <option value="compact">Compact</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="large">Large</option>
                             </select>
                         </div>
                         
                         <div class="settings-checkbox-group">
                             <label class="settings-checkbox">
-                                <input type="checkbox" id="compactPlayer">
-                                <span>Compact player bar</span>
+                                <input type="checkbox" id="showParticles" checked>
+                                <span>Show background particles</span>
                             </label>
                         </div>
                     </div>
@@ -2859,14 +2879,19 @@
                 if (downloadCoverArt && settings.downloadCoverArt !== undefined) downloadCoverArt.checked = settings.downloadCoverArt;
                 if (autoOrganize && settings.autoOrganize !== undefined) autoOrganize.checked = settings.autoOrganize;
 
-                // Theme Settings
+                // Theme / Customization Settings
                 const themeMode = document.getElementById('themeMode');
                 const accentColor = document.getElementById('accentColor');
-                const compactPlayer = document.getElementById('compactPlayer');
+                const playerSize = document.getElementById('playerSize');
+                const showParticles = document.getElementById('showParticles');
 
                 if (themeMode && settings.themeMode) themeMode.value = settings.themeMode;
                 if (accentColor && settings.accentColor) accentColor.value = settings.accentColor;
-                if (compactPlayer && settings.compactPlayer !== undefined) compactPlayer.checked = settings.compactPlayer;
+                if (playerSize) {
+                    const savedPlayerSize = settings.playerSize || (settings.compactPlayer === true ? 'compact' : 'normal');
+                    playerSize.value = savedPlayerSize;
+                }
+                if (showParticles && settings.showParticles !== undefined) showParticles.checked = settings.showParticles;
 
                 // Load playlists if function exists
                 if (typeof window.updatePlaylistUI === 'function') {
@@ -2887,12 +2912,32 @@
                     root.style.setProperty('--bg-dark', '#000000');
                     root.style.setProperty('--bg-card', '#000000');
                     root.style.setProperty('--bg-hover', '#0a0a0a');
+                    root.style.setProperty('--text-primary', '#ffffff');
+                    root.style.setProperty('--text-secondary', '#a0a0a0');
+                    root.style.setProperty('--text-muted', '#666666');
                     root.style.setProperty('--border', 'rgba(255,255,255,0.06)');
+                    root.style.setProperty('--header-bg', 'rgba(0,0,0,1)');
+                    root.style.setProperty('--player-bg', 'rgba(0,0,0,1)');
+                } else if (themeMode === 'light') {
+                    root.style.setProperty('--bg-dark', '#f8f9fa');
+                    root.style.setProperty('--bg-card', '#ffffff');
+                    root.style.setProperty('--bg-hover', '#e9ecef');
+                    root.style.setProperty('--text-primary', '#1a1a1a');
+                    root.style.setProperty('--text-secondary', '#666666');
+                    root.style.setProperty('--text-muted', '#999999');
+                    root.style.setProperty('--border', 'rgba(0,0,0,0.12)');
+                    root.style.setProperty('--header-bg', 'rgba(248,249,250,0.9)');
+                    root.style.setProperty('--player-bg', 'rgba(255,255,255,0.95)');
                 } else {
                     root.style.removeProperty('--bg-dark');
                     root.style.removeProperty('--bg-card');
                     root.style.removeProperty('--bg-hover');
+                    root.style.removeProperty('--text-primary');
+                    root.style.removeProperty('--text-secondary');
+                    root.style.removeProperty('--text-muted');
                     root.style.removeProperty('--border');
+                    root.style.removeProperty('--header-bg');
+                    root.style.removeProperty('--player-bg');
                 }
                 
                 // Accent color
@@ -2903,7 +2948,10 @@
                     green:  { primary: '#22c55e', dark: '#16a34a', light: '#4ade80' },
                     purple: { primary: '#a855f7', dark: '#7e22ce', light: '#c084fc' },
                     orange: { primary: '#f97316', dark: '#ea580c', light: '#fb923c' },
-                    pink:   { primary: '#ec4899', dark: '#db2777', light: '#f472b6' }
+                    pink:   { primary: '#ec4899', dark: '#db2777', light: '#f472b6' },
+                    teal:   { primary: '#14b8a6', dark: '#0d9488', light: '#2dd4bf' },
+                    yellow: { primary: '#eab308', dark: '#ca8a04', light: '#facc15' },
+                    cyan:   { primary: '#06b6d4', dark: '#0891b2', light: '#22d3ee' }
                 };
                 const a = accentMap[accent] || accentMap.red;
                 root.style.setProperty('--primary', a.primary);
@@ -2911,11 +2959,18 @@
                 root.style.setProperty('--primary-light', a.light);
                 document.querySelector('meta[name="theme-color"]')?.setAttribute('content', a.primary);
                 
-                // Compact player
+                // Player size
                 const player = document.querySelector('.player');
                 if (player) {
-                    player.classList.toggle('compact', settings.compactPlayer === true);
+                    player.classList.remove('compact', 'player-size-normal', 'player-size-large');
+                    const playerSize = settings.playerSize || (settings.compactPlayer === true ? 'compact' : 'normal');
+                    if (playerSize === 'compact') player.classList.add('compact');
+                    else if (playerSize === 'large') player.classList.add('player-size-large');
+                    else player.classList.add('player-size-normal');
                 }
+                
+                // Background particles
+                document.body.classList.toggle('particles-disabled', settings.showParticles === false);
             };
 
             // Apply theme on page load
@@ -3191,7 +3246,8 @@
                 const autoOrganize = document.getElementById('autoOrganize');
                 const themeMode = document.getElementById('themeMode');
                 const accentColor = document.getElementById('accentColor');
-                const compactPlayer = document.getElementById('compactPlayer');
+                const playerSize = document.getElementById('playerSize');
+                const showParticles = document.getElementById('showParticles');
 
                 if (!audiusApiKey || !youtubeApiKey || !jamendoClientId || !spotifyClientId || !spotifyClientSecret) {
                     alert('Error: Required settings elements not found');
@@ -3257,7 +3313,8 @@
                     autoOrganize: autoOrganize ? autoOrganize.checked : false,
                     themeMode: themeMode ? themeMode.value : 'dark',
                     accentColor: accentColor ? accentColor.value : 'red',
-                    compactPlayer: compactPlayer ? compactPlayer.checked : false
+                    playerSize: playerSize ? playerSize.value : 'normal',
+                    showParticles: showParticles ? showParticles.checked : true
                 };
                 
                 localStorage.setItem('spotfuckSettings', JSON.stringify(settings));
@@ -3304,20 +3361,27 @@
                 }
             }
             
-            // Settings button click
+            // Settings button click - opens API Keys tab
             if (settingsBtn) {
                 settingsBtn.addEventListener('click', () => {
                     console.log('Settings button clicked');
-                    if (typeof window.loadSettings === 'function') {
-                        window.loadSettings();
-                    } else {
-                        console.error('loadSettings function not found');
-                    }
-                    if (settingsModal) {
+                    if (typeof window.openSettingsTab === 'function') {
+                        window.openSettingsTab('api');
+                    } else if (settingsModal) {
                         settingsModal.classList.add('active');
-                        console.log('Settings modal activated');
-                    } else {
-                        console.error('Settings modal not found');
+                    }
+                });
+            }
+            
+            // API Dashboard button click - opens Debug tab
+            const apiDashboardBtn = document.getElementById('apiDashboardBtn');
+            if (apiDashboardBtn) {
+                apiDashboardBtn.addEventListener('click', () => {
+                    console.log('API Dashboard button clicked');
+                    if (typeof window.openSettingsTab === 'function') {
+                        window.openSettingsTab('debug');
+                    } else if (settingsModal) {
+                        settingsModal.classList.add('active');
                     }
                 });
             }
@@ -3664,6 +3728,15 @@
                             window.openSettingsTab('debug');
                         }
                     }
+                });
+            }
+            
+            // Mobile hamburger menu
+            const menuToggle = document.getElementById('menuToggle');
+            const mainSidebar = document.getElementById('mainSidebar');
+            if (menuToggle && mainSidebar) {
+                menuToggle.addEventListener('click', () => {
+                    mainSidebar.classList.toggle('open');
                 });
             }
         });

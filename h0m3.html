@@ -211,11 +211,15 @@
                 <div class="search-container">
                     <div class="search-input-wrapper">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" class="search-input" id="searchInput" placeholder="Search for tracks, artists, albums...">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search for tracks, artists, albums..." autocomplete="off">
+                        <button class="clear-search-btn" id="clearSearchBtn" style="display: none;" aria-label="Clear search">
+                            <i class="fas fa-times"></i>
+                        </button>
                         <button class="search-btn" id="searchBtn">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
+                    <div class="search-history" id="searchHistory"></div>
                 </div>
 
                 <!-- Active Section Title -->

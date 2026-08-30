@@ -221,10 +221,23 @@ function setupSecurityMeasures() {
 // Event Listeners
 function setupEventListeners() {
     // Search
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const searchHistoryEl = document.getElementById('searchHistory');
+    
     if (searchBtn) searchBtn.addEventListener('click', handleSearch);
     if (searchInput) {
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSearch();
+        });
+        
+        searchInput.addEventListener('input', () => {
+            if (clearSearchBtn) {
+                clearSearchBtn.style.display = searchInput.value ? 'flex' : 'none';
+            }
+        });
+        
+        searchInput.addEventListener('focus', () => {
+            renderSearchHistory();
         });
         
         // Basic input paste handling (no restriction)
@@ -243,6 +256,39 @@ function setupEventListeners() {
             e.dataTransfer.effectAllowed = 'none';
         });
     }
+    
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+            searchInput.focus();
+        });
+    }
+    
+    if (searchHistoryEl) {
+        searchHistoryEl.addEventListener('click', (e) => {
+            const item = e.target.closest('.search-history-item');
+            if (!item) return;
+            if (e.target.closest('.remove-history')) {
+                e.stopPropagation();
+                removeSearchHistory(item.dataset.query);
+                return;
+            }
+            if (searchInput) {
+                searchInput.value = item.dataset.query;
+                if (clearSearchBtn) clearSearchBtn.style.display = 'flex';
+            }
+            handleSearch();
+            searchHistoryEl.classList.remove('active');
+        });
+    }
+    
+    // Close history when clicking outside
+    document.addEventListener('click', (e) => {
+        if (searchHistoryEl && !e.target.closest('.search-container')) {
+            searchHistoryEl.classList.remove('active');
+        }
+    });
 
     // Source tabs
     if (sourceTabs && sourceTabs.length > 0) {
@@ -426,6 +472,21 @@ function setupEventListeners() {
             }
         });
     }
+    
+    // Source tabs filter
+    if (sourceTabs.length) {
+        sourceTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const source = tab.dataset.source;
+                if (source) {
+                    currentSource = source;
+                    updateSourceTabs(source);
+                    displayTracks();
+                }
+            });
+        });
+    }
+}
 
 function setActiveSidebar(activeId) {
     document.querySelectorAll('.sidebar-item').forEach(item => {
@@ -487,8 +548,26 @@ async function handleSearch() {
     showLoadingState();
     addDebugLog('Search', `Searching for: "${query}"`, 'info');
     
+    // Save to search history
+    addSearchHistory(query);
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    if (clearSearchBtn) clearSearchBtn.style.display = 'flex';
+    
     try {
-        const results = await searchAllSources(query);
+        const results = await Promise.race([
+            searchAllSources(query),
+            new Promise(resolve => setTimeout(() => resolve(null), 8000))
+        ]);
+        
+        if (results === null) {
+            tracks = getDemoTracks(query);
+            if (tracks.length === 0) tracks = getDemoTracks();
+            currentTrackIndex = 0;
+            updateContentTitle(`Search: "${query}"`);
+            displayTracks();
+            addDebugLog('Search', 'Search timed out, showing demo fallback', 'warning');
+            return;
+        }
         
         if (results.length === 0) {
             showErrorState('no_results');
@@ -543,7 +622,18 @@ async function searchAllSources(query) {
     }
 
     try {
-        const results = await Promise.allSettled(searchPromises);
+        const results = await Promise.race([
+            Promise.allSettled(searchPromises),
+            new Promise(resolve => setTimeout(() => resolve('__timeout__'), 6000))
+        ]);
+        
+        if (results === '__timeout__') {
+            addDebugLog('Search', 'Search timed out, using demo fallback', 'warning');
+            let demoTracks = getDemoTracks(query);
+            if (demoTracks.length === 0) demoTracks = getDemoTracks();
+            return demoTracks;
+        }
+        
         const allTracks = [];
         let successCount = 0;
         
@@ -865,9 +955,16 @@ function getMockSearchResults(query) {
 function displayTracks() {
     if (!trackList) return;
     
-    const filteredTracks = currentSource === 'all' 
+    let filteredTracks = currentSource === 'all' 
         ? tracks 
         : tracks.filter(track => track.source === currentSource);
+
+    // If a specific source has no tracks, fall back to showing everything so the app never looks empty
+    if (filteredTracks.length === 0 && currentSource !== 'all' && tracks.length > 0) {
+        currentSource = 'all';
+        updateSourceTabs('all');
+        filteredTracks = tracks;
+    }
 
     if (filteredTracks.length === 0) {
         showEmptyState();
@@ -1083,12 +1180,26 @@ function showErrorState(errorType, details = '') {
 
 async function loadRecommendations() {
     try {
-        const results = await searchAllSources('trending popular music');
-        tracks = results;
-        currentTrackIndex = 0;
-        updateContentTitle('Home');
-        displayTracks();
-        console.log('Loaded recommendations:', results.length);
+        showLoadingState();
+        const results = await Promise.race([
+            searchAllSources('trending popular music'),
+            new Promise(resolve => setTimeout(() => resolve(null), 5000))
+        ]);
+        if (results) {
+            tracks = results;
+            currentTrackIndex = 0;
+            updateContentTitle('Home');
+            displayTracks();
+            console.log('Loaded recommendations:', results.length);
+        } else {
+            // Timeout fallback
+            console.warn('Recommendations timed out, using demo tracks');
+            tracks = getDemoTracks();
+            currentTrackIndex = 0;
+            updateContentTitle('Home');
+            displayTracks();
+            addDebugLog('Search', 'Recommendations timed out, showing demo tracks', 'warning');
+        }
     } catch (error) {
         console.error('Error loading recommendations:', error);
         tracks = getDemoTracks();
@@ -1104,12 +1215,21 @@ window.loadRecommendations = loadRecommendations;
 
 async function loadTrendingTracks() {
     try {
-        const results = await searchAllSources('trending music');
-        tracks = results;
+        showLoadingState();
+        const results = await Promise.race([
+            searchAllSources('trending music'),
+            new Promise(resolve => setTimeout(() => resolve(null), 6000))
+        ]);
+        if (results === null) {
+            console.warn('Trending timed out, using demo tracks');
+            tracks = getDemoTracks();
+        } else {
+            tracks = results;
+        }
         currentTrackIndex = 0;
         updateContentTitle('Trending');
         displayTracks();
-        console.log('Loaded trending:', results.length);
+        console.log('Loaded trending:', tracks.length);
     } catch (error) {
         console.error('Error loading trending:', error);
         tracks = getDemoTracks();
@@ -1122,12 +1242,21 @@ async function loadTrendingTracks() {
 
 async function loadNewReleases() {
     try {
-        const results = await searchAllSources('new music');
-        tracks = results;
+        showLoadingState();
+        const results = await Promise.race([
+            searchAllSources('new music'),
+            new Promise(resolve => setTimeout(() => resolve(null), 6000))
+        ]);
+        if (results === null) {
+            console.warn('New releases timed out, using demo tracks');
+            tracks = getDemoTracks();
+        } else {
+            tracks = results;
+        }
         currentTrackIndex = 0;
         updateContentTitle('New Releases');
         displayTracks();
-        console.log('Loaded new releases:', results.length);
+        console.log('Loaded new releases:', tracks.length);
     } catch (error) {
         console.error('Error loading new releases:', error);
         tracks = getDemoTracks();
@@ -1139,6 +1268,7 @@ async function loadNewReleases() {
 }
 
 function loadGenres() {
+    if (!trackList) return;
     // Show genre selection UI
     updateContentTitle('Browse Genres');
     const genres = [
@@ -1146,8 +1276,8 @@ function loadGenres() {
         { name: 'Rock', icon: 'fa-guitar', query: 'rock music' },
         { name: 'Pop', icon: 'fa-music', query: 'pop music' },
         { name: 'Hip-Hop', icon: 'fa-microphone', query: 'hip hop music' },
-        { name: 'Jazz', icon: 'fa-saxophone', query: 'jazz music' },
-        { name: 'Classical', icon: 'fa-violin', query: 'classical music' },
+        { name: 'Jazz', icon: 'fa-music', query: 'jazz music' },
+        { name: 'Classical', icon: 'fa-headphones', query: 'classical music' },
         { name: 'Ambient', icon: 'fa-cloud', query: 'ambient music' },
         { name: 'Indie', icon: 'fa-star', query: 'indie music' }
     ];
@@ -1170,7 +1300,20 @@ async function searchByGenre(query, name = 'Genre') {
     showLoadingState();
     
     try {
-        const results = await searchAllSources(query);
+        const results = await Promise.race([
+            searchAllSources(query),
+            new Promise(resolve => setTimeout(() => resolve(null), 6000))
+        ]);
+        
+        if (results === null) {
+            tracks = getDemoTracks(query);
+            if (tracks.length === 0) tracks = getDemoTracks();
+            currentTrackIndex = 0;
+            updateContentTitle(name);
+            displayTracks();
+            addDebugLog('Search', 'Genre search timed out, showing demo fallback', 'warning');
+            return;
+        }
         
         if (results.length === 0) {
             showErrorState('no_results');
@@ -2953,3 +3096,69 @@ window.extractYouTubeVideoId = extractYouTubeVideoId;
 // Make validation functions available globally
 window.validateTrack = validateTrack;
 window.isValidUrl = isValidUrl;
+
+// Search History Management
+const SEARCH_HISTORY_KEY = 'spotfuckSearchHistory';
+const MAX_SEARCH_HISTORY = 8;
+
+function getSearchHistory() {
+    return JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+}
+
+function saveSearchHistory(history) {
+    localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history.slice(0, MAX_SEARCH_HISTORY)));
+}
+
+function addSearchHistory(query) {
+    if (!query) return;
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return;
+    let history = getSearchHistory().filter(item => item.toLowerCase() !== normalized);
+    history.unshift(query.trim());
+    saveSearchHistory(history);
+}
+
+function removeSearchHistory(query) {
+    if (!query) return;
+    const history = getSearchHistory().filter(item => item !== query);
+    saveSearchHistory(history);
+    renderSearchHistory();
+}
+
+function renderSearchHistory() {
+    const historyEl = document.getElementById('searchHistory');
+    const searchInput = document.getElementById('searchInput');
+    if (!historyEl) return;
+    
+    const history = getSearchHistory();
+    if (history.length === 0) {
+        historyEl.innerHTML = '<div class="search-history-empty">No recent searches</div>';
+    } else {
+        historyEl.innerHTML = history.map(query => `
+            <div class="search-history-item" data-query="${escapeHtml(query)}">
+                <i class="fas fa-history"></i>
+                <span>${escapeHtml(query)}</span>
+                <button class="remove-history" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+    
+    const inputHasValue = searchInput && searchInput.value.trim().length > 0;
+    if (document.activeElement === searchInput || history.length > 0 || inputHasValue) {
+        historyEl.classList.add('active');
+    } else {
+        historyEl.classList.remove('active');
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+window.addSearchHistory = addSearchHistory;
+window.removeSearchHistory = removeSearchHistory;
+window.renderSearchHistory = renderSearchHistory;

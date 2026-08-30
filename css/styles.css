@@ -357,7 +357,7 @@ audio {
 
 .search-input {
     width: 100%;
-    padding: 12px 16px 12px 44px;
+    padding: 12px 90px 12px 44px;
     border-radius: 10px;
     border: 2px solid var(--border);
     background: var(--bg-card);
@@ -400,6 +400,89 @@ audio {
 
 .search-btn:hover {
     background: var(--primary-dark);
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 50px;
+    padding: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.search-history {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-top: 4px;
+    z-index: 50;
+    max-height: 180px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.search-history.active {
+    display: block;
+}
+
+.search-history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.search-history-item:hover {
+    background: var(--bg-hover);
+}
+
+.search-history-item i {
+    color: var(--text-muted);
+    margin-right: 10px;
+}
+
+.search-history-item span {
+    flex: 1;
+}
+
+.search-history-item .remove-history {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 12px;
+}
+
+.search-history-item .remove-history:hover {
+    color: var(--primary);
+}
+
+.search-history-empty {
+    padding: 14px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
 }
 
 /* Section Title */
